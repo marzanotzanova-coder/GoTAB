@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>GoTAB • Student Dashboard</title>
+  <style>
+    :root{
+      --bg1:#f3e8ff;
+      --bg2:#dcd1ff;
+      --text:#111827;
+      --muted:#6b7280;
+      --brand1:#7c3aed;
+      --brand2:#a855f7;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow: 0 18px 50px rgba(0,0,0,.12);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 500px at 20% 10%, rgba(124,58,237,.25), transparent 60%),
+        radial-gradient(900px 520px at 90% 15%, rgba(168,85,247,.22), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+
+    .app{
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 18px;
+      display:grid;
+      grid-template-columns: 300px 1fr;
+      gap: 16px;
+    }
+
+    .sidebar{
+      position: sticky;
+      top: 14px;
+      align-self:start;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(245,243,255,.92));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      overflow:hidden;
+      border: 1px solid rgba(124,58,237,.15);
+    }
+
+    .content{display:flex;flex-direction:column;gap:16px;}
+
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:12px;}
+    .logo{
+      width:44px;height:44px;border-radius:16px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      box-shadow: 0 10px 22px rgba(124,58,237,.35);
+      position:relative;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:12px;
+      border-radius:12px;
+      background: rgba(255,255,255,.35);
+      transform: rotate(18deg);
+    }
+    .brandTitle{line-height:1.1;}
+    .brandTitle .name{
+      font-weight: 900;font-size: 20px;letter-spacing:.2px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .brandTitle .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+    .profile{
+      background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(168,85,247,.10));
+      border-radius: 18px;padding: 14px;
+      border: 1px solid rgba(124,58,237,.18);
+    }
+    .profileTop{display:flex;align-items:center;gap:12px;}
+    .avatar{
+      width:46px;height:46px;border-radius:16px;
+      background: linear-gradient(135deg, rgba(124,58,237,.9), rgba(168,85,247,.85));
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-weight:900;
+      box-shadow: 0 10px 20px rgba(124,58,237,.25);
+      overflow:hidden;
+      cursor:pointer;
+      position:relative;
+    }
+    .avatar img{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .avatarHint{
+      font-size:11px;color:var(--muted);
+      margin-top:8px;
+    }
+
+    .pinfo .pname{font-weight:900}
+    .pinfo .pmeta{font-size:12px;color:var(--muted);margin-top:2px}
+    .pillRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .pill{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(124,58,237,.18);
+      color:#3b1fa6;font-weight:800;
+    }
+
+    .nav{margin-top:14px;display:flex;flex-direction:column;gap:10px;}
+    .nav button{
+      width:100%;padding: 12px;border:0;border-radius: 16px;
+      background: linear-gradient(135deg, rgba(124,58,237,.12), rgba(168,85,247,.08));
+      cursor:pointer;text-align:left;font-weight:900;color:#2b1a78;
+      transition:.2s;border: 1px solid rgba(124,58,237,.15);
+    }
+    .nav button:hover{transform: translateY(-1px); box-shadow: 0 10px 18px rgba(0,0,0,.08)}
+    .nav .mutebtn{background: rgba(255,255,255,.65);color:#111827;}
+    .nav .danger{
+      background: rgba(239,68,68,.10);
+      border: 1px solid rgba(239,68,68,.22);
+      color:#7f1d1d;
+    }
+
+    .topbar{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(245,243,255,.92));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid rgba(124,58,237,.15);
+      overflow:hidden;position:relative;
+    }
+    .topbar:before{
+      content:"";position:absolute;width:300px;height:300px;right:-120px;top:-160px;
+      background: radial-gradient(circle at 30% 30%, rgba(124,58,237,.30), transparent 60%),
+                  radial-gradient(circle at 70% 70%, rgba(168,85,247,.28), transparent 60%);
+      opacity:.9;
+    }
+    .topText{position:relative;z-index:1}
+    .hello{font-size: 12px;color: var(--muted);margin-bottom: 4px;font-weight:800;}
+    .headline{font-size: 22px;font-weight: 900;margin:0;letter-spacing:.2px;}
+    .desc{margin-top: 6px;color: var(--muted);font-size: 13px;max-width: 560px;}
+
+    .quick{
+      position:relative;z-index:1;
+      display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;
+    }
+    .qbtn{
+      border:0;cursor:pointer;border-radius: 16px;padding: 10px 12px;font-weight:900;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color:white;box-shadow: 0 14px 28px rgba(124,58,237,.28);transition:.2s;
+    }
+    .qbtn:hover{transform: translateY(-1px)}
+    .qbtn.secondary{
+      background: rgba(255,255,255,.75);
+      color:#2b1a78;border: 1px solid rgba(124,58,237,.18);
+      box-shadow:none;
+    }
+
+    .grid{
+  display:grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.card{
+  background: linear-gradient(180deg, rgba(255,255,255,.93), rgba(245,243,255,.93));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  border: 1px solid rgba(124,58,237,.15);
+  overflow:hidden;
+  position:relative;
+
+  opacity:0;
+  transform: translateY(20px);
+  animation: cardFadeUp .6s ease forwards;
+}
+
+@keyframes cardFadeUp{
+  from{
+    opacity:0;
+    transform: translateY(20px);
+  }
+  to{
+    opacity:1;
+    transform: translateY(0);
+  }
+}
+
+.grid .card:nth-child(1){animation-delay:0.05s;}
+.grid .card:nth-child(2){animation-delay:0.1s;}
+.grid .card:nth-child(3){animation-delay:0.15s;}
+.grid .card:nth-child(4){animation-delay:0.2s;}
+.grid .card:nth-child(5){animation-delay:0.25s;}
+.grid .card:nth-child(6){animation-delay:0.3s;}
+.grid .card:nth-child(7){animation-delay:0.35s;}
+    .cardTitle{font-weight: 900;margin:0 0 10px 0;font-size: 14px;color:#1f2937;}
+    .muted{color:var(--muted); font-size:12px}
+
+    .kpi{display:flex; gap:12px; flex-wrap:wrap;}
+    .kpiBox{
+      flex: 1 1 140px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(124,58,237,.14);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    .kpiVal{font-size: 20px;font-weight: 900;margin: 4px 0 2px 0;}
+    .kpiLab{font-size:12px;color:var(--muted);font-weight:800}
+
+    .barWrap{
+      margin-top: 10px;background: rgba(124,58,237,.10);
+      border-radius: 999px;height: 12px;overflow:hidden;
+      border: 1px solid rgba(124,58,237,.12);
+    }
+    .bar{
+      height: 100%;width: 0%;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      border-radius: 999px;transition: width .4s ease;
+    }
+
+    .list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+    .row{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding: 12px;border-radius: 16px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(124,58,237,.12);
+    }
+    .rowLeft{display:flex;flex-direction:column;min-width:0;}
+    .rowTitle{font-weight:900;font-size:13px}
+    .rowSub{
+      font-size:12px;color:var(--muted);margin-top:2px;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      max-width: 420px;
+    }
+    #notifications .rowSub{
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+#notifications .row{
+  align-items: flex-start;
+}
+   .feedbackCard{
+  border-left:4px solid #7c3aed;
+  background: rgba(124,58,237,.06);
+}
+
+.feedbackQuote{
+  font-style: italic;
+  margin-top:6px;
+} 
+.feedbackCard .rowSub{
+  white-space: normal;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: none;
+  line-height: 1.45;
+  word-break: break-word;
+}
+    .badge{
+      font-size:12px;font-weight:900;padding: 7px 10px;border-radius: 999px;
+      border: 1px solid rgba(0,0,0,.06);
+      background: rgba(34,197,94,.12);
+      color:#14532d;white-space:nowrap;
+    }
+    .badge.warn{background: rgba(245,158,11,.14); color:#7c2d12}
+    .badge.bad{background: rgba(239,68,68,.14); color:#7f1d1d}
+    .badge.neutral{background: rgba(124,58,237,.12); color:#2b1a78}
+
+    .checklist{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
+    .checkItem{
+      display:flex;align-items:center;gap:10px;
+      padding: 10px 12px;border-radius: 16px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(124,58,237,.12);
+    }
+    .checkItem input{width:18px;height:18px}
+
+    .sparkWrap{
+      display:flex;gap:14px;align-items:center;margin-top:10px;
+      padding: 12px;border-radius: 18px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(124,58,237,.12);
+    }
+    canvas{width:170px;height:54px;border-radius:12px;background:rgba(124,58,237,.06);border:1px solid rgba(124,58,237,.12)}
+
+    .supportRow{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+    }
+    .supportRow a{
+      text-decoration:none;
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:10px 12px;border-radius:16px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(124,58,237,.18);
+      color:#2b1a78;font-weight:900;
+    }
+    .supportRow a.primary{
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color:white;border:0;
+    }
+
+    /* Achievements & Notifications тым ұзын болмауы үшін */
+    .compactList{
+      max-height: 220px;
+      overflow:auto;
+      padding-right: 4px;
+    }
+
+    /* inline goal selector */
+    .goalBox{
+      display:none;
+      margin-top:10px;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.65);
+      border: 1px solid rgba(124,58,237,.12);
+    }
+    .goalBox label{font-size:12px;color:var(--muted);font-weight:800;display:block;margin-bottom:6px}
+    .goalBox select{
+      width:100%;
+      padding:10px 12px;
+      border-radius:14px;
+      border: 1px solid rgba(124,58,237,.18);
+      background: rgba(255,255,255,.92);
+      font-weight:900;
+      cursor:pointer;
+    }
+    .goalBox .muted{margin-top:8px}
+
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr}
+      .sidebar{position:relative; top:auto}
+      .quick{justify-content:flex-start}
+      .rowSub{max-width: 240px;}
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="brandTitle">
+        <div class="name">GoTAB</div>
+        <div class="sub">Student Dashboard</div>
+      </div>
+    </div>
+
+    <div class="profile">
+      <div class="profileTop">
+        <div class="avatar" id="avatar" title="Фото қою үшін бас">
+          <span id="avatarLetter">G</span>
+          <img id="avatarImg" alt="" style="display:none;">
+        </div>
+        <div class="pinfo">
+          <div class="pname" id="pname">Оқушы</div>
+          <div class="pmeta" id="pmeta">ID: —</div>
+        </div>
+      </div>
+      <div class="pillRow">
+        <div class="pill" id="pillPkg">Пакет: —</div>
+        <div class="pill" id="pillRole">Role: —</div>
+      </div>
+      <div class="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
+      <input type="file" id="avatarFile" accept="image/*" style="display:none;">
+    </div>
+
+    <div class="nav">
+      <!-- ✅ ТЕК 1 БАТЫРМА -->
+      <button id="goCourseBtn">📚 Курсқа өту</button>
+
+      <button class="mutebtn" id="goAdminBtn" style="display:none;">🛠 Admin панель</button>
+      <button class="mutebtn" id="refreshBtn">🔄 Жаңарту</button>
+      <button class="danger" id="logoutBtn">🚪 Шығу</button>
+    </div>
+
+    <div style="margin-top:14px" class="muted" id="hintText">
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="topbar">
+      <div class="topText">
+        <div class="hello" id="hello">Сәлем 👋</div>
+        <h1 class="headline">Жеке кабинет</h1>
+        <div class="desc">
+          Мұнда сенің пакетің, прогрессің, тапсырма статусы, streak және жаңалықтар көрінеді.
+        </div>
+      </div>
+
+      <div class="quick">
+        <button class="qbtn secondary" id="openDashboardInfo">ℹ️ Info</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <!-- Today plan -->
+      <div class="card" style="grid-column: span 7;">
+        <div class="cardTitle">🗓 Бүгінгі жоспар</div>
+        <div class="row">
+          <div class="rowLeft">
+            <div class="rowTitle" id="todayLessonTitle">Бүгін ашатын сабақ: —</div>
+            <div class="rowSub">Белгілеп отырсаң — мотивация болады ✅</div>
+          </div>
+          <div class="badge neutral" id="todayBadge">0/3</div>
+        </div>
+
+        <div class="checklist" id="todayChecklist"></div>
+
+        <div class="muted" style="margin-top:10px">
+          * Бұл чекбокстар <b>күні бойынша</b> сақталады.
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="card" style="grid-column: span 5;">
+        <div class="cardTitle">📈 Аналитика</div>
+
+        <div class="kpi">
+          <div class="kpiBox">
+            <div class="kpiVal" id="kpiAvg">0</div>
+            <div class="kpiLab">Орташа баға</div>
+          </div>
+          <div class="kpiBox">
+            <div class="kpiVal" id="kpiDone">0/30</div>
+            <div class="kpiLab">Бағаланған сабақ</div>
+          </div>
+          <div class="kpiBox">
+            <div class="kpiVal" id="kpiGoal">0%</div>
+            <div class="kpiLab">Жалпы progress</div>
+          </div>
+        </div>
+
+        <div class="barWrap" aria-label="progressbar">
+          <div class="bar" id="progressBar"></div>
+        </div>
+
+        <div class="sparkWrap">
+          <div style="flex:1">
+            <div class="rowTitle" style="margin-bottom:4px">Соңғы 10 баға</div>
+            <div class="muted" id="sparkHint">Мини-график (sparkline)</div>
+          </div>
+          <canvas id="spark" width="170" height="54"></canvas>
+        </div>
+      </div>
+
+
+      <!-- Recent grades + feedback -->
+      <div class="card" style="grid-column: span 6;">
+        <div class="cardTitle">🏅 Соңғы бағалар</div>
+        <div class="list" id="recentGrades"></div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="card" style="grid-column: span 6;">
+        <div class="cardTitle">🏆 Жетістіктер</div>
+        <div class="list compactList" id="achievements"></div>
+
+        <!-- ✅ Excellent tier GO басқанда ашылатын inline selector -->
+        <div class="goalBox" id="goalBox">
+          <label>Excellent tier мақсатын таңда:</label>
+          <select id="goalSelect"></select>
+          <div class="muted" id="goalInfo"></div>
+        </div>
+      </div>
+
+      <!-- Notifications -->
+      <div class="card" style="grid-column: span 6;">
+        <div class="cardTitle">🔔 Хабарламалар</div>
+        <div class="muted">Жаңа баға/файл/мақсат — осында шығады.</div>
+        <div class="list compactList" id="notifications"></div>
+      </div>
+
+      <div class="card" style="grid-column: span 6;">
+  <div class="cardTitle">💬 Мұғалім пікірі</div>
+  <div id="feedbackList" class="list"></div>
+</div>
+
+      <!-- Profile / Support -->
+      <div class="card" style="grid-column: span 12;">
+        <div class="cardTitle">👤 Профиль және қолдау</div>
+        <div class="row">
+          <div class="rowLeft">
+            <div class="rowTitle" id="profileLine">—</div>
+            <div class="rowSub" id="profileSub">Пакет + байланыс</div>
+          </div>
+          <div class="badge" id="netBadge">LOCAL</div>
+        </div>
+
+        <div class="supportRow">
+          <a class="primary" href="#" id="openCourseFromProfile">📚 Курсқа өту</a>
+          <a href="#" id="copyStudentIdBtn">🧾 Student ID көшіру</a>
+          <a href="https://t.me/" target="_blank" rel="noopener">💬 Telegram</a>
+          <a href="https://wa.me/" target="_blank" rel="noopener">🟢 WhatsApp</a>
+        </div>
+
+        <div class="muted" style="margin-top:10px">
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+
+  // =========================================================
+  // 0) ADMIN PREVIEW
+  // =========================================================
+ 
+const params = new URLSearchParams(window.location.search);
+const previewStudentId = params.get("previewStudentId");
+
+let sessionUser = null;
+let roleLS = "";
+let isAdmin = false;
+let isPreview = false;
+let effectiveStudentId = "";
+let isStudentView = true;
+let phone = "";
+let email = "";
+
+(async ()=>{
+  const me = await fetch("/api/auth/me", {
+    credentials:"include",
+    cache:"no-store"
+  }).then(r=>r.json()).catch(()=>null);
+
+  sessionUser = me?.user || null;
+
+  if(!sessionUser){
+    window.location.href = "index.html";
+    return;
+  }
+
+  roleLS = String(sessionUser.role || "");
+  isAdmin = roleLS === "admin";
+  isPreview = isAdmin && !!previewStudentId;
+
+  effectiveStudentId = isPreview
+    ? String(previewStudentId)
+    : String(sessionUser.studentId || "");
+
+  isStudentView = (!isAdmin) || isPreview;
+
+  phone = String(sessionUser.phone || "");
+  email = String(sessionUser.email || "");
+  effectivePackage = String(sessionUser.package || "pending").toLowerCase();
+  init();
+})();
+ 
+
+  // =========================================================
+  // 1.5) EFFECTIVE PROFILE VARS  ✅ MUST be BEFORE helpers
+  // =========================================================
+  let effectivePackage = "pending";
+  let effectiveName = "Оқушы";
+  let effectiveEmail = "";
+  let effectivePhone = "";
+
+  window.__gotab = {
+    sid: () => effectiveStudentId,
+    rawPkg: () => effectivePackage,
+    pkgLS: () => normPkgLS(effectivePackage),
+    pkgAPI: () => pkgApiFromLS(normPkgLS(effectivePackage)),
+  };
+
+ // =========================================================
+// 2) Helpers (package-aware keys + navigation)  ✅ FIXED
+// =========================================================
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function renderFeedbackOnly(serverProg){
+  const box = document.getElementById("feedbackList");
+  if(!box) return;
+
+  box.innerHTML = "";
+
+  const entries = Object.entries(serverProg || {})
+    .filter(([_, item]) => String(item?.feedbackText || "").trim());
+
+  if(entries.length === 0){
+    box.innerHTML = `<div class="muted">Әзірге мұғалім пікірі жоқ</div>`;
+    return;
+  }
+
+  entries
+    .sort((a,b)=> Number(b[0]) - Number(a[0]))
+    .forEach(([lesson, item])=>{
+      const row = document.createElement("div");
+      row.className = "row feedbackCard";
+      row.innerHTML = `
+        <div class="rowLeft" style="width:100%">
+          <div class="rowTitle">💬 Сабақ ${lesson}</div>
+          <div class="rowSub feedbackQuote">${escapeHtml(item.feedbackText || "")}</div>
+        </div>
+      `;
+      box.appendChild(row);
+    });
+}
+
+function todayKey(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${dd}`;
+}
+
+// localStorage pkg normalize
+function normPkgLS(p){
+  const x = String(p||"").toLowerCase();
+  if(x === "base" || x === "baza") return "baza";
+  if(x === "standard" || x === "standart") return "standart";
+  if(x === "premium") return "premium";
+  if(x === "pending") return "pending";
+  return "baza";
+}
+
+// server API course normalize
+function pkgApiFromLS(pkgLS){
+  return pkgLS === "baza" ? "base" : pkgLS; // standart/premium
+}
+
+// ✅ package getters
+function getPkgLS(){ return normPkgLS(effectivePackage); }
+function getPkgAPI(){ return pkgApiFromLS(getPkgLS()); }
+
+// ✅ keys: studentId + package
+function courseKey(prefix){
+  return `${prefix}_${(effectiveStudentId || "unknown")}_${getPkgLS()}`;
+}
+
+// ✅ SERVER progress fetch (robust: sid from LS fallback)
+async function fetchProgressFromServer(){
+  if(!effectiveStudentId){
+    return { gradesMap:{}, feedbackMap:{}, data:{} };
+  }
+
+  try{
+    const res = await fetch(
+      `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&course=${encodeURIComponent(getPkgAPI())}`
+    );
+
+    const j = await res.json().catch(()=>null);
+    if(!j || !j.ok){
+      return { gradesMap:{}, feedbackMap:{}, data:{} };
+    }
+
+    const data = j.data || {};
+    const gradesMap = {};
+    const feedbackMap = {};
+
+    for(const lessonKey of Object.keys(data)){
+      const item = data[lessonKey] || {};
+
+      const g = Number(item.grade ?? 0);
+      if(Number.isFinite(g) && g > 0){
+        gradesMap[String(lessonKey)] = g;
+      }
+
+      const fb = String(item.feedbackText || "").trim();
+      if(fb){
+        feedbackMap[String(lessonKey)] = { text: fb };
+      }
+    }
+
+    return { gradesMap, feedbackMap, data };
+
+  }catch(e){
+    console.error("fetchProgressFromServer error", e);
+    return { gradesMap:{}, feedbackMap:{}, data:{} };
+  }
+}
+// ✅ migrate old -> new (after package is known)
+function migrateOldKeyToNew(prefix){
+  const newK = courseKey(prefix);
+  if(localStorage.getItem(newK) !== null) return;
+
+  const sid = (effectiveStudentId || "unknown");
+  const oldCandidates = [
+    prefix,
+    `${prefix}_${sid}`,
+    `${prefix}_${sid}_${String(effectivePackage||"")}`,
+    `${prefix}_${sid}_${String(getPkgLS()||"")}`
+  ];
+
+  for(const ok of oldCandidates){
+    const v = localStorage.getItem(ok);
+    if(v !== null){
+      localStorage.setItem(newK, v);
+      break;
+    }
+  }
+}
+
+function pkgLabel(){
+  const p = String(effectivePackage || "").toLowerCase();
+  if(p === "pending") return "Күтілуде";
+  if(p === "baza") return "База";
+  if(p === "standart") return "Стандарт";
+  if(p === "premium") return "Премиум";
+  return "Күтілуде";
+}
+
+function coursePage(){
+  const p = String(effectivePackage || "").toLowerCase();
+
+  if(p === "baza" || p === "base") return "base-blocks.html";
+  if(p === "standart" || p === "standard") return "standard-blocks.html";
+  if(p === "premium") return "premium-blocks.html";
+
+  return "base-blocks.html";
+}
+
+function makeRow(title, sub, badgeText, badgeKind){
+  const el = document.createElement("div");
+  el.className = "row";
+  el.innerHTML = `
+    <div class="rowLeft">
+      <div class="rowTitle">${escapeHtml(title)}</div>
+      <div class="rowSub">${escapeHtml(sub)}</div>
+    </div>
+    <div class="badge ${badgeKind ? badgeKind : "neutral"}">${escapeHtml(badgeText)}</div>
+  `;
+  return el;
+}
+
+function uniqueNums(arr){
+  return Array.from(new Set(arr))
+    .map(x => Number(x))
+    .filter(x => Number.isFinite(x))
+    .filter(x => x >= 1 && x <= 30);
+}
+
+function getNextLesson(progressValues){
+  for(let i=1;i<=30;i++){
+    const n = Number(progressValues[i] || 0);
+    if(!n || n <= 0) return i;
+  }
+  return 30;
+}
+
+// ================= STREAK (SERVER) =================
+async function pingStreakServer(){
+  if(!effectiveStudentId) return { ok:false };
+  if(isPreview) return { ok:false };
+
+  const dayKey = new Date().toISOString().slice(0,10);
+
+  try{
+    const r = await fetch("/api/streak/ping", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ studentId: effectiveStudentId, dayKey })
+    });
+    return await r.json();
+  }catch(e){
+    console.error("streak ping error", e);
+    return { ok:false };
+  }
+}
+window.pingStreakServer = pingStreakServer;
+
+  // =========================================================
+  // Admin preview: load student profile from server
+  // =========================================================
+  async function loadStudentInfoIfPreview(){
+    if(!isPreview) return;
+
+    try{
+      const r = await fetch("/api/admin/students");
+      const j = await r.json().catch(()=>null);
+      const list = (j && j.ok && Array.isArray(j.students)) ? j.students : [];
+      const st = list.find(x => String(x.studentId||"") === String(effectiveStudentId));
+
+      if(st){
+        effectiveName = st.fullName || "Оқушы";
+        effectiveEmail = st.email || "";
+        effectivePhone = st.phone || "";
+        if(st.package) effectivePackage = normPkgLS(st.package); // ✅ normalize!
+      }else{
+        effectiveName = "Оқушы";
+      }
+    }catch(e){
+      console.error("admin/students error", e);
+    }
+  }
+
+  // =========================================================
+  // 4) UI Fill
+  // =========================================================
+  const avatarEl  = document.getElementById("avatar");
+  const pnameEl   = document.getElementById("pname");
+  const pmetaEl   = document.getElementById("pmeta");
+  const pillRoleEl= document.getElementById("pillRole");
+  const pillPkgEl = document.getElementById("pillPkg");
+
+  function setHelloText(){
+    const helloEl = document.getElementById("hello");
+    if(!helloEl) return;
+    if(isPreview){ helloEl.textContent = "Сәлем, оқушы 👋"; return; }
+    helloEl.textContent = isAdmin ? "Сәлем, Admin 👋" : "Сәлем, оқушы 👋";
+  }
+
+  function fillProfileUI(){
+    if(pillRoleEl){
+      if(isPreview) pillRoleEl.textContent = "Role: admin • preview";
+      else pillRoleEl.textContent = "Role: " + (roleLS || "—");
+    }
+    if(pillPkgEl) pillPkgEl.textContent = "Пакет: " + pkgLabel();
+
+    if(pnameEl){
+      if(isPreview) pnameEl.textContent = effectiveName;
+      else pnameEl.textContent = isAdmin ? "Admin" : (effectiveName || "Оқушы");
+    }
+
+    if(pmetaEl){
+      if(isPreview) pmetaEl.textContent = "ID: " + (effectiveStudentId || "—");
+      else if(isAdmin) pmetaEl.textContent = "admin@gotab.kz";
+      else pmetaEl.textContent = "ID: " + (effectiveStudentId || "—");
+    }
+
+   if(avatarEl){
+  avatarEl.style.backgroundSize = "cover";
+  avatarEl.style.backgroundPosition = "center";
+  avatarEl.style.backgroundRepeat = "no-repeat";
+
+  const serverAvatar = String(sessionUser?.avatar || "").trim();
+
+  if(serverAvatar){
+    avatarEl.textContent = "";
+    avatarEl.style.backgroundImage = `url('${serverAvatar}?t=${Date.now()}')`;
+  }else{
+    avatarEl.style.backgroundImage = "";
+    const letter = (effectiveEmail || effectivePhone || "G").trim().slice(0,1).toUpperCase();
+    avatarEl.textContent = letter || "G";
+  }
+
+      avatarEl.style.cursor = (!isAdmin && isStudentView) ? "pointer" : (isPreview ? "not-allowed" : "default");
+
+      avatarEl.onclick = () => {
+  if(isAdmin) return;
+
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if(!file) return;
+
+    if(file.size > 1_500_000){
+      alert("Фото тым үлкен. 1.5MB-тан кіші фото таңдашы 🙏");
+      return;
+    }
+
+    try{
+      const fd = new FormData();
+      fd.append("avatar", file);
+
+      const r = await fetch("/api/avatar/upload", {
+        method: "POST",
+        body: fd,
+        credentials: "include"
+      });
+
+      const j = await r.json().catch(()=>null);
+
+      if(!r.ok || !j?.ok){
+        alert("Аватар жүктелмеді");
+        return;
+      }
+
+      avatarEl.textContent = "";
+      avatarEl.style.backgroundImage = `url('${j.url}?t=${Date.now()}')`;
+      avatarEl.style.backgroundSize = "cover";
+      avatarEl.style.backgroundPosition = "center";
+      avatarEl.style.backgroundRepeat = "no-repeat";
+    }catch(e){
+      console.error(e);
+      alert("Серверге фото жүктелмеді");
+    }
+  };
+
+  input.click();
+};
+    }
+
+    const goAdminBtn = document.getElementById("goAdminBtn");
+    if(goAdminBtn) goAdminBtn.style.display = isAdmin ? "block" : "none";
+
+    const hint = document.getElementById("hintText");
+    if(hint){
+      if(isPreview) hint.textContent = "* Admin preview: бұл оқушының кабинеті. Өзгертуге болмайды.";
+      else if(isAdmin) hint.textContent = "* Admin dashboard.";
+
+    }
+
+    setHelloText();
+  }
+
+  // =========================================================
+  // 5) Buttons
+  // =========================================================
+  function wireButtons(){
+    const goAdminBtn = document.getElementById("goAdminBtn");
+    if(goAdminBtn) goAdminBtn.addEventListener("click", ()=> window.location.href = "admin.html");
+
+    const refreshBtn = document.getElementById("refreshBtn");
+    if(refreshBtn) refreshBtn.addEventListener("click", ()=> window.location.reload());
+
+    const logoutBtn = document.getElementById("logoutBtn");
+   if(logoutBtn){
+  logoutBtn.addEventListener("click", async ()=>{
+    if(isPreview){
+      window.location.href = "admin.html";
+      return;
+    }
+
+    try{
+      await fetch("/api/auth/logout", {
+        method:"POST",
+        credentials:"include",
+        cache:"no-store"
+      });
+    }catch(e){
+      console.error(e);
+    }
+
+    window.location.href = "index.html";
+  });
+}
+
+    const goCourseBtn = document.getElementById("goCourseBtn");
+   if(goCourseBtn) goCourseBtn.addEventListener("click", ()=>{
+  if(String(effectivePackage || "").toLowerCase() === "pending"){
+    alert("Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады.");
+    return;
+  }
+
+  const base = coursePage();
+  if(isPreview){
+    window.location.href = base + `?previewStudentId=${encodeURIComponent(effectiveStudentId)}`;
+  }else{
+    window.location.href = base;
+  }
+});
+
+    const openCourseFromProfile = document.getElementById("openCourseFromProfile");
+   if(openCourseFromProfile){
+  openCourseFromProfile.addEventListener("click", (e)=>{
+    e.preventDefault();
+
+    if(String(effectivePackage || "").toLowerCase() === "pending"){
+      alert("Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады.");
+      return;
+    }
+
+    const base = coursePage();
+    if(isPreview){
+      window.location.href = base + `?previewStudentId=${encodeURIComponent(effectiveStudentId)}`;
+    }else{
+      window.location.href = base;
+    }
+  });
+}
+    
+
+    const infoBtn = document.getElementById("openDashboardInfo");
+    if(infoBtn){
+      infoBtn.addEventListener("click", ()=>{
+        alert(
+          "GoTAB Dashboard\n\n" +
+          "✅ Today plan\n" +
+          "✅ Analytics + Sparkline\n" +
+          "✅ Upload status pipeline (server)\n" +
+          "✅ Achievements (goal)\n" +
+          "✅ Notifications\n\n" +
+          (isPreview ? "Admin preview режимінде қарап тұрсың." : "")
+        );
+      });
+    }
+  }
+
+  // =========================================================
+  // 6) KPI + Sparkline (LOCAL fallback)
+  // =========================================================
+
+  async function renderKpiAndSpark(){
+  const { gradesMap } = await fetchProgressFromServer();
+
+  let sum = 0, cnt = 0;
+  const grades = [];
+
+  for(let i=1;i<=30;i++){
+    const n = Number(gradesMap[String(i)] || 0);
+    if(n > 0){
+      sum += n;
+      cnt += 1;
+      grades.push({lesson:i, grade:n});
+    }
+  }
+
+  const avg = cnt ? Math.round(sum / cnt) : 0;
+  const progressPct = Math.round((cnt / 30) * 100);
+
+  const kpiAvg = document.getElementById("kpiAvg");
+  const kpiDone = document.getElementById("kpiDone");
+  const kpiGoal = document.getElementById("kpiGoal");
+  const bar = document.getElementById("progressBar");
+
+  if(kpiAvg) kpiAvg.textContent = String(avg);
+  if(kpiDone) kpiDone.textContent = cnt + "/30";
+  if(kpiGoal) kpiGoal.textContent = progressPct + "%";
+  if(bar) bar.style.width = progressPct + "%";
+
+  grades.sort((a,b)=> a.lesson - b.lesson);
+  const last10 = grades.slice(-10).map(x=>x.grade);
+  drawSparkline(last10);
+
+  // бұрынғы кодтармен совместимость үшін:
+  const progressValues = {};
+  grades.forEach(x => progressValues[String(x.lesson)] = x.grade);
+
+  return { avg, progressValues, grades };
+}
+
+  function drawSparkline(values){
+    const c = document.getElementById("spark");
+    const hint = document.getElementById("sparkHint");
+    if(!c) return;
+
+    const cssW = 170, cssH = 54, dpr = window.devicePixelRatio || 1;
+    c.style.width = cssW + "px"; c.style.height = cssH + "px";
+    c.width = Math.floor(cssW * dpr); c.height = Math.floor(cssH * dpr);
+
+    const ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0,0,cssW,cssH);
+
+    if(!values || values.length < 2){
+      if(hint) hint.textContent = "Баға аз — график кейін шығады";
+      return;
+    }
+
+    const pad = 6, W = cssW, H = cssH;
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = "rgba(124,58,237,.22)";
+    ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
+
+    ctx.lineWidth = 2.6;
+    ctx.strokeStyle = "rgba(124,58,237,.95)";
+    ctx.beginPath();
+    values.forEach((v, idx)=>{
+      const x = pad + (idx/(values.length-1))*(W-2*pad);
+      const y = pad + (1 - ((v-min)/((max-min) || 1)))*(H-2*pad);
+      if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+
+    const lv = values[values.length-1];
+    const lx = W - pad;
+    const ly = pad + (1 - ((lv-min)/((max-min) || 1)))*(H-2*pad);
+
+    ctx.fillStyle = "rgba(168,85,247,.98)";
+    ctx.beginPath(); ctx.arc(lx, ly, 3.8, 0, Math.PI*2); ctx.fill();
+    if(hint) hint.textContent = "Соңғы баға: " + lv + "/100";
+  }
+
+  // =========================================================
+  // 7) Today plan (per day + per package)
+  // =========================================================
+  function getPlanKey(){
+    return "todayPlan_" + (effectiveStudentId || "unknown") + "_" + getPkgLS() + "_" + todayKey();
+  }
+
+  function getPlan(progressValues){
+  const nextLesson = getNextLesson(progressValues || {});
+
+  const key = getPlanKey();
+  const saved = JSON.parse(localStorage.getItem(key) || "null");
+  const plan = saved || {
+    lesson: nextLesson,
+    items: { watched:false, uploaded:false, reviewed:false }
+  };
+
+  // егер сервердегі келесі сабақ өзгерсе — plan.lesson де жаңарсын
+  plan.lesson = nextLesson;
+  plan.items = plan.items || { watched:false, uploaded:false, reviewed:false };
+
+  return plan;
+}
+
+ function renderTodayPlan(progressValues){
+  const plan = getPlan(progressValues);
+
+  const title = document.getElementById("todayLessonTitle");
+  if(title) title.textContent = "Бүгін ашатын сабақ: Сабақ " + plan.lesson;
+
+  const checklist = document.getElementById("todayChecklist");
+  if(!checklist) return;
+  checklist.innerHTML = "";
+
+  const items = [
+    {k:"watched",  label:"Видеоны көрді"},
+    {k:"uploaded", label:"Тапсырманы жүктеді"},
+    {k:"reviewed", label:"Қайта қарап шықты"},
+  ];
+
+  items.forEach(it=>{
+    const row = document.createElement("div");
+    row.className = "checkItem";
+    row.innerHTML = `
+      <input type="checkbox" ${plan.items[it.k] ? "checked":""} />
+      <div style="font-weight:900">✅ ${escapeHtml(it.label)}</div>
+    `;
+    const cb = row.querySelector("input");
+    if(isPreview) cb.disabled = true;
+
+    cb.addEventListener("change", ()=>{
+      if(isPreview) return;
+      plan.items[it.k] = cb.checked;
+      localStorage.setItem(getPlanKey(), JSON.stringify(plan));
+      renderTodayBadge(plan);
+    });
+
+    checklist.appendChild(row);
+  });
+
+  renderTodayBadge(plan);
+} 
+  function renderTodayBadge(plan){
+    const badge = document.getElementById("todayBadge");
+    if(!badge) return;
+    const done = Object.values(plan.items || {}).filter(Boolean).length;
+    badge.textContent = done + "/3";
+    badge.className = "badge " + (done===3 ? "" : (done===2 ? "warn" : "neutral"));
+  }
+
+  // =========================================================
+  // 8) SERVER progress (source of truth)
+  // =========================================================
+  function statusLabelFromProgress(p){
+    const grade = Number(p?.grade ?? 0);
+    const st = String(p?.status || "").toLowerCase();
+    const fb = String(p?.feedbackText || "");
+
+    if(fb.trim()) return { label:"💬 Фидбек бар", kind:"" };
+    if(grade > 0 || st === "graded") return { label:"🏅 Баға қойылды", kind:"" };
+    if(st === "reviewing") return { label:"🕒 Тексерілуде", kind:"warn" };
+    if(st === "checked")   return { label:"✅ Тексерілді", kind:"" };
+    if(st === "uploaded")  return { label:"📤 Жүктелді", kind:"warn" };
+    return { label:"❌ Жүктелмеген", kind:"neutral" };
+  }
+
+  async function fetchServerProgress(){
+    const sid = effectiveStudentId;
+    if(!sid) return {};
+    const res = await fetch(`/api/progress/get?studentId=${encodeURIComponent(sid)}&course=${encodeURIComponent(getPkgAPI())}`);
+    const data = await res.json().catch(()=>null);
+    return (data && data.ok && data.data) ? data.data : {};
+  }
+
+  async function renderUploadStatusesServer(focusLessons, localProgressValues){
+    const box = document.getElementById("uploadStatuses");
+    if(!box) return;
+    box.innerHTML = "";
+
+    if(!isStudentView){
+      box.appendChild(makeRow("Бұл блок оқушыға арналған", "Admin preview арқылы көре аласың.", "INFO", "neutral"));
+      return;
+    }
+
+    const sid = effectiveStudentId;
+    if(!sid){
+      box.appendChild(makeRow("Student ID жоқ", "Алдымен login жаса", "ERR", "bad"));
+      return;
+    }
+
+    let serverProg = {};
+    try{
+      serverProg = await fetchServerProgress();
+    }catch(e){
+      console.error(e);
+      box.appendChild(makeRow("Серверден статус алынбады", "progress/get істемеді", "WARN", "warn"));
+      return;
+    }
+
+    focusLessons.forEach(lesson=>{
+      const p = serverProg[String(lesson)] || {};
+      const {label, kind} = statusLabelFromProgress(p);
+
+      const sub2 = " ";
+      box.appendChild(makeRow("Сабақ " + lesson, sub2.trim() || " ", label, kind));
+    });
+  }
+
+  // ✅ Recent grades SHOULD come from server, NOT local
+  async function renderRecentGradesServer(serverProg, localGradesFallback){
+    const box = document.getElementById("recentGrades");
+    if(!box) return;
+    box.innerHTML = "";
+
+    const rows = [];
+    for(let i=1;i<=30;i++){
+      const p = serverProg[String(i)];
+      const grade = Number(p?.grade ?? 0);
+      const fb = String(p?.feedbackText || "");
+      if(grade > 0 || fb.trim()){
+        rows.push({ lesson:i, grade, fb });
+      }
+    }
+
+    // fallback: если сервер пустой, покажем local (чтобы тест не пропал)
+    if(rows.length === 0 && Array.isArray(localGradesFallback) && localGradesFallback.length){
+      const feedbackMap = JSON.parse(localStorage.getItem(courseKey("feedback")) || "{}");
+      const take = localGradesFallback.slice().sort((a,b)=> b.lesson - a.lesson).slice(0,6);
+      take.forEach(item=>{
+        const g = Number(item.grade || 0);
+        const fb = feedbackMap[String(item.lesson)];
+        const sub = fb?.text ? ("💬 " + fb.text) : "Баға қойылды";
+        let kind = g>=85 ? "" : (g>=60 ? "warn" : "bad");
+        box.appendChild(makeRow("Сабақ " + item.lesson, sub, g + "/100", kind));
+      });
+      return;
+    }
+
+    if(rows.length === 0){
+      box.appendChild(makeRow("Әзірге баға жоқ", "Admin баға қойған кезде көрінеді.", "WAIT", "warn"));
+      return;
+    }
+
+    rows.sort((a,b)=> b.lesson - a.lesson);
+    rows.slice(0,6).forEach(r=>{
+     const sub = "Баға қойылды"; 
+      const g = Number(r.grade || 0);
+      const badge = g > 0 ? (g + "/100") : "FB";
+      let kind = "";
+      if(g>0){
+        kind = g>=85 ? "" : (g>=60 ? "warn" : "bad");
+      }else{
+        kind = "neutral";
+      }
+      box.appendChild(makeRow("Сабақ " + r.lesson, sub, badge, kind));
+    });
+  }
+
+  // =========================================================
+  // 10) Achievements (local ok, per package keys)
+  // =========================================================
+  function calcStreak(dayStrings){
+    const set = new Set(dayStrings || []);
+    let s = 0;
+    const d = new Date();
+    while(true){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      const dd = String(d.getDate()).padStart(2,"0");
+      const key = `${y}-${m}-${dd}`;
+      if(set.has(key)){ s++; d.setDate(d.getDate()-1); }
+      else break;
+    }
+    return s;
+  }
+
+  function renderAchievements(avg, serverStreak){
+ console.log("renderAchievements() got serverStreak =", serverStreak, "avg =", avg);
+    const streak = Number(serverStreak || 0);
+    const achBox = document.getElementById("achievements");
+    if(!achBox) return;
+    achBox.innerHTML = "";
+
+    if(!isStudentView){
+      achBox.appendChild(makeRow("Admin", "Achievements студентке арналған", "—", "neutral"));
+      return;
+    }
+window.renderAchievements = renderAchievements;
+    const uploadKey = courseKey("uploadCount");
+    const uploadCount = Number(localStorage.getItem(uploadKey) || "0");
+
+    achBox.appendChild(makeRow("🔥 Күндік серия", `${streak} күн қатарынан кірдің`, streak>=3 ? "OK" : "START", streak>=3 ? "" : "warn"));
+    achBox.appendChild(makeRow("📤 Тапсырма", `${uploadCount} рет тапсырма жібердің`, uploadCount>=5 ? "OK" : "KEEP", uploadCount>=5 ? "" : "warn"));
+
+    const goalKey = courseKey("goal");
+    function getGoal(){
+      const g = Number(localStorage.getItem(goalKey) || "85");
+      if(!Number.isFinite(g) || g < 0 || g > 100) return 85;
+      return g;
+    }
+    function setGoal(g){ localStorage.setItem(goalKey, String(g)); }
+
+    const goal = getGoal();
+    const done = avg >= goal;
+
+    const excellentRow = makeRow(
+      "⭐ Үздік деңгей",
+      done ? `Мақсат ${goal}+ орындалды ✅` : `Мақсат ${goal}+ • GO басып өзгерте аласың`,
+      done ? "OK" : "GO",
+      done ? "" : "neutral"
+    );
+
+    const goalBox = document.createElement("div");
+    goalBox.style.marginTop = "10px";
+    goalBox.style.display = "none";
+    goalBox.style.padding = "12px";
+    goalBox.style.borderRadius = "16px";
+    goalBox.style.background = "rgba(255,255,255,.65)";
+    goalBox.style.border = "1px solid rgba(124,58,237,.12)";
+    goalBox.innerHTML = `
+      <div class="rowTitle" style="margin-bottom:6px">Мақсат таңда</div>
+      <div class="muted" id="goalInfo"></div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
+        <select id="goalSelect" style="padding:10px;border-radius:14px;border:1px solid rgba(124,58,237,.18);font-weight:900;cursor:pointer"></select>
+        <button id="goalSaveBtn" class="qbtn secondary" style="border-radius:14px;padding:10px 12px">💾 Сақтау</button>
+        <button id="goalCloseBtn" class="qbtn secondary" style="border-radius:14px;padding:10px 12px">✕ Жабу</button>
+      </div>
+      <div class="muted" style="margin-top:8px">* Preview режимде өзгертуге болмайды.</div>
+    `;
+
+    function fillGoalSelect(){
+      const sel = goalBox.querySelector("#goalSelect");
+      const info = goalBox.querySelector("#goalInfo");
+      sel.innerHTML = "";
+      for(let g=70; g<=100; g+=5){
+        const opt = document.createElement("option");
+        opt.value = String(g);
+        opt.textContent = g + "+";
+        sel.appendChild(opt);
+      }
+      sel.value = String(getGoal());
+      info.innerHTML = `Қазір avg: <b>${avg}</b>/100 • Мақсат: <b>${getGoal()}+</b>`;
+    }
+
+    function toggleGoalBox(){
+      goalBox.style.display = (goalBox.style.display === "none") ? "block" : "none";
+      fillGoalSelect();
+    }
+
+    const badge = excellentRow.querySelector(".badge");
+badge.style.cursor = isPreview ? "default" : "pointer";
+
+badge.addEventListener("click", ()=>{
+  if(isPreview){
+    alert("Preview режим: мақсат өзгертуге болмайды.");
+    return;
+  }
+  toggleGoalBox();
+});
+
+   goalBox.querySelector("#goalSaveBtn").addEventListener("click", ()=>{
+  if(isPreview) return alert("Preview режим: болмайды.");
+
+  const sel = goalBox.querySelector("#goalSelect");
+  const g = Number(sel.value || "85");
+  setGoal(g);
+
+  renderAchievements(avg, serverStreak);
+});
+    goalBox.querySelector("#goalCloseBtn").addEventListener("click", ()=>{
+      goalBox.style.display = "none";
+    });
+
+    achBox.appendChild(excellentRow);
+    achBox.appendChild(goalBox);
+  }
+
+  // =========================================================
+  // 11) Notifications
+  // =========================================================
+  async function renderNotifications(){
+    const box = document.getElementById("notifications");
+    if(!box) return;
+    box.innerHTML = "";
+
+    if(!isStudentView){
+      box.appendChild(makeRow("Admin", "Notifications студентке арналған", "—", "neutral"));
+      return;
+    }
+
+    try{
+      const res = await fetch(`/api/notifications?studentId=${encodeURIComponent(effectiveStudentId)}`);
+      const data = await res.json().catch(()=>null);
+      const list = (data && data.ok && Array.isArray(data.list)) ? data.list : [];
+
+      if(list.length === 0){
+        box.appendChild(makeRow("Әзірге notification жоқ", "Баға/файл болғанда осында шығады.", "OK", "neutral"));
+        return;
+      }
+
+      const pkg = String(effectivePackage || "").toLowerCase();
+
+const filtered = list.filter(n=>{
+  const txt = String(n.text || "").toLowerCase();
+
+  if(pkg === "base" || pkg === "baza"){
+    return txt.includes("(base)");
+  }
+
+  if(pkg === "standart" || pkg === "standard"){
+    return txt.includes("(standart)");
+  }
+
+  if(pkg === "premium"){
+    return txt.includes("(premium)");
+  }
+
+  return true;
+});
+
+      filtered.slice(0,8).forEach(n=>{
+        const when = new Date(n.createdAt || Date.now()).toLocaleString();
+        box.appendChild(makeRow(
+          n.type || "notif",
+          (n.text || "") + " • " + when,
+          (n.type || "INFO").toUpperCase(),
+          "neutral"
+        ));
+      });
+    }catch(e){
+      console.error(e);
+      box.appendChild(makeRow("Notifications алынбады", "сервер байланыспады", "WARN", "warn"));
+    }
+  }
+
+  // =========================================================
+  // 12) Profile line
+  // =========================================================
+  function renderProfileLine(){
+    const profileLine = document.getElementById("profileLine");
+    const profileSub  = document.getElementById("profileSub");
+
+    if(profileLine){
+      if(isPreview) profileLine.textContent = `Оқушы • ${effectiveName} • ${pkgLabel()}`;
+      else if(isAdmin) profileLine.textContent = "Admin • " + (email || "admin@gotab.kz");
+      else profileLine.textContent = `Оқушы • ${(effectiveEmail || effectivePhone || "")} • ${pkgLabel()}`;
+    }
+
+    if(profileSub){
+  if(isPreview) {
+    profileSub.textContent = "Preview • ID: " + (effectiveStudentId || "—");
+  } else if(isAdmin) {
+    profileSub.textContent = "Материал жүктеу / тексеру";
+  } else if(String(effectivePackage || "").toLowerCase() === "pending") {
+    profileSub.textContent = "Пакет әлі бекітілмеді • ID: " + (effectiveStudentId || "—");
+  } else {
+    profileSub.textContent = "Пакет: " + pkgLabel() + " • ID: " + (effectiveStudentId || "—");
+  }
+}
+
+    const netBadge = document.getElementById("netBadge");
+    if(netBadge) netBadge.textContent = "LOCAL";
+  }
+
+// =========================================================
+// 13) Init
+// =========================================================
+async function init(){
+  await loadStudentInfoIfPreview(); // ✅ алдымен package анықталсын
+
+  // ✅ migrate AFTER package is final
+  migrateOldKeyToNew("progressValues");
+  migrateOldKeyToNew("feedback");
+  migrateOldKeyToNew("uploadCount");
+  migrateOldKeyToNew("goal");
+
+  fillProfileUI();
+  wireButtons();
+
+// ✅ server-first KPI
+const { avg, progressValues, grades } = await renderKpiAndSpark();
+
+// ✅ STREAK: server ping (preview емес кезде ғана жазылады)
+const streakResp = await pingStreakServer();
+const serverStreak = Number(streakResp?.streak ?? 0);
+
+// ✅ Achievements енді сервер streak-пен
+renderAchievements(avg, serverStreak);
+  renderTodayPlan(progressValues);
+
+  const plan = getPlan(progressValues);
+  const gradesDesc = grades.slice().sort((a,b)=> b.lesson - a.lesson).slice(0,4).map(x=>x.lesson);
+
+  const focus = uniqueNums([
+    plan.lesson,
+    Math.max(1, plan.lesson-1),
+    Math.min(30, plan.lesson+1),
+    ...gradesDesc
+  ]).slice(0,6);
+
+  renderUploadStatusesServer(focus, progressValues);
+
+// ✅ Recent grades: SERVER-ден көрсетеміз
+const serverProg = await fetchServerProgress();
+renderFeedbackOnly(serverProg);
+await renderRecentGradesServer(serverProg, grades);
+
+renderNotifications();
+renderProfileLine();
+};
+
+// ✅ DEBUG EXPORTS (console үшін)
+window.pingStreakServer = pingStreakServer;
+window.renderAchievements = renderAchievements;
+window.__dash = {
+  sid: () => effectiveStudentId,
+  pingStreakServer: () => pingStreakServer(),
+  renderAchievements: (...args) => renderAchievements(...args),
+};
+})();
+</script>

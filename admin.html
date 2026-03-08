@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>GoTAB • Admin</title>
+  <style>
+    :root{
+      --bg1:#f3e8ff; --bg2:#dcd1ff;
+      --text:#111827; --muted:#6b7280;
+      --brand1:#7c3aed; --brand2:#a855f7;
+      --shadow: 0 18px 50px rgba(0,0,0,.12);
+      --radius: 22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Arial, sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 500px at 20% 10%, rgba(124,58,237,.25), transparent 60%),
+        radial-gradient(900px 520px at 90% 15%, rgba(168,85,247,.22), transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+
+    .app{
+      max-width: 1200px;
+      margin:0 auto;
+      padding:18px;
+      display:grid;
+      grid-template-columns: 360px 1fr;
+      gap:16px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.93), rgba(245,243,255,.93));
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      border: 1px solid rgba(124,58,237,.15);
+      overflow:hidden;
+    }
+
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:14px;
+    }
+    .logo{
+      width:44px;height:44px;border-radius:16px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      box-shadow: 0 10px 22px rgba(124,58,237,.35);
+      position:relative;
+    }
+    .logo:after{
+      content:""; position:absolute; inset:12px; border-radius:12px;
+      background: rgba(255,255,255,.35); transform: rotate(18deg);
+    }
+    .brandTitle .name{
+      font-weight:900; font-size:20px;
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .brandTitle .sub{font-size:12px;color:var(--muted);margin-top:2px}
+
+    .muted{color:var(--muted); font-size:12px}
+
+    .sectionTitle{font-weight:900; margin:0 0 10px 0; font-size:14px; color:#1f2937;}
+
+    .row{
+      display:flex; justify-content:space-between; align-items:center; gap:10px;
+      padding:12px; border-radius:16px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(124,58,237,.14);
+      margin-top:10px;
+    }
+    .rowLeft{display:flex; flex-direction:column}
+    .rowTitle{font-weight:900; font-size:13px}
+    .rowSub{font-size:12px; color:var(--muted); margin-top:2px}
+
+    .btn{
+      border:0; cursor:pointer;
+      border-radius:16px;
+      padding:10px 12px;
+      font-weight:900;
+    }
+    .btn.primary{
+      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      color:white;
+      box-shadow: 0 14px 28px rgba(124,58,237,.28);
+    }
+    .btn.ghost{
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(124,58,237,.18);
+      color:#2b1a78;
+      box-shadow:none;
+    }
+
+    select, input[type="file"]{
+      width:100%;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid #ccc;
+      font-size:14px;
+      outline:none;
+      background:white;
+      margin-top:8px;
+    }
+
+    .list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+      max-height: 560px;
+      overflow:auto;
+      padding-right:4px;
+    }
+
+    .studentRow{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px; border-radius:16px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(124,58,237,.14);
+    }
+    .studentLeft{display:flex;flex-direction:column}
+    .studentName{font-weight:900;color:#2b1a78}
+    .studentMeta{font-size:12px;color:#6b7280;margin-top:2px}
+    .studentBtns{display:flex;gap:8px;flex-wrap:wrap}
+    .studentBtns button{
+      padding:8px 10px;border-radius:12px;border:0;cursor:pointer;font-weight:900;
+    }
+    .btnView{background:linear-gradient(135deg,#7f3ff0,#a855f7); color:white;}
+    .btnCopy{background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.18); color:#2b1a78;}
+
+    @media (max-width: 980px){
+      .app{grid-template-columns: 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <!-- LEFT: students -->
+  <aside class="card">
+    <div class="brand">
+      <div class="logo"></div>
+      <div class="brandTitle">
+        <div class="name">GoTAB</div>
+        <div class="sub">Admin панель • Оқушылар</div>
+      </div>
+    </div>
+
+    <div class="sectionTitle">👥 Оқушылар тізімі</div>
+    <div class="muted">Серверден келеді: <code>/api/admin/students</code></div>
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Жаңарту</div>
+        <div class="rowSub">Оқушыларды қайта жүктеу</div>
+      </div>
+      <button class="btn ghost" id="reloadStudents">🔄</button>
+    </div>
+
+    <div class="list" id="studentsList"></div>
+  </aside>
+
+  <!-- RIGHT: uploads -->
+  <main class="card">
+    <div class="sectionTitle">📦 Материал жүктеу</div>
+    <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Курс</div>
+        <div class="rowSub">База / Стандарт / Премиум</div>
+      </div>
+    </div>
+    <select id="course-select">
+      <option value="baza">База</option>
+      <option value="standart">Стандарт</option>
+      <option value="premium">Премиум</option>
+    </select>
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Видеолар</div>
+        <div class="rowSub">mp4 / mov / webm</div>
+      </div>
+    </div>
+    <input type="file" id="video-upload" multiple accept="video/*">
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Аудиолар</div>
+        <div class="rowSub">mp3 / wav / etc</div>
+      </div>
+    </div>
+    <input type="file" id="audio-upload" multiple accept="audio/*">
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Документтер</div>
+        <div class="rowSub">pdf / doc / docx</div>
+      </div>
+    </div>
+    <input type="file" id="doc-upload" multiple accept=".pdf,.doc,.docx,.txt">
+
+    <div class="row">
+  <div class="rowLeft">
+    <div class="rowTitle">💬 Мұғалім пікірі</div>
+    <div class="rowSub">Оқушыға көрінетін комментарий</div>
+  </div>
+</div>
+
+<textarea id="feedbackText"
+  placeholder="Мысалы: Тапсырма жақсы, бірақ дәлелдеуді толық жаз."
+  style="
+    width:100%;
+    min-height:80px;
+    border-radius:14px;
+    border:1px solid #ccc;
+    padding:10px;
+    margin-top:8px;
+    font-family:Arial,sans-serif;
+    font-size:14px;
+  "
+></textarea>
+
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">Сақтау</div>
+        <div class="rowSub">Сабақ нөмірін сұрайды (1-30)</div>
+      </div>
+      <button class="btn primary" id="save-btn">✅ Жүктеу</button>
+    </div>
+
+    <div class="muted" style="margin-top:10px">
+      Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.
+    </div>
+  </main>
+</div>
+
+<script>
+
+ (async ()=>{
+  const me = await fetch("/api/auth/me",{credentials:"include",cache:"no-store"}).then(r=>r.json()).catch(()=>null);
+  if(!me?.user || me.user.role!=="admin"){
+    alert("Admin емес!");
+    location.href="index.html";
+  }
+})(); 
+
+// ===== COURSE NORMALIZER (ADMIN -> SERVER) =====
+function normCourseToApi(courseUI){
+  const c = String(courseUI || "").toLowerCase().trim();
+  if(c === "baza" || c === "base") return "base";
+  if(c === "standard" || c === "standart") return "standart";
+  if(c === "premium") return "premium";
+  return "";
+}
+
+  // ===== students list =====
+  const listBox = document.getElementById("studentsList");
+  const reloadBtn = document.getElementById("reloadStudents");
+
+  async function loadStudents(){
+    listBox.innerHTML = "";
+   const r = await fetch("/api/admin/students", {
+  credentials: "include",
+  cache: "no-store",
+});
+    const j = await r.json().catch(()=>null);
+
+    if(!r.ok || !j?.ok){
+      listBox.innerHTML = "<div class='muted'>Қате: students келмеді</div>";
+      return;
+    }
+
+    const students = Array.isArray(j.students) ? j.students : [];
+    if(students.length === 0){
+      listBox.innerHTML = "<div class='muted'>Әзірге оқушы жоқ</div>";
+      return;
+    }
+
+    students.sort((a,b)=> String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
+
+    console.log("students =", students);
+ students.forEach(st=>{
+
+  try{
+
+    const row = document.createElement("div");
+    row.className = "studentRow";
+
+    row.innerHTML = `
+  <div style="display:flex;align-items:center;gap:10px;">
+    ${
+      st.avatar
+        ? `<img src="${escapeHtml(st.avatar)}?t=${Date.now()}" 
+                style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:1px solid rgba(124,58,237,.18);" />`
+        : `<div style="
+              width:42px;
+              height:42px;
+              border-radius:50%;
+              display:flex;
+              align-items:center;
+              justify-content:center;
+              font-weight:900;
+              color:white;
+              background:linear-gradient(135deg,#7c3aed,#a855f7);
+            ">
+              ${escapeHtml((st.fullName || "О").trim().charAt(0).toUpperCase())}
+           </div>`
+    }
+
+    <div class="studentLeft">
+      <div class="studentName">${escapeHtml(st.fullName || "Оқушы")}</div>
+      <div class="studentMeta">
+        ID: ${escapeHtml(st.studentId)} • ${escapeHtml(st.email || st.phone || "")}
+      </div>
+
+      <select class="packageSelect">
+        <option value="pending" ${st.package==="pending" ? "selected" : ""}>Pending</option>
+        <option value="baza" ${st.package==="baza" || st.package==="base" ? "selected" : ""}>Baza</option>
+        <option value="standart" ${st.package==="standart" ? "selected" : ""}>Standart</option>
+        <option value="premium" ${st.package==="premium" ? "selected" : ""}>Premium</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="studentBtns">
+    <button class="btnView">Көру</button>
+    <button class="btnCopy">ID</button>
+  </div>
+`;
+
+    row.querySelector(".btnView").onclick = () => {
+      localStorage.setItem("lastPreviewStudentId", String(st.studentId || ""));
+      window.location.href =
+        "dashboard.html?previewStudentId=" + encodeURIComponent(st.studentId);
+    };
+
+    row.querySelector(".btnCopy").onclick = async () => {
+      const text = st.studentId;
+      try{
+        await navigator.clipboard.writeText(text);
+        alert("✅ Copied: " + text);
+      }catch{
+        alert("StudentId: " + text);
+      }
+    };
+
+    const pkgSel = row.querySelector(".packageSelect");
+    if(pkgSel){
+      pkgSel.onchange = (e)=>{
+        changePackage(st.studentId, e.target.value);
+      };
+    }
+
+    listBox.appendChild(row);
+
+  }catch(err){
+    console.error("render student error", err, st);
+  }
+
+}); 
+
+  }
+
+  reloadBtn.onclick = loadStudents;
+  loadStudents();
+
+  async function changePackage(studentId, pkgUI){
+  let pkg = String(pkgUI || "").toLowerCase();
+  if(pkg === "baza") pkg = "base";
+  if(pkg === "standard") pkg = "standart";
+
+  const r = await fetch("/api/admin/set-package", {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    credentials: "include",
+    cache: "no-store",
+    body: JSON.stringify({
+      studentId: studentId,
+      package: pkg
+    })
+  });
+
+  const j = await r.json().catch(()=>null);
+
+  if(!r.ok || !j?.ok){
+    alert("Пакет өзгермеді");
+    return;
+  }
+
+  alert("Пакет жаңартылды");
+  loadStudents();
+}
+  function escapeHtml(s){
+    return String(s ?? "").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+  }
+
+  // ===== upload =====
+  const saveBtn = document.getElementById("save-btn");
+
+ function uploadOneFile(file, course, lessonNumber, type){
+  const fd = new FormData();
+  fd.append("course", course);
+  fd.append("lessonNumber", String(lessonNumber));
+  fd.append("type", type);
+  fd.append("file", file);
+
+  return fetch("/api/admin/upload", {
+    method:"POST",
+    body: fd,
+    credentials:"include",
+    cache:"no-store"
+  })
+  .then(async (res)=>{
+    if(!res.ok){
+      const txt = await res.text().catch(()=> "");
+      throw new Error(txt || ("HTTP " + res.status));
+    }
+    return res.json();
+  });
+}
+
+ saveBtn.addEventListener("click", async ()=>{
+const courseUI = document.getElementById("course-select").value;
+const course = normCourseToApi(courseUI);
+
+  let lessonNumber = parseInt(prompt("Сабақ нөмірін енгізіңіз (1-30):"), 10);
+  if(isNaN(lessonNumber) || lessonNumber < 1 || lessonNumber > 30){
+    alert("Қате сабақ нөмірі!");
+    return;
+  }
+
+  const videoInput = document.getElementById("video-upload");
+  const audioInput = document.getElementById("audio-upload");
+  const docInput   = document.getElementById("doc-upload");
+  const feedbackInput = document.getElementById("feedbackText");
+
+  const feedbackText = String(feedbackInput?.value || "").trim();
+  const sid = localStorage.getItem("lastPreviewStudentId") || "";
+
+  const videos = Array.from(videoInput.files || []);
+  const audios = Array.from(audioInput.files || []);
+  const docs   = Array.from(docInput.files || []);
+
+  const hasFiles = videos.length > 0 || audios.length > 0 || docs.length > 0;
+  const hasFeedback = feedbackText.length > 0;
+
+  if(!hasFiles && !hasFeedback){
+    alert("Файл да, фидбэк те енгізілмеген!");
+    return;
+  }
+
+  saveBtn.disabled = true;
+  const oldText = saveBtn.textContent;
+  saveBtn.textContent = "Жүктеліп жатыр...";
+
+  try{
+    const tasks = [];
+    videos.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "video")));
+    audios.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "audio")));
+    docs.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "doc")));
+
+    await Promise.all(tasks);
+
+    if(hasFeedback){
+      if(!sid){
+        alert("Алдымен оқушыны 'Көру' арқылы таңда.");
+        return;
+      }
+
+      const courseApi = course;
+
+      const fr = await fetch("/api/progress/set", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({
+          studentId: sid,
+          course: courseApi,
+          lessonNumber: lessonNumber,
+          feedbackText: feedbackText
+        })
+      });
+
+      const fj = await fr.json().catch(()=>null);
+      if(!fr.ok || !fj?.ok){
+        throw new Error("Feedback save failed");
+      }
+    }
+
+   alert(`✅ Сабақ ${lessonNumber} (${courseUI}) сақталды!`);
+
+    if(sid){
+    if(courseUI==="baza")
+  window.location.href="base-blocks.html?previewStudentId="+encodeURIComponent(sid);
+else if(courseUI==="standart")
+  window.location.href="standard-blocks.html?previewStudentId="+encodeURIComponent(sid);
+else if(courseUI==="premium")
+  window.location.href="premium-blocks.html?previewStudentId="+encodeURIComponent(sid); 
+    }else{
+      window.location.href="admin.html";
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Save failed: " + (err?.message || err));
+  }finally{
+    saveBtn.disabled = false;
+    saveBtn.textContent = oldText;
+    videoInput.value = "";
+    audioInput.value = "";
+    docInput.value = "";
+    if(feedbackInput) feedbackInput.value = "";
+  }
+});
+</script>
+
+</body>
+</html>

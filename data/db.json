@@ -1,0 +1,85 @@
+{
+  "users": [
+    {
+      "studentId": "st_a8450203",
+      "fullName": "Альбина Махмутова",
+      "firstName": "Альбина",
+      "lastName": "Махмутова",
+      "phone": "77052506772",
+      "email": "amakhmutova714@gmail.com",
+      "passwordHash": "$2b$10$U1pDGy11F9BY8I25VOohc.FV6raqA/5xfYU4xaChhSG.gg5ETo0.K",
+      "package": "standart",
+      "avatar": "/uploads/avatars/avatar_1772904822118.jpeg"
+    },
+    {
+      "studentId": "st_f47f5195",
+      "fullName": "Гульмира Кусаинова",
+      "firstName": "Гульмира",
+      "lastName": "Кусаинова",
+      "phone": "77052519022",
+      "email": "gulmirakusainova686@gmail.com",
+      "passwordHash": "$2b$10$N1ybE34Oyol6eGUmU9/uN.smapNG952uscvfGcZTWCvHuvIslIzSi",
+      "package": "premium"
+    }
+  ],
+  "materials": {
+    "base": {
+      "1": {
+        "videos": [],
+        "audios": [],
+        "docs": [],
+        "studentUploads": []
+      },
+      "2": {
+        "videos": [],
+        "audios": [],
+        "docs": [],
+        "studentUploads": []
+      }
+    },
+    "standart": {
+      "1": {
+        "videos": [],
+        "audios": [],
+        "docs": [],
+        "studentUploads": []
+      },
+      "2": {
+        "videos": [],
+        "audios": [],
+        "docs": [],
+        "studentUploads": []
+      }
+    },
+    "premium": {
+      "1": {
+        "videos": [],
+        "audios": [],
+        "docs": [],
+        "studentUploads": []
+      }
+    }
+  },
+  "progress": {
+    "st_a8450203": {},
+    "st_f47f5195": {}
+},
+  "notifications": {
+    "st_a8450203": [],
+    "st_f47f5195": []
+  },
+  "streak": {
+    "st_a8450203": {
+      "lastVisitDate": "",
+      "current": 0,
+      "best": 0,
+      "totalLogins": 0
+    },
+    "st_f47f5195": {
+      "lastVisitDate": "",
+      "current": 0,
+      "best": 0,
+      "totalLogins": 0
+    }
+  }
+}

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTAB - Басты бет</title>
+<style>
+body {
+    margin:0;
+    padding:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #f3e8ff, #dcd1ff);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+}
+.container {
+    background: linear-gradient(135deg, #ffffff, #f5f3ff);
+    border-radius:25px;
+    padding:40px;
+    text-align:center;
+    width:350px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    position:relative;
+}
+.logo {
+    font-size:36px;
+    font-weight:bold;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom:10px;
+}
+.slogan {
+    font-size:16px;
+    color:#7c3aed;
+    margin-bottom:20px;
+}
+input[type=text],
+input[type=email],
+input[type=password] {
+    width:80%;
+    padding:10px;
+    margin:8px 0;
+    border-radius:12px;
+    border:1px solid #ccc;
+    font-size:14px;
+}
+button {
+    width:80%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    color:white;
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+    transition:0.3s;
+}
+button:hover { opacity:0.9; }
+.lang-switch {
+    position:absolute;
+    top:15px;
+    right:15px;
+    font-size:14px;
+}
+.lang-switch select {
+    padding:5px 10px;
+    border-radius:8px;
+    border:1px solid #7c3aed;
+    background:white;
+    color:#7c3aed;
+    font-weight:bold;
+    cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="lang-switch">
+    <select id="langSelect">
+      <option value="kk">Қазақша</option>
+      <option value="ru">Русский</option>
+    </select>
+  </div>
+
+  <div class="logo">GoTAB</div>
+  <div class="slogan" id="slogan">Оқу • Бағалау • Өсу</div>
+
+  <input type="text" id="phone" placeholder="Телефон нөмірі"><br>
+  <input type="email" id="email" placeholder="Email"><br>
+  <input type="password" id="password" placeholder="Құпиясөз"><br> 
+
+  <button id="registerBtn">Регистрация</button>
+  <button id="loginBtn">Вход</button>
+</div>
+
+<script>
+// ===== Тіл ауыстыру =====
+const langSelect = document.getElementById("langSelect");
+langSelect.value = localStorage.getItem("lang") || "kk";
+
+langSelect.addEventListener("change", ()=>{
+  localStorage.setItem("lang", langSelect.value);
+  updateLang();
+});
+
+function updateLang(){
+  const lang = langSelect.value;
+
+  document.getElementById("slogan").textContent =
+    (lang==="kk") ? "Оқу • Бағалау • Өсу" : "Учёба • Оценка • Рост";
+
+  document.getElementById("phone").placeholder =
+    (lang==="kk") ? "Телефон нөмірі" : "Номер телефона";
+
+  document.getElementById("email").placeholder =
+    (lang==="kk") ? "Email" : "Электронная почта";
+
+  document.getElementById("password").placeholder =
+    (lang==="kk") ? "Құпиясөз" : "Пароль";
+
+  document.getElementById("registerBtn").textContent =
+    (lang==="kk") ? "Регистрация" : "Регистрация";
+
+  document.getElementById("loginBtn").textContent =
+    (lang==="kk") ? "Вход" : "Вход";
+}
+
+updateLang();
+
+// ===== Helpers =====
+function isAdmin(phone, email){
+  return phone === "77055894347" && email === "admin@gotab.kz";
+}
+
+// ===== Регистрация батырмасы =====
+document.getElementById("registerBtn").addEventListener("click", ()=>{
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+
+  const qs = new URLSearchParams();
+  if(phone) qs.set("phone", phone);
+  if(email) qs.set("email", email);
+
+  window.location.href = "register.html" + (qs.toString() ? ("?" + qs.toString()) : "");
+});
+
+// ===== Вход батырмасы =====
+document.getElementById("loginBtn").addEventListener("click", async ()=>{
+  const phone = document.getElementById("phone").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!phone || !password){
+    alert("Барлық өрістерді толтырыңыз / Заполните все поля");
+    return;
+  }
+
+  try{
+    // ===== ADMIN LOGIN =====
+    if(isAdmin(phone, email)){
+      const r = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        credentials: "include",
+        cache: "no-store",
+        body: JSON.stringify({
+          role: "admin",
+          email,
+          password
+        })
+      });
+
+      const j = await r.json().catch(()=>null);
+
+      if(!r.ok || !j?.ok){
+        alert("Admin login қате");
+        return;
+      }
+
+      window.location.href = "admin.html";
+      return;
+    }
+
+    // ===== STUDENT LOGIN =====
+    const r = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type":"application/json" },
+      credentials: "include",
+      cache: "no-store",
+      body: JSON.stringify({
+        role: "student",
+        phone,
+        password
+      })
+    });
+
+    const j = await r.json().catch(()=>null);
+
+    if(!r.ok || !j?.ok){
+      alert("Телефон немесе пароль қате / Неверный телефон или пароль");
+      return;
+    }
+
+    window.location.href = "dashboard.html";
+
+  }catch(e){
+    console.error(e);
+    alert("Сервер байланыспады (login)");
+  }
+});
+</script>

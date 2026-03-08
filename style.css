@@ -1,0 +1,117 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Arial', sans-serif;
+  height: 100vh;
+  display: flex;
+  justify-content: center; /*ортасына*/
+  align-items: center;
+  background: linear-gradient(145deg, #c3b6ff, #b3e5fc, #ffc1e3);
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.login-card {
+  background: rgba(255,255,255,0.85);
+  padding: 60px 40px;
+  border-radius: 25px;
+  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  text-align: center;
+  width: 400px;
+}
+
+.logo {
+  font-size: 52px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #8c63ff; /* фиолетовый логотип */
+  text-shadow: 0 0 6px rgba(0,0,0,0.15);
+}
+
+.tagline {
+  font-size: 18px;
+  color: #4caf50;
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+.input-group {
+  background: linear-gradient(120deg, #e0f7fa, #f0fff4);
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+}
+
+.input-group input {
+  border: none;
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  outline: none;
+  background: transparent;
+}
+
+.btn-login, .btn-register {
+  width: 90%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-bottom: 15px;
+  color: #fff; /* ақ жазу */
+  background: linear-gradient(135deg, #8c63ff, #b3e5fc); /* фиолетовый градиент */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+.material-block {
+  position: relative;
+}
+
+.progress-badge {
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  margin-top: 8px;
+  background: linear-gradient(135deg,#8b5cf6,#7c3aed);
+  color: white;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.progress-select {
+  display: block;              /* ❗ міндетті */
+  margin: 8px auto 0;
+  width: 90%;
+  padding: 4px;
+  font-size: 12px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+
+  position: relative;
+  z-index: 10;                 /* ❗ select ең үстінде */
+  pointer-events: auto;        /* ❗ басылуы үшін */
+}
+.toggle-lock-btn { display:block; margin-top:5px; }
+.material-block.locked { opacity:0.5; 
+}
+.material-block.locked video,
+.material-block.locked a,
+.material-block.locked .progress-select {
+  pointer-events: none;
+  opacity: 0.4;
+}
+
+.material-block.locked .toggle-lock-btn {
+  pointer-events: auto;
+  opacity: 1;
+}

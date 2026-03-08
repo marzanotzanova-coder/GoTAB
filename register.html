@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GoTAB • Регистрация</title>
+
+<style>
+ *{
+  box-sizing:border-box;
+} 
+body{
+margin:0;height:100vh;display:flex;align-items:center;justify-content:center;
+font-family:Arial,sans-serif;
+background:linear-gradient(135deg,#f3e8ff,#dcd1ff);
+}
+
+.card{
+width:420px;max-width:94%;
+background:linear-gradient(135deg,#ffffff,#f5f3ff);
+border-radius:25px;padding:28px;
+box-shadow:0 10px 30px rgba(0,0,0,0.12);
+}
+
+.logo{
+font-size:32px;font-weight:900;
+background:linear-gradient(135deg,#7c3aed,#a855f7);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+text-align:center;
+margin-bottom:8px;
+}
+
+.sub{
+text-align:center;
+color:#7c3aed;
+font-size:14px;
+margin-bottom:18px;
+}
+
+input{
+width:100%;
+display:block;
+margin:10px auto;
+padding:12px 14px;
+border-radius:16px;
+border:1px solid rgba(124,58,237,.22);
+font-size:14px;
+outline:none;
+background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(168,85,247,.06));
+box-shadow:0 8px 18px rgba(0,0,0,.06);
+}
+
+input:focus{
+border-color:rgba(124,58,237,.55);
+box-shadow:0 0 0 4px rgba(124,58,237,.18);
+}
+
+.passWrap{
+  width:100%;
+  margin:10px auto;
+  position:relative;
+}
+
+.passWrap input{
+  width:100%;
+  display:block;
+  margin:0;
+  padding:12px 40px 12px 14px;
+  border-radius:16px;
+  border:1px solid rgba(124,58,237,.22);
+  font-size:14px;
+  outline:none;
+  background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(168,85,247,.06));
+  box-shadow: 0 8px 18px rgba(0,0,0,.06);
+}
+
+.passWrap input:focus{
+  border-color: rgba(124,58,237,.55);
+  box-shadow: 0 0 0 4px rgba(124,58,237,.18);
+}
+
+.eyeBtn{
+  position:absolute;
+  right:12px;
+  top:50%;
+  transform:translateY(-50%);
+  width:14px !important;
+  height:14px !important;
+  min-width:14px !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:none !important;
+  border-radius:0 !important;
+  background-color:transparent !important;
+  background-repeat:no-repeat !important;
+  background-position:center !important;
+  background-size:14px 14px !important;
+  box-shadow:none !important;
+  cursor:pointer;
+  z-index:3;
+  display:block;
+
+  color:transparent !important;
+  font-size:0 !important;
+  line-height:0 !important;
+
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237c3aed' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
+}
+
+.eyeBtn:hover,
+.eyeBtn:focus{
+  opacity:.8;
+  outline:none;
+  background-color:transparent;
+}
+button{
+width:86%;
+display:block;
+margin:12px auto 0;
+padding:12px;
+border:none;
+border-radius:16px;
+font-size:16px;
+font-weight:800;
+cursor:pointer;
+color:white;
+background:linear-gradient(135deg,#7c3aed,#a855f7);
+}
+
+button:hover{opacity:.92;}
+
+.back{
+margin-top:10px;
+width:86%;
+background:rgba(255,255,255,0.7);
+color:#2b1a78;
+border:1px solid rgba(124,58,237,.18);
+}
+
+.error{
+color:red;
+font-size:12px;
+text-align:center;
+margin-top:4px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<div class="logo">GoTAB</div>
+<div class="sub" id="subTitle">Регистрация (оқушы)</div>
+
+<input type="text" id="firstName" placeholder="Аты">
+<input type="text" id="lastName" placeholder="Тегі">
+<input type="text" id="phone" placeholder="Телефон нөмірі">
+<input type="email" id="email" placeholder="Email">
+<div class="passWrap">
+  <input type="password" id="password" placeholder="Оқу платформасына арналған құпиясөз">
+  <button type="button" class="eyeBtn" id="togglePass1" aria-label="Көрсету"></button>
+</div>
+
+<div class="passWrap">
+  <input type="password" id="password2" placeholder="Құпиясөзді қайталаңыз">
+  <button type="button" class="eyeBtn" id="togglePass2" aria-label="Көрсету"></button>
+</div>
+
+<div id="errorBox" class="error"></div>
+
+<button id="submitBtn">Тіркелу</button>
+<button class="back" id="backBtn">← Артқа</button>
+
+</div>
+
+<script>
+(function(){
+
+const lang = localStorage.getItem("lang") || "kk";
+
+if(lang === "ru"){
+document.getElementById("subTitle").textContent="Регистрация (ученик)";
+
+document.getElementById("firstName").placeholder="Имя";
+document.getElementById("lastName").placeholder="Фамилия";
+document.getElementById("phone").placeholder="Номер телефона";
+document.getElementById("password").placeholder="Придумайте пароль для платформы";
+document.getElementById("password2").placeholder="Повторите пароль";
+
+document.getElementById("submitBtn").textContent="Зарегистрироваться";
+document.getElementById("backBtn").textContent="← Назад";
+}
+
+const firstNameInput=document.getElementById("firstName");
+const lastNameInput=document.getElementById("lastName");
+const phoneInput=document.getElementById("phone");
+const emailInput=document.getElementById("email");
+const passInput=document.getElementById("password");
+const pass2Input=document.getElementById("password2");
+
+const errorBox=document.getElementById("errorBox");
+
+const togglePass1 = document.getElementById("togglePass1");
+const togglePass2 = document.getElementById("togglePass2");
+
+togglePass1.addEventListener("click", ()=>{
+  passInput.type = passInput.type === "password" ? "text" : "password";
+});
+
+togglePass2.addEventListener("click", ()=>{
+  pass2Input.type = pass2Input.type === "password" ? "text" : "password";
+});
+
+document.getElementById("backBtn").onclick=()=>{
+window.location.href="index.html";
+};
+
+document.getElementById("submitBtn").onclick=async()=>{
+
+errorBox.textContent="";
+
+const firstName=firstNameInput.value.trim();
+const lastName=lastNameInput.value.trim();
+const phone=phoneInput.value.trim();
+const email=emailInput.value.trim();
+const password=passInput.value.trim();
+const password2=pass2Input.value.trim();
+
+if(!firstName||!lastName||!phone||!email||!password||!password2){
+errorBox.textContent=(lang==="ru")
+?"Заполните все поля"
+:"Барлық өрістерді толтырыңыз";
+return;
+}
+
+if(password!==password2){
+errorBox.textContent=(lang==="ru")
+?"Пароли не совпадают"
+:"Пароль сәйкес емес";
+return;
+}
+
+try{
+
+const res=await fetch("/api/auth/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+credentials:"include",
+body:JSON.stringify({
+firstName,
+lastName,
+phone,
+email,
+password,
+password2
+})
+});
+
+const data=await res.json().catch(()=>null);
+
+if(!res.ok||!data?.ok){
+
+if(data?.error==="phone_exists"){
+errorBox.textContent=(lang==="ru")
+?"Этот номер уже зарегистрирован"
+:"Бұл номермен тіркелген аккаунт бар";
+}
+else{
+errorBox.textContent =
+(lang==="ru")
+? ("Ошибка регистрации: " + (data?.error || "unknown"))
+: ("Регистрация қатесі: " + (data?.error || "unknown"));
+}
+
+return;
+}
+
+window.location.href="dashboard.html";
+
+}catch(e){
+console.error(e);
+errorBox.textContent=(lang==="ru")
+?"Ошибка сервера"
+:"Сервер қатесі";
+}
+
+};
+
+})();
+</script>
+
+</body>
+</html>
