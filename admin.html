@@ -182,6 +182,22 @@
       <option value="premium">Премиум</option>
     </select>
 
+    <select id="grade-select">
+<option value="5">5 сынып</option>
+<option value="6">6 сынып</option>
+<option value="7">7 сынып</option>
+<option value="8">8 сынып</option>
+<option value="9">9 сынып</option>
+<option value="10">10 сынып</option>
+<option value="11">11 сынып</option>
+</select>
+
+<select id="subject-select">
+<option value="math">Математика</option>
+<option value="algebra">Алгебра</option>
+<option value="geometry">Геометрия</option>
+</select>
+
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle">Видеолар</div>
@@ -230,7 +246,7 @@
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle">Сақтау</div>
-        <div class="rowSub">Сабақ нөмірін сұрайды (1-30)</div>
+        <div class="rowSub">Блок нөмірін сұрайды (1-100)</div>
       </div>
       <button class="btn primary" id="save-btn">✅ Жүктеу</button>
     </div>
@@ -404,10 +420,11 @@ function normCourseToApi(courseUI){
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 
- function uploadOneFile(file, course, lessonNumber, type){
+ function uploadOneFile(file, grade, subject, blockNumber, type){
   const fd = new FormData();
-  fd.append("course", course);
-  fd.append("lessonNumber", String(lessonNumber));
+  fd.append("grade", grade);
+  fd.append("subject", subject);
+  fd.append("blockNumber", String(blockNumber));
   fd.append("type", type);
   fd.append("file", file);
 
@@ -425,14 +442,14 @@ function normCourseToApi(courseUI){
     return res.json();
   });
 }
-
  saveBtn.addEventListener("click", async ()=>{
-const courseUI = document.getElementById("course-select").value;
-const course = normCourseToApi(courseUI);
 
-  let lessonNumber = parseInt(prompt("Сабақ нөмірін енгізіңіз (1-30):"), 10);
-  if(isNaN(lessonNumber) || lessonNumber < 1 || lessonNumber > 30){
-    alert("Қате сабақ нөмірі!");
+  const grade = document.getElementById("grade-select").value;
+  const subject = document.getElementById("subject-select").value;
+
+  let blockNumber = parseInt(prompt("Блок нөмірін енгізіңіз (1-100):"), 10);
+  if(isNaN(blockNumber) || blockNumber < 1 || blockNumber > 100){
+    alert("Қате блок нөмірі!");
     return;
   }
 
@@ -452,7 +469,7 @@ const course = normCourseToApi(courseUI);
   const hasFeedback = feedbackText.length > 0;
 
   if(!hasFiles && !hasFeedback){
-    alert("Файл да, фидбэк те енгізілмеген!");
+    alert("Файл да, пікір де енгізілмеген!");
     return;
   }
 
@@ -461,20 +478,29 @@ const course = normCourseToApi(courseUI);
   saveBtn.textContent = "Жүктеліп жатыр...";
 
   try{
+
     const tasks = [];
-    videos.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "video")));
-    audios.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "audio")));
-    docs.forEach(f => tasks.push(uploadOneFile(f, course, lessonNumber, "doc")));
+
+    videos.forEach(f =>
+      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video"))
+    );
+
+    audios.forEach(f =>
+      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio"))
+    );
+
+    docs.forEach(f =>
+      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc"))
+    );
 
     await Promise.all(tasks);
 
     if(hasFeedback){
+
       if(!sid){
-        alert("Алдымен оқушыны 'Көру' арқылы таңда.");
+        alert("Алдымен оқушыны таңда!");
         return;
       }
-
-      const courseApi = course;
 
       const fr = await fetch("/api/progress/set", {
         method: "POST",
@@ -483,43 +509,31 @@ const course = normCourseToApi(courseUI);
         cache: "no-store",
         body: JSON.stringify({
           studentId: sid,
-          course: courseApi,
-          lessonNumber: lessonNumber,
+          grade: grade,
+          subject: subject,
+          blockNumber: blockNumber,
           feedbackText: feedbackText
         })
       });
 
-      const fj = await fr.json().catch(()=>null);
-      if(!fr.ok || !fj?.ok){
-        throw new Error("Feedback save failed");
+      if(!fr.ok){
+        alert("Фидбэк сақтау қатесі");
       }
+
     }
 
-   alert(`✅ Сабақ ${lessonNumber} (${courseUI}) сақталды!`);
+    alert("Сәтті жүктелді!");
 
-    if(sid){
-    if(courseUI==="baza")
-  window.location.href="base-blocks.html?previewStudentId="+encodeURIComponent(sid);
-else if(courseUI==="standart")
-  window.location.href="standard-blocks.html?previewStudentId="+encodeURIComponent(sid);
-else if(courseUI==="premium")
-  window.location.href="premium-blocks.html?previewStudentId="+encodeURIComponent(sid); 
-    }else{
-      window.location.href="admin.html";
-    }
-
-  }catch(err){
-    console.error(err);
-    alert("Save failed: " + (err?.message || err));
-  }finally{
-    saveBtn.disabled = false;
-    saveBtn.textContent = oldText;
-    videoInput.value = "";
-    audioInput.value = "";
-    docInput.value = "";
-    if(feedbackInput) feedbackInput.value = "";
+  }catch(e){
+    console.error(e);
+    alert("Қате пайда болды");
   }
+
+  saveBtn.disabled = false;
+  saveBtn.textContent = oldText;
+
 });
+
 </script>
 
 </body>

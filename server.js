@@ -168,6 +168,7 @@ if(!ok){
   role:"student",
   studentId: sid,
   package: pkg,
+  grade: Number(st.grade || 5),
   fullName: st.fullName || "Оқушы",
   phone: st.phone || "",
   email: st.email || "",
@@ -177,7 +178,7 @@ if(!ok){
   return res.json({ ok:true, user: req.session.user });
 }
   return res.status(400).json({ ok:false, error:"bad_role" });
-s});
+});
 
 // Static folders for uploaded files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -195,12 +196,21 @@ function ensureDir(dir) {
 
 function defaultDB() {
   return {
-    users: [], // {studentId, fullName, phone, email, password, package}
-    // course keys: base | standart | premium
-    materials: { base: {}, standart: {}, premium: {} }, // materials[course][lesson] = {videos, audios, docs, studentUploads}
-    progress: {}, // progress[studentId][course][lesson] = {grade,status,feedbackText,feedbackFileUrl,updatedAt}
+    users: [], // {studentId, fullName, phone, email, passwordHash, package, grade, avatar}
+
+    materials: {
+      "5": { math: {} },
+      "6": { math: {} },
+      "7": { algebra: {}, geometry: {} },
+      "8": { algebra: {}, geometry: {} },
+      "9": { algebra: {}, geometry: {} },
+      "10": { algebra: {}, geometry: {} },
+      "11": { algebra: {}, geometry: {} }
+    },
+
+    progress: {}, // progress[studentId][grade][subject][block] = {grade,status,feedbackText,feedbackFileUrl,updatedAt}
     notifications: {}, // notifications[studentId] = [{id,type,text,createdAt,read}]
-    streak: {}, // streak[studentId] = { lastVisitDate, current, best, totalLogins }
+    streak: {} // streak[studentId] = { lastVisitDate, current, best, totalLogins }
   };
 }
 
@@ -217,16 +227,35 @@ function readDB() {
     const raw = fs.readFileSync(DB_PATH, "utf-8");
     const db = JSON.parse(raw || "{}");
 
-    if (!db.users) db.users = [];
-    if (!db.materials) db.materials = { base: {}, standart: {}, premium: {} };
-    if (!db.materials.base) db.materials.base = {};
-    if (!db.materials.standart) db.materials.standart = {};
-    if (!db.materials.premium) db.materials.premium = {};
+   if (!db.users) db.users = [];
 
-    if (!db.progress) db.progress = {};
-    if (!db.notifications) db.notifications = {};
-    if (!db.streak) db.streak = {};
+if (!db.materials) {
+  db.materials = {
+    "5": { math: {} },
+    "6": { math: {} },
+    "7": { algebra: {}, geometry: {} },
+    "8": { algebra: {}, geometry: {} },
+    "9": { algebra: {}, geometry: {} },
+    "10": { algebra: {}, geometry: {} },
+    "11": { algebra: {}, geometry: {} }
+  };
+}
 
+for (const g of ["5","6","7","8","9","10","11"]) {
+  if (!db.materials[g]) db.materials[g] = {};
+}
+
+if (!db.materials["5"].math) db.materials["5"].math = {};
+if (!db.materials["6"].math) db.materials["6"].math = {};
+
+for (const g of ["7","8","9","10","11"]) {
+  if (!db.materials[g].algebra) db.materials[g].algebra = {};
+  if (!db.materials[g].geometry) db.materials[g].geometry = {};
+}
+
+if (!db.progress) db.progress = {};
+if (!db.notifications) db.notifications = {};
+if (!db.streak) db.streak = {};
     // ✅ MIGRATION: old db.students -> db.users
 if (Array.isArray(db.students) && db.students.length > 0) {
   const existing = new Set(db.users.map(u => String(u.studentId || "")));
@@ -280,9 +309,24 @@ function safeCourse(course) {
   return c === "base" || c === "standart" || c === "premium";
 }
 
-function safeLessonNumber(n) {
+function normalizeGrade(grade) {
+  const g = Number(grade);
+  return [5,6,7,8,9,10,11].includes(g) ? String(g) : "";
+}
+
+function normalizeSubject(grade, subject) {
+  const g = Number(grade);
+  const s = String(subject || "").toLowerCase().trim();
+
+  if ([5,6].includes(g) && s === "math") return "math";
+  if ([7,8,9,10,11].includes(g) && (s === "algebra" || s === "geometry")) return s;
+
+  return "";
+}
+
+function safeBlockNumber(n) {
   const x = Number(n);
-  return Number.isFinite(x) && x >= 1 && x <= 30;
+  return Number.isFinite(x) && x >= 1 && x <= 100;
 }
 
 // ===================== AUTH (demo) =====================
@@ -343,6 +387,7 @@ app.post("/api/auth/register", async (req, res) => {
       phone: String(phone).trim(),
       email: String(email).trim().toLowerCase(),
       passwordHash,
+      grade: 5,
       package: "pending"
     };
 
@@ -362,10 +407,11 @@ app.post("/api/auth/register", async (req, res) => {
 
     writeDB(db);
 
-    req.session.user = {
+   req.session.user = {
   role: "student",
-  studentId,
+  studentId: user.studentId,
   package: user.package,
+  grade: Number(user.grade || 5),
   fullName: user.fullName,
   phone: user.phone,
   email: user.email,
@@ -389,6 +435,7 @@ app.get("/api/admin/students", requireAdmin, (req, res) => {
     phone: u.phone,
     email: u.email,
     package: u.package || "pending",
+    grade: Number(u.grade || 5),
     avatar: u.avatar || "",
   }));
   res.json({ ok: true, students });
@@ -437,11 +484,15 @@ app.get("/api/admin/student/:studentId", (req, res) => {
 // ADMIN uploads
 const adminStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const course = normalizeCourse(req.body.course);
-    const lesson = Number(req.body.lessonNumber);
-    if (!safeCourse(course) || !safeLessonNumber(lesson)) return cb(new Error("Bad course/lesson"));
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
 
-    const dest = path.join(__dirname, "uploads", course, "lesson" + lesson);
+    if (!grade || !subject || !safeBlockNumber(block)) {
+      return cb(new Error("Bad grade/subject/block"));
+    }
+
+    const dest = path.join(__dirname, "uploads", grade, subject, "block" + block);
     ensureDir(dest);
     cb(null, dest);
   },
@@ -455,12 +506,16 @@ const uploadAdmin = multer({ storage: adminStorage });
 // STUDENT uploads
 const studentStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const course = normalizeCourse(req.body.course);
-    const lesson = Number(req.body.lessonNumber);
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
     const studentId = String(req.session?.user?.studentId || "");
-    if (!safeCourse(course) || !safeLessonNumber(lesson) || !studentId) return cb(new Error("Bad input"));
 
-    const dest = path.join(__dirname, "student_uploads", course, "lesson" + lesson, studentId);
+    if (!grade || !subject || !safeBlockNumber(block) || !studentId) {
+      return cb(new Error("Bad input"));
+    }
+
+    const dest = path.join(__dirname, "student_uploads", grade, subject, "block" + block, studentId);
     ensureDir(dest);
     cb(null, dest);
   },
@@ -475,29 +530,52 @@ const uploadStudent = multer({ storage: studentStorage });
 // Admin upload 1 file
 app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), (req, res) => {
   try {
-    const course = normalizeCourse(req.body.course);
-    const lesson = Number(req.body.lessonNumber);
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
     const type = String(req.body.type || "").toLowerCase(); // video|audio|doc
 
-    if (!safeCourse(course) || !safeLessonNumber(lesson)) {
-      return res.status(400).json({ ok: false, error: "bad_course_or_lesson" });
+    if (!grade || !subject || !safeBlockNumber(block)) {
+      return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
     }
 
     const db = readDB();
-    db.materials = db.materials || { base: {}, standart: {}, premium: {} };
-    db.materials[course] = db.materials[course] || {};
-    db.materials[course][String(lesson)] =
-      db.materials[course][String(lesson)] || { videos: [], audios: [], docs: [], studentUploads: [] };
 
-    const relUrl = `/uploads/${course}/lesson${lesson}/${req.file.filename}`;
-    const item = { url: relUrl, name: req.file.originalname, createdAt: nowISO() };
+    db.materials = db.materials || {};
+    db.materials[grade] = db.materials[grade] || {};
+    db.materials[grade][subject] = db.materials[grade][subject] || {};
+    db.materials[grade][subject][String(block)] =
+      db.materials[grade][subject][String(block)] || {
+        videos: [],
+        audios: [],
+        docs: [],
+        studentUploads: []
+      };
 
-    if (type === "video") db.materials[course][String(lesson)].videos.push(item);
-    else if (type === "audio") db.materials[course][String(lesson)].audios.push(item);
-    else db.materials[course][String(lesson)].docs.push(item);
+    const relUrl = `/uploads/${grade}/${subject}/block${block}/${req.file.filename}`;
+    const item = {
+      url: relUrl,
+      name: req.file.originalname,
+      createdAt: nowISO()
+    };
+
+    if (type === "video") {
+      db.materials[grade][subject][String(block)].videos.push(item);
+    } else if (type === "audio") {
+      db.materials[grade][subject][String(block)].audios.push(item);
+    } else {
+      db.materials[grade][subject][String(block)].docs.push(item);
+    }
 
     writeDB(db);
-    res.json({ ok: true, course, lesson: String(lesson), item });
+
+    res.json({
+      ok: true,
+      grade,
+      subject,
+      block: String(block),
+      item
+    });
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, error: "server_error" });
@@ -507,22 +585,28 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), (req, re
 // Student upload homework
 app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (req, res) => {
   try {
-    const course = normalizeCourse(req.body.course);
-    const lesson = Number(req.body.lessonNumber);
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
     const studentId = String(req.session?.user?.studentId || "");
 
-    if (!safeCourse(course) || !safeLessonNumber(lesson) || !studentId) {
+    if (!grade || !subject || !safeBlockNumber(block) || !studentId) {
       return res.status(400).json({ ok: false, error: "bad_input" });
     }
 
     const db = readDB();
 
-    // materials
-    db.materials[course] = db.materials[course] || {};
-    db.materials[course][String(lesson)] =
-      db.materials[course][String(lesson)] || { videos: [], audios: [], docs: [], studentUploads: [] };
+    db.materials[grade] = db.materials[grade] || {};
+    db.materials[grade][subject] = db.materials[grade][subject] || {};
+    db.materials[grade][subject][String(block)] =
+      db.materials[grade][subject][String(block)] || {
+        videos: [],
+        audios: [],
+        docs: [],
+        studentUploads: []
+      };
 
-    const relUrl = `/student_uploads/${course}/lesson${lesson}/${studentId}/${req.file.filename}`;
+    const relUrl = `/student_uploads/${grade}/${subject}/block${block}/${studentId}/${req.file.filename}`;
     const item = {
       url: relUrl,
       name: req.file.originalname,
@@ -531,27 +615,27 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (r
       status: "uploaded",
     };
 
-    db.materials[course][String(lesson)].studentUploads.push(item);
-
-    // progress pipeline
+    db.materials[grade][subject][String(block)].studentUploads.push(item);
     db.progress = db.progress || {};
     db.progress[studentId] = db.progress[studentId] || {};
-    db.progress[studentId][course] = db.progress[studentId][course] || {};
-    db.progress[studentId][course][String(lesson)] = db.progress[studentId][course][String(lesson)] || {
-      grade: null,
-      status: "none",
-      feedbackText: "",
-      feedbackFileUrl: "",
-      updatedAt: nowISO(),
-    };
+    db.progress[studentId][grade] = db.progress[studentId][grade] || {};
+    db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
+    db.progress[studentId][grade][subject][String(block)] =
+      db.progress[studentId][grade][subject][String(block)] || {
+        grade: null,
+        status: "none",
+        feedbackText: "",
+        feedbackFileUrl: "",
+        updatedAt: nowISO(),
+      };
 
-    db.progress[studentId][course][String(lesson)].status = "uploaded";
-    db.progress[studentId][course][String(lesson)].updatedAt = nowISO();
+    db.progress[studentId][grade][subject][String(block)].status = "uploaded";
+    db.progress[studentId][grade][subject][String(block)].updatedAt = nowISO();
 
-    pushNotif(db, studentId, "upload", `(${course}) Сабақ ${lesson}: тапсырма жүктелді ✅`);
+    pushNotif(db, studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
 
     writeDB(db);
-    res.json({ ok: true, course, lesson: String(lesson), item });
+    res.json({ ok: true, grade, subject, block: String(block), item });
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false, error: "server_error" });
@@ -587,18 +671,22 @@ app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), (r
   });
 });
 
-// Get lesson materials
+// Get block materials
 app.get("/api/materials", (req, res) => {
-  const course = normalizeCourse(req.query.course);
-  const lesson = Number(req.query.lessonNumber);
+  const grade = normalizeGrade(req.query.grade);
+  const subject = normalizeSubject(grade, req.query.subject);
+  const block = Number(req.query.blockNumber);
 
-  if (!safeCourse(course) || !safeLessonNumber(lesson)) {
+  if (!grade || !subject || !safeBlockNumber(block)) {
     return res.json({ videos: [], audios: [], docs: [], studentUploads: [] });
   }
 
   const db = readDB();
   const data =
-    (db.materials && db.materials[course] && db.materials[course][String(lesson)]) || {
+    (db.materials &&
+      db.materials[grade] &&
+      db.materials[grade][subject] &&
+      db.materials[grade][subject][String(block)]) || {
       videos: [],
       audios: [],
       docs: [],
@@ -613,41 +701,44 @@ app.get("/api/materials", (req, res) => {
 app.get("/api/progress/get", requireAuth, (req, res) => {
   const sessionUser = req.session?.user || null;
   const requestedStudentId = String(req.query.studentId || "");
-  const course = normalizeCourse(req.query.course);
+  const grade = normalizeGrade(req.query.grade);
+  const subject = normalizeSubject(grade, req.query.subject);
 
   const studentId =
     sessionUser?.role === "admin"
       ? requestedStudentId
       : String(sessionUser?.studentId || "");
 
-  if (!studentId || !safeCourse(course)) {
+  if (!studentId || !grade || !subject) {
     return res.status(400).json({ ok: false, error: "bad_input" });
   }
 
   const db = readDB();
   db.progress = db.progress || {};
   db.progress[studentId] = db.progress[studentId] || {};
-  db.progress[studentId][course] = db.progress[studentId][course] || {};
+  db.progress[studentId][grade] = db.progress[studentId][grade] || {};
+  db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
 
-  const courseProg = db.progress[studentId][course];
+  const subjProg = db.progress[studentId][grade][subject];
 
   const gradesMap = {};
   const feedbackMap = {};
 
-  for (const [lesson, item] of Object.entries(courseProg || {})) {
+  for (const [block, item] of Object.entries(subjProg || {})) {
     const g = Number(item?.grade);
-    if (Number.isFinite(g) && g > 0) gradesMap[String(lesson)] = g;
+    if (Number.isFinite(g) && g > 0) gradesMap[String(block)] = g;
 
     const fb = String(item?.feedbackText || "");
     if (fb.trim()) {
-      feedbackMap[String(lesson)] = { text: fb, updatedAt: item?.updatedAt || "" };
+      feedbackMap[String(block)] = { text: fb, updatedAt: item?.updatedAt || "" };
     }
   }
 
   return res.json({
     ok: true,
-    course,
-    data: courseProg,
+    grade,
+    subject,
+    data: subjProg,
     gradesMap,
     feedbackMap,
   });
@@ -659,38 +750,38 @@ app.post("/api/progress/set", requireAdmin, (req, res) => {
   const body = req.body || {};
 
   const studentId = String(body.studentId || "");
-  const c = normalizeCourse(body.course);
+  const grade = normalizeGrade(body.grade);
+  const subject = normalizeSubject(grade, body.subject);
+  const block = Number(body.blockNumber);
 
-  const lessonRaw = (body.lessonNumber !== undefined) ? body.lessonNumber : body.lesson;
-  const lesson = Number(lessonRaw);
-  
-
-  const gradeRaw = body.grade;
+  const gradeRaw = body.gradeValue;
   const statusRaw = body.status;
   const feedbackText = body.feedbackText;
   const feedbackFileUrl = body.feedbackFileUrl;
 
-
-  if (!studentId || !safeCourse(c) || !safeLessonNumber(lesson)) {
+  if (!studentId || !grade || !subject || !safeBlockNumber(block)) {
     return res.status(400).json({ ok: false, error: "bad_input" });
   }
 
   const db = readDB();
 
-const prev = { ...(db.progress?.[studentId]?.[c]?.[String(lesson)] || {}) };
+  const prev = { ...(db.progress?.[studentId]?.[grade]?.[subject]?.[String(block)] || {}) };
 
-db.progress = db.progress || {};
-db.progress[studentId] = db.progress[studentId] || {};
-db.progress[studentId][c] = db.progress[studentId][c] || {};
-db.progress[studentId][c][String(lesson)] = db.progress[studentId][c][String(lesson)] || {
-  grade: null,
-  status: "none",
-  feedbackText: "",
-  feedbackFileUrl: "",
-  updatedAt: nowISO(),
-};
+  db.progress = db.progress || {};
+  db.progress[studentId] = db.progress[studentId] || {};
+  db.progress[studentId][grade] = db.progress[studentId][grade] || {};
+  db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
+  db.progress[studentId][grade][subject][String(block)] =
+    db.progress[studentId][grade][subject][String(block)] || {
+      grade: null,
+      status: "none",
+      feedbackText: "",
+      feedbackFileUrl: "",
+      updatedAt: nowISO(),
+    };
 
-const item = db.progress[studentId][c][String(lesson)];
+  const item = db.progress[studentId][grade][subject][String(block)];
+
   let gradeSet = false;
   if (gradeRaw !== undefined && gradeRaw !== null && gradeRaw !== "") {
     const g = Number(gradeRaw);
@@ -704,38 +795,26 @@ const item = db.progress[studentId][c][String(lesson)];
   if (statusRaw !== undefined && statusRaw !== null && statusRaw !== "") {
     item.status = String(statusRaw).toLowerCase();
   }
-
-  // grade қойылса — status автомат graded
-  if (gradeSet) item.status = "graded";
+if (gradeSet) item.status = "graded";
 
   if (feedbackText !== undefined) item.feedbackText = String(feedbackText || "");
   if (feedbackFileUrl !== undefined) item.feedbackFileUrl = String(feedbackFileUrl || "");
 
   item.updatedAt = nowISO();
 
- const oldGrade = Number(prev?.grade ?? 0);
-const newGrade = Number(item?.grade ?? 0);
+  const oldGrade = Number(prev?.grade ?? 0);
+  const newGrade = Number(item?.grade ?? 0);
 
-const oldFeedback = String(prev?.feedbackText || "").trim();
-const newFeedback = String(item?.feedbackText || "").trim();
+  const oldFeedback = String(prev?.feedbackText || "").trim();
+  const newFeedback = String(item?.feedbackText || "").trim();
 
-if(newFeedback && newFeedback !== oldFeedback){
-  pushNotif(
-    db,
-    studentId,
-    "feedback",
-    `(${c}) Сабақ ${lesson}: мұғалім пікір қалдырды 💬`
-  );
-}
+  if (newFeedback && newFeedback !== oldFeedback) {
+    pushNotif(db, studentId, "feedback", `(${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`);
+  }
 
-if(Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade){
-  pushNotif(
-    db,
-    studentId,
-    "review",
-    `(${c}) Сабақ ${lesson}: баға қойылды 🏅`
-  );
-}
+  if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
+    pushNotif(db, studentId, "review", `(${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`);
+  }
 
   writeDB(db);
   return res.json({ ok: true });

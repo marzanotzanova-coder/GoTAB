@@ -24,6 +24,20 @@ button{width:100%;padding:6px;margin:4px 0;border:none;border-radius:10px;cursor
 <body>
 
 <h1>Менің курстарым — Стандарт  </h1>
+<div class="selectors">
+
+<select id="gradeSelect">
+<option value="8">8 сынып</option>
+<option value="9">9 сынып</option>
+</select>
+
+<select id="subjectSelect">
+<option value="algebra">Алгебра</option>
+<option value="geometry">Геометрия</option>
+</select>
+
+</div>
+
 <div class="block-container" id="block-container"></div>
 
 <div id="viewerModal">
@@ -34,6 +48,21 @@ button{width:100%;padding:6px;margin:4px 0;border:none;border-radius:10px;cursor
 </div>
 
 <script>
+
+ const gradeSelect = document.getElementById("gradeSelect");
+ const subjectSelect = document.getElementById("subjectSelect"); 
+
+ function fillGradeOptions(studentGrade){
+  const g = Number(studentGrade || 8)
+  let grades = []
+
+  if(g >= 8) grades.push(8)
+  if(g >= 9) grades.push(9)
+
+  gradeSelect.innerHTML = grades
+    .map(x => `<option value="${x}">${x} сынып</option>`)
+    .join("")
+}
 
 const params = new URLSearchParams(window.location.search);
 const previewStudentId = params.get("previewStudentId");
@@ -72,10 +101,11 @@ const COURSE_LS  = "standart";
 
   effectivePackage = String(sessionUser.package || "pending").toLowerCase();
 
-  if(!isAdmin && effectivePackage !== "standart" && effectivePackage !== "standard"){
-    window.location.href = "dashboard.html";
-    return;
-  }
+  if(!isAdmin && effectivePackage !== "standart" && effectivePackage !== "standard" && effectivePackage !== "premium"){
+  window.location.href = "dashboard.html";
+  return;
+}
+  fillGradeOptions(Number(sessionUser.grade || 5));
 
   initPage();
 })();
@@ -246,7 +276,17 @@ fd.append("studentId", studentId);
           if(!file) return;
 
           try{
-            await uploadStudentFile({ course: "standart", lessonNumber: i, file });
+           await fetch("/api/student/upload",{
+           method:"POST",
+           body:(()=>{
+           const fd=new FormData();
+           fd.append("grade",gradeSelect.value);
+           fd.append("subject",subjectSelect.value);
+           fd.append("blockNumber",i);
+           fd.append("file",file);
+           return fd;
+           })()
+           }); 
             alert("✅ Тапсырма жүктелді!");
             const sid = effectiveStudentId;
             if(sid){
@@ -257,7 +297,8 @@ fd.append("studentId", studentId);
   
 
             // қайтадан серверден жаңартып аламыз (сол сабақ қана)
-            const data = await fetch(`/api/materials?course=standart&lessonNumber=${i}`).then(r=>r.json());
+          const data = await fetch(`/api/materials?grade=${gradeSelect.value}&subject=${subjectSelect.value}&blockNumber=${i}`)
+.then(r=>r.json());
             materials[i] = normalizeLists(data);
 
           }catch(err){
@@ -278,9 +319,9 @@ if(role === "admin"){
 
   studentBtn.onclick = async () => {
   try{
-    const data = await fetch(`/api/materials?course=${encodeURIComponent(COURSE_API)}&lessonNumber=${i}`)
-      .then(r=>r.json())
-      .catch(()=>null);
+const data = await fetch(`/api/materials?grade=${gradeSelect.value}&subject=${subjectSelect.value}&blockNumber=${i}`)
+.then(r=>r.json())
+.catch(()=>null);
 
     materials[i] = normalizeLists(data);
 
@@ -389,7 +430,7 @@ if(role === "admin"){
 
   // ===== 2) Серверден 1..30 материалдарды алу =====
   for(let i=1;i<=30;i++){
-    fetch(`/api/materials?course=standart&lessonNumber=${i}`)
+   fetch(`/api/materials?grade=${gradeSelect.value}&subject=${subjectSelect.value}&blockNumber=${i}`) 
       .then(r => r.json())
       .then(data => { materials[i] = normalizeLists(data); })
       .catch(() => { materials[i] = normalizeLists(null); });
