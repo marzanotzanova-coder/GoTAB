@@ -589,13 +589,14 @@ function escapeHtml(s){
 }
 
 function renderFeedbackOnly(serverProg){
+
   const box = document.getElementById("feedbackList");
   if(!box) return;
 
   box.innerHTML = "";
 
-  const entries = Object.entries(serverProg || {})
-    .filter(([_, item]) => String(item?.feedbackText || "").trim());
+  const entries = Object.values(serverProg || {})
+    .filter(item => String(item?.feedbackText || "").trim());
 
   if(entries.length === 0){
     box.innerHTML = `<div class="muted">Әзірге мұғалім пікірі жоқ</div>`;
@@ -603,18 +604,39 @@ function renderFeedbackOnly(serverProg){
   }
 
   entries
-    .sort((a,b)=> Number(b[0]) - Number(a[0]))
-    .forEach(([lesson, item])=>{
+    .sort((a,b)=>{
+
+      if ((b.schoolGrade || 0) !== (a.schoolGrade || 0)) {
+        return (b.schoolGrade || 0) - (a.schoolGrade || 0);
+      }
+
+      if (String(a.subject || "") !== String(b.subject || "")) {
+        return String(a.subject || "").localeCompare(String(b.subject || ""));
+      }
+
+      return (b.blockNumber || 0) - (a.blockNumber || 0);
+
+    })
+    .forEach(item=>{
+
       const row = document.createElement("div");
       row.className = "row feedbackCard";
+
       row.innerHTML = `
         <div class="rowLeft" style="width:100%">
-          <div class="rowTitle">💬 Сабақ ${lesson}</div>
-          <div class="rowSub feedbackQuote">${escapeHtml(item.feedbackText || "")}</div>
+          <div class="rowTitle">
+            💬 ${item.schoolGrade} сынып • ${item.subject} • Сабақ ${item.blockNumber}
+          </div>
+          <div class="rowSub feedbackQuote">
+            ${escapeHtml(item.feedbackText || "")}
+          </div>
         </div>
       `;
+
       box.appendChild(row);
+
     });
+
 }
 
 function todayKey(){
@@ -657,7 +679,11 @@ async function fetchProgressFromServer(){
 
   try{
     const res = await fetch(
-      `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&course=${encodeURIComponent(getPkgAPI())}`
+      `/api/progress/summary?studentId=${encodeURIComponent(effectiveStudentId)}`,
+      {
+        credentials:"include",
+        cache:"no-store"
+      }
     );
 
     const j = await res.json().catch(()=>null);
@@ -669,18 +695,29 @@ async function fetchProgressFromServer(){
     const gradesMap = {};
     const feedbackMap = {};
 
-    for(const lessonKey of Object.keys(data)){
-      const item = data[lessonKey] || {};
+    let lessonIndex = 1;
+    const sorted = Object.values(data).sort((a,b)=>{
+      if ((a.schoolGrade || 0) !== (b.schoolGrade || 0)) {
+        return (a.schoolGrade || 0) - (b.schoolGrade || 0);
+      }
+      if (String(a.subject || "") !== String(b.subject || "")) {
+        return String(a.subject || "").localeCompare(String(b.subject || ""));
+      }
+      return (a.blockNumber || 0) - (b.blockNumber || 0);
+    });
 
+    for(const item of sorted){
       const g = Number(item.grade ?? 0);
       if(Number.isFinite(g) && g > 0){
-        gradesMap[String(lessonKey)] = g;
+        gradesMap[String(lessonIndex)] = g;
       }
 
       const fb = String(item.feedbackText || "").trim();
       if(fb){
-        feedbackMap[String(lessonKey)] = { text: fb };
+        feedbackMap[String(lessonIndex)] = { text: fb };
       }
+
+      lessonIndex++;
     }
 
     return { gradesMap, feedbackMap, data };
@@ -1176,12 +1213,20 @@ window.pingStreakServer = pingStreakServer;
   }
 
   async function fetchServerProgress(){
-    const sid = effectiveStudentId;
-    if(!sid) return {};
-    const res = await fetch(`/api/progress/get?studentId=${encodeURIComponent(sid)}&course=${encodeURIComponent(getPkgAPI())}`);
-    const data = await res.json().catch(()=>null);
-    return (data && data.ok && data.data) ? data.data : {};
-  }
+  const sid = effectiveStudentId;
+  if(!sid) return {};
+
+  const res = await fetch(
+    `/api/progress/summary?studentId=${encodeURIComponent(sid)}`,
+    {
+      credentials:"include",
+      cache:"no-store"
+    }
+  );
+
+  const data = await res.json().catch(()=>null);
+  return (data && data.ok && data.data) ? data.data : {};
+}
 
   async function renderUploadStatusesServer(focusLessons, localProgressValues){
     const box = document.getElementById("uploadStatuses");
@@ -1218,55 +1263,57 @@ window.pingStreakServer = pingStreakServer;
   }
 
   // ✅ Recent grades SHOULD come from server, NOT local
-  async function renderRecentGradesServer(serverProg, localGradesFallback){
-    const box = document.getElementById("recentGrades");
-    if(!box) return;
-    box.innerHTML = "";
+  async function renderRecentGradesServer(serverProg){
+  const box = document.getElementById("recentGrades");
+  if(!box) return;
 
-    const rows = [];
-    for(let i=1;i<=30;i++){
-      const p = serverProg[String(i)];
-      const grade = Number(p?.grade ?? 0);
-      const fb = String(p?.feedbackText || "");
-      if(grade > 0 || fb.trim()){
-        rows.push({ lesson:i, grade, fb });
+  box.innerHTML = "";
+
+  const rows = Object.values(serverProg || {})
+    .filter(item => Number(item?.grade ?? 0) > 0)
+    .sort((a,b)=>{
+      if ((b.schoolGrade || 0) !== (a.schoolGrade || 0)) {
+        return (b.schoolGrade || 0) - (a.schoolGrade || 0);
       }
-    }
-
-    // fallback: если сервер пустой, покажем local (чтобы тест не пропал)
-    if(rows.length === 0 && Array.isArray(localGradesFallback) && localGradesFallback.length){
-      const feedbackMap = JSON.parse(localStorage.getItem(courseKey("feedback")) || "{}");
-      const take = localGradesFallback.slice().sort((a,b)=> b.lesson - a.lesson).slice(0,6);
-      take.forEach(item=>{
-        const g = Number(item.grade || 0);
-        const fb = feedbackMap[String(item.lesson)];
-        const sub = fb?.text ? ("💬 " + fb.text) : "Баға қойылды";
-        let kind = g>=85 ? "" : (g>=60 ? "warn" : "bad");
-        box.appendChild(makeRow("Сабақ " + item.lesson, sub, g + "/100", kind));
-      });
-      return;
-    }
-
-    if(rows.length === 0){
-      box.appendChild(makeRow("Әзірге баға жоқ", "Admin баға қойған кезде көрінеді.", "WAIT", "warn"));
-      return;
-    }
-
-    rows.sort((a,b)=> b.lesson - a.lesson);
-    rows.slice(0,6).forEach(r=>{
-     const sub = "Баға қойылды"; 
-      const g = Number(r.grade || 0);
-      const badge = g > 0 ? (g + "/100") : "FB";
-      let kind = "";
-      if(g>0){
-        kind = g>=85 ? "" : (g>=60 ? "warn" : "bad");
-      }else{
-        kind = "neutral";
+      if (String(a.subject || "") !== String(b.subject || "")) {
+        return String(a.subject || "").localeCompare(String(b.subject || ""));
       }
-      box.appendChild(makeRow("Сабақ " + r.lesson, sub, badge, kind));
+      return (b.blockNumber || 0) - (a.blockNumber || 0);
     });
+
+  if(rows.length === 0){
+    box.appendChild(makeRow(
+      "Әзірге баға жоқ",
+      "Admin баға қойған кезде көрінеді.",
+      "WAIT",
+      "warn"
+    ));
+    return;
   }
 
+  rows.slice(0,6).forEach(r=>{
+
+    const g = Number(r.grade || 0);
+
+    const title =
+      `${r.schoolGrade} сынып • ${r.subject} • Сабақ ${r.blockNumber}`;
+
+    const badge = g + "/100";
+
+    let kind = "";
+    if(g >= 85) kind = "";
+    else if(g >= 60) kind = "warn";
+    else kind = "bad";
+
+    box.appendChild(makeRow(
+      title,
+      "Баға қойылды",
+      badge,
+      kind
+    ));
+
+  });
+}
   // =========================================================
   // 10) Achievements (local ok, per package keys)
   // =========================================================

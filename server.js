@@ -844,6 +844,46 @@ app.get("/api/progress/get", requireAuth, (req, res) => {
   });
 });
 
+app.get("/api/progress/summary", requireAuth, (req, res) => {
+  const sessionUser = req.session?.user || null;
+  const requestedStudentId = String(req.query.studentId || "");
+
+  const studentId =
+    sessionUser?.role === "admin"
+      ? requestedStudentId
+      : String(sessionUser?.studentId || "");
+
+  if (!studentId) {
+    return res.status(400).json({ ok: false, error: "bad_input" });
+  }
+
+  const db = readDB();
+  db.progress = db.progress || {};
+
+  const all = db.progress[studentId] || {};
+  const flat = {};
+
+  for (const [grade, subjects] of Object.entries(all)) {
+    for (const [subject, blocks] of Object.entries(subjects || {})) {
+      for (const [block, item] of Object.entries(blocks || {})) {
+        const key = `${grade}_${subject}_${block}`;
+        flat[key] = {
+          grade: Number(item?.grade ?? 0),
+          status: String(item?.status || ""),
+          feedbackText: String(item?.feedbackText || ""),
+          feedbackFileUrl: String(item?.feedbackFileUrl || ""),
+          updatedAt: item?.updatedAt || "",
+          schoolGrade: Number(grade),
+          subject,
+          blockNumber: Number(block)
+        };
+      }
+    }
+  }
+
+  return res.json({ ok: true, data: flat });
+});
+
 // ✅ Admin sets grade/status/feedback (lessonNumber OR lesson) + auto graded status
 
 app.post("/api/progress/set", requireAdmin, (req, res) => {
