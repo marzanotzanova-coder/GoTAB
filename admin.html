@@ -579,18 +579,19 @@ function escapeHtml(s){
       }
 
       const fr = await fetch("/api/progress/set", {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({
-          studentId: sid,
-          grade: grade,
-          subject: subject,
-          blockNumber: blockNumber,
-          feedbackText: feedbackText
-        })
-      });
+  method: "POST",
+  headers: { "Content-Type":"application/json" },
+  credentials: "include",
+  cache: "no-store",
+  body: JSON.stringify({
+    studentId: sid,
+    course: normCourseToApi(document.getElementById("course-select").value),
+    grade: grade,
+    subject: subject,
+    blockNumber: blockNumber,
+    feedbackText: feedbackText
+  })
+});
 
       if(!fr.ok){
         alert("Фидбэк сақтау қатесі");
