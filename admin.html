@@ -363,16 +363,14 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
         ID: ${escapeHtml(st.studentId)} • ${escapeHtml(st.email || st.phone || "")}
       </div>
 
-      <select class="packageSelect">
-        <option value="pending" ${st.package==="pending" ? "selected" : ""}>Pending</option>
-        <option value="baza" ${st.package==="baza" || st.package==="base" ? "selected" : ""}>Baza</option>
-        <option value="standart" ${st.package==="standart" ? "selected" : ""}>Standart</option>
-        <option value="premium" ${st.package==="premium" ? "selected" : ""}>Premium</option>
-      </select>
-    </div>
-  </div>
+    <select class="packageSelect">
+  <option value="pending" ${st.package==="pending" ? "selected" : ""}>Pending</option>
+  <option value="baza" ${st.package==="baza" || st.package==="base" ? "selected" : ""}>Baza</option>
+  <option value="standart" ${st.package==="standart" ? "selected" : ""}>Standart</option>
+  <option value="premium" ${st.package==="premium" ? "selected" : ""}>Premium</option>
+</select>
 
-  <select class="gradeSelect">
+<select class="gradeSelect">
   <option value="5" ${Number(st.grade)===5 ? "selected" : ""}>5 сынып</option>
   <option value="6" ${Number(st.grade)===6 ? "selected" : ""}>6 сынып</option>
   <option value="7" ${Number(st.grade)===7 ? "selected" : ""}>7 сынып</option>
@@ -380,7 +378,7 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
   <option value="9" ${Number(st.grade)===9 ? "selected" : ""}>9 сынып</option>
   <option value="10" ${Number(st.grade)===10 ? "selected" : ""}>10 сынып</option>
   <option value="11" ${Number(st.grade)===11 ? "selected" : ""}>11 сынып</option>
-</select>
+</select> 
 
   <div class="studentBtns">
     <button class="btnView">Көру</button>
