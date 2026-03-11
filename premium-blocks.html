@@ -330,43 +330,51 @@ async function serverSetGrade(grade, subject, blockNumber, gradeValue, feedbackT
 }
 
 async function renderBlocks(){
-  const grade = String(gradeSelect.value || "8");
-  const subject = String(subjectSelect.value || "algebra");
+  const grade = String(gradeSelect.value || "5");
+  const subject = String(subjectSelect.value || "math");
 
   container.innerHTML = "";
 
   const totalBlocks = getBlockCount(grade, subject);
-  const materials = {};
   const progress = {};
+  const cards = [];
 
   const serverProg = await serverGetProgress(grade, subject);
-  for(const [block, item] of Object.entries(serverProg)){
+  for (const [block, item] of Object.entries(serverProg)) {
     const g = Number(item?.grade ?? 0);
-    if(Number.isFinite(g) && g > 0){
+    if (Number.isFinite(g) && g > 0) {
       progress[String(block)] = g;
     }
   }
 
-  for(let i=1; i<=totalBlocks; i++){
+  const materialRequests = [];
+  for (let i = 1; i <= totalBlocks; i++) {
+    materialRequests.push(
+      fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
+        credentials: "include",
+        cache: "no-store"
+      })
+      .then(r => r.json())
+      .catch(() => null)
+    );
+  }
+
+  const materialResults = await Promise.all(materialRequests);
+
+  for (let i = 1; i <= totalBlocks; i++) {
+
+    const materials = normalizeLists(materialResults[i - 1]);
+
     const block = document.createElement("div");
     block.className = "material-block";
     block.innerHTML = `<p>Сабақ ${i}</p>`;
-
-    const data = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-      credentials:"include",
-      cache:"no-store"
-    })
-    .then(r => r.json())
-    .catch(() => null);
-
-    materials[i] = normalizeLists(data);
 
     const vBtn = document.createElement("button");
     vBtn.className = "video-btn";
     vBtn.textContent = "Видеоны көру";
     vBtn.onclick = () => {
-      const item = lastItem(materials[i]?.videos);
-      if(item?.url) openVideo(item.url);
+      const item = lastItem(materials?.videos);
+      if (item?.url) openVideo(item.url);
       else alert("Видео жоқ");
     };
     block.appendChild(vBtn);
@@ -375,26 +383,31 @@ async function renderBlocks(){
     dBtn.className = "pdf-btn";
     dBtn.textContent = "Тапсырманы ашу";
     dBtn.onclick = () => {
-      const item = lastItem(materials[i]?.docs);
-      if(item?.url) openDoc(item.url);
+      const item = lastItem(materials?.docs);
+      if (item?.url) openDoc(item.url);
       else alert("Тапсырма жоқ");
     };
     block.appendChild(dBtn);
 
-    if(role === "student"){
+    if (role === "student") {
+
       const uBtn = document.createElement("button");
       uBtn.className = "upload-btn";
-      uBtn.textContent = "Оқушы тапсырмасы";
+      uBtn.textContent = "Тапсырма жүктеу";
+
       uBtn.onclick = async () => {
+
         const input = document.createElement("input");
         input.type = "file";
         input.accept = ".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
 
         input.onchange = async () => {
-          const file = input.files && input.files[0];
-          if(!file) return;
 
-          try{
+          const file = input.files && input.files[0];
+          if (!file) return;
+
+          try {
+
             const fd = new FormData();
             fd.append("grade", grade);
             fd.append("subject", subject);
@@ -402,82 +415,89 @@ async function renderBlocks(){
             fd.append("file", file);
 
             const r = await fetch("/api/student/upload", {
-              method:"POST",
+              method: "POST",
               body: fd,
-              credentials:"include"
+              credentials: "include"
             });
 
-            const j = await r.json().catch(()=>null);
+            const j = await r.json().catch(() => null);
 
-            if(!r.ok || !j?.ok){
+            if (!r.ok || !j?.ok) {
               alert("Жүктелмеді");
               return;
             }
 
             alert("✅ Тапсырма жүктелді!");
+            await renderBlocks();
 
-            const sid = effectiveStudentId;
-            if(sid){
-              const k = `uploadCount_${sid}_${COURSE_LS}`;
-              const cur = Number(localStorage.getItem(k) || "0");
-              localStorage.setItem(k, String(cur + 1));
-            }
-
-            const newData = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-              credentials:"include",
-              cache:"no-store"
-            }).then(r=>r.json()).catch(()=>null);
-
-            materials[i] = normalizeLists(newData);
-          }catch(err){
+          } catch (err) {
             console.error(err);
             alert("Upload error");
           }
+
         };
 
         input.click();
+
       };
+
       block.appendChild(uBtn);
+
     }
 
-    if(role === "admin"){
+    if (role === "admin") {
+
       const studentBtn = document.createElement("button");
       studentBtn.className = "upload-btn";
       studentBtn.textContent = "Оқушы тапсырмасы";
 
       studentBtn.onclick = async () => {
-        try{
+
+        try {
+
           const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-            credentials:"include",
-            cache:"no-store"
-          }).then(r=>r.json()).catch(()=>null);
+            credentials: "include",
+            cache: "no-store"
+          }).then(r => r.json()).catch(() => null);
 
-          materials[i] = normalizeLists(fresh);
+          const freshMaterials = normalizeLists(fresh);
 
-          const listAll = Array.isArray(materials[i]?.studentUploads) ? materials[i].studentUploads : [];
+          const listAll = Array.isArray(freshMaterials?.studentUploads)
+            ? freshMaterials.studentUploads
+            : [];
+
           const list = isPreview
             ? listAll.filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
             : listAll;
 
-          if(!list.length){
+          if (!list.length) {
             alert(isPreview ? "Бұл оқушыдан бұл сабаққа тапсырма жоқ" : "Бұл сабаққа тапсырма жоқ");
             return;
           }
 
-          const sorted = list.slice().sort((a,b)=>{
+          const sorted = list.slice().sort((a, b) => {
+
             const ta = Date.parse(a?.createdAt || "") || 0;
             const tb = Date.parse(b?.createdAt || "") || 0;
-            if(ta !== tb) return ta - tb;
+
+            if (ta !== tb) return ta - tb;
+
             return String(a?.url || "").localeCompare(String(b?.url || ""));
+
           });
 
           const last = sorted[sorted.length - 1];
 
-          const lines = sorted.map((it, idx)=>{
+          const lines = sorted.map((it, idx) => {
+
             const n = idx + 1;
             const name = it?.name || "(file)";
-            const when = it?.createdAt ? new Date(it.createdAt).toLocaleString() : "";
+            const when = it?.createdAt
+              ? new Date(it.createdAt).toLocaleString()
+              : "";
+
             return `${n}) ${name}${when ? " • " + when : ""}`;
+
           });
 
           const msg =
@@ -489,27 +509,44 @@ async function renderBlocks(){
           const ans = prompt(msg, "");
 
           const chosen =
-            (ans === null) ? null :
-            (String(ans).trim() === "") ? last :
-            sorted[Math.min(sorted.length - 1, Math.max(0, Number(ans) - 1))];
+            (ans === null)
+              ? null
+              : (String(ans).trim() === "")
+                ? last
+                : sorted[Math.min(sorted.length - 1, Math.max(0, Number(ans) - 1))];
 
-          if(!chosen) return;
+          if (!chosen) return;
 
           const name = String(chosen.name || "").toLowerCase();
-          if(name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov")){
+
+          if (
+            name.endsWith(".mp4") ||
+            name.endsWith(".webm") ||
+            name.endsWith(".mov")
+          ) {
             openVideo(chosen.url);
-          }else if(name.endsWith(".mp3") || name.endsWith(".wav")){
+          }
+          else if (
+            name.endsWith(".mp3") ||
+            name.endsWith(".wav")
+          ) {
             openAudio(chosen.url);
-          }else{
+          }
+          else {
             openDoc(chosen.url);
           }
-        }catch(e){
+
+        } catch (e) {
+
           console.error(e);
           alert("materials fetch error");
+
         }
+
       };
 
       block.appendChild(studentBtn);
+
     }
 
     const badge = document.createElement("div");
@@ -517,38 +554,48 @@ async function renderBlocks(){
     badge.textContent = progress[i] ? (progress[i] + "/100") : "—";
     block.appendChild(badge);
 
-    if(role === "admin"){
+    if (role === "admin") {
+
       const sel = document.createElement("select");
       sel.className = "progress-select";
       sel.innerHTML = "<option value=''>Баға қою</option>";
 
-      for(let p=1; p<=100; p++){
+      for (let p = 1; p <= 100; p++) {
         sel.innerHTML += `<option value="${p}">${p}</option>`;
       }
 
       sel.value = progress[i] || "";
 
       sel.onchange = async () => {
-        progress[i] = sel.value;
-        badge.textContent = sel.value ? (sel.value + "/100") : "—";
 
-        const blockNumber = Number(i);
-        const gradeValue = Number(sel.value);
+        badge.textContent = sel.value
+          ? (sel.value + "/100")
+          : "—";
 
-        if(Number.isFinite(blockNumber) && Number.isFinite(gradeValue) && gradeValue > 0){
-          const resp = await serverSetGrade(grade, subject, blockNumber, gradeValue, "");
-          if(!resp || !resp.ok){
-            console.error("serverSetGrade failed:", resp);
-            alert("Server grade save error");
-          }
+        const resp = await serverSetGrade(
+          grade,
+          subject,
+          i,
+          Number(sel.value),
+          ""
+        );
+
+        if (!resp || !resp.ok) {
+          alert("Server grade save error");
         }
+
       };
 
       block.appendChild(sel);
+
     }
 
-    container.appendChild(block);
+    cards.push(block);
+
   }
+
+  cards.forEach(card => container.appendChild(card));
+
 }
 
 gradeSelect.addEventListener("change", async ()=>{
