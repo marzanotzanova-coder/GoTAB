@@ -560,6 +560,7 @@ let email = "";
   phone = String(sessionUser.phone || "");
   email = String(sessionUser.email || "");
   effectivePackage = String(sessionUser.package || "pending").toLowerCase();
+  effectiveGrade = Number(sessionUser.grade || 5);
   init();
 })();
  
@@ -571,6 +572,7 @@ let email = "";
   let effectiveName = "Оқушы";
   let effectiveEmail = "";
   let effectivePhone = "";
+  let effectiveGrade = 5;
 
   window.__gotab = {
     sid: () => effectiveStudentId,
@@ -828,6 +830,7 @@ window.pingStreakServer = pingStreakServer;
         effectiveEmail = st.email || "";
         effectivePhone = st.phone || "";
         if(st.package) effectivePackage = normPkgLS(st.package); // ✅ normalize!
+        effectiveGrade = Number(st.grade || 5);
       }else{
         effectiveName = "Оқушы";
       }
@@ -1038,7 +1041,7 @@ window.pingStreakServer = pingStreakServer;
 
  function getAllowedGradesForDashboard(){
   const p = String(effectivePackage || "").toLowerCase();
-  const grade = Number(sessionUser?.grade || 5);
+  const grade = Number(effectiveGrade || 5);
 
   if(p === "base" || p === "baza"){
     if(grade === 5) return [5];
