@@ -605,17 +605,13 @@ function renderFeedbackOnly(serverProg){
 
   entries
     .sort((a,b)=>{
-
       if ((b.schoolGrade || 0) !== (a.schoolGrade || 0)) {
         return (b.schoolGrade || 0) - (a.schoolGrade || 0);
       }
-
       if (String(a.subject || "") !== String(b.subject || "")) {
         return String(a.subject || "").localeCompare(String(b.subject || ""));
       }
-
       return (b.blockNumber || 0) - (a.blockNumber || 0);
-
     })
     .forEach(item=>{
 
@@ -634,9 +630,7 @@ function renderFeedbackOnly(serverProg){
       `;
 
       box.appendChild(row);
-
     });
-
 }
 
 function todayKey(){
@@ -1456,27 +1450,7 @@ badge.addEventListener("click", ()=>{
         return;
       }
 
-      const pkg = String(effectivePackage || "").toLowerCase();
-
-const filtered = list.filter(n=>{
-  const txt = String(n.text || "").toLowerCase();
-
-  if(pkg === "base" || pkg === "baza"){
-    return txt.includes("(base)");
-  }
-
-  if(pkg === "standart" || pkg === "standard"){
-    return txt.includes("(standart)");
-  }
-
-  if(pkg === "premium"){
-    return txt.includes("(premium)");
-  }
-
-  return true;
-});
-
-      filtered.slice(0,8).forEach(n=>{
+     list.slice(0,8).forEach(n=>{
         const when = new Date(n.createdAt || Date.now()).toLocaleString();
         box.appendChild(makeRow(
           n.type || "notif",
