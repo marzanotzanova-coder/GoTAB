@@ -804,6 +804,10 @@ app.get("/api/progress/get", requireAuth, (req, res) => {
   const grade = normalizeGrade(req.query.grade);
   const subject = normalizeSubject(grade, req.query.subject);
 
+  let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
+  if (course === "baza") course = "base";
+  if (course === "standard") course = "standart";
+
   const studentId =
     sessionUser?.role === "admin"
       ? requestedStudentId
@@ -813,13 +817,28 @@ app.get("/api/progress/get", requireAuth, (req, res) => {
     return res.status(400).json({ ok: false, error: "bad_input" });
   }
 
+  if (!["base", "standart", "premium"].includes(course)) {
+    course =
+      String(sessionUser?.package || "").toLowerCase() === "baza"
+        ? "base"
+        : String(sessionUser?.package || "").toLowerCase() === "standard"
+          ? "standart"
+          : String(sessionUser?.package || "").toLowerCase();
+  }
+
+  if (!["base", "standart", "premium"].includes(course)) {
+    return res.status(400).json({ ok: false, error: "bad_course" });
+  }
+
   const db = readDB();
   db.progress = db.progress || {};
   db.progress[studentId] = db.progress[studentId] || {};
-  db.progress[studentId][grade] = db.progress[studentId][grade] || {};
-  db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
+  db.progress[studentId][course] = db.progress[studentId][course] || {};
+  db.progress[studentId][course][grade] = db.progress[studentId][course][grade] || {};
+  db.progress[studentId][course][grade][subject] =
+    db.progress[studentId][course][grade][subject] || {};
 
-  const subjProg = db.progress[studentId][grade][subject];
+  const subjProg = db.progress[studentId][course][grade][subject];
 
   const gradesMap = {};
   const feedbackMap = {};
@@ -836,6 +855,7 @@ app.get("/api/progress/get", requireAuth, (req, res) => {
 
   return res.json({
     ok: true,
+    course,
     grade,
     subject,
     data: subjProg,
@@ -848,6 +868,10 @@ app.get("/api/progress/summary", requireAuth, (req, res) => {
   const sessionUser = req.session?.user || null;
   const requestedStudentId = String(req.query.studentId || "");
 
+  let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
+  if (course === "baza") course = "base";
+  if (course === "standard") course = "standart";
+
   const studentId =
     sessionUser?.role === "admin"
       ? requestedStudentId
@@ -857,10 +881,23 @@ app.get("/api/progress/summary", requireAuth, (req, res) => {
     return res.status(400).json({ ok: false, error: "bad_input" });
   }
 
+  if (!["base", "standart", "premium"].includes(course)) {
+    course =
+      String(sessionUser?.package || "").toLowerCase() === "baza"
+        ? "base"
+        : String(sessionUser?.package || "").toLowerCase() === "standard"
+          ? "standart"
+          : String(sessionUser?.package || "").toLowerCase();
+  }
+
+  if (!["base", "standart", "premium"].includes(course)) {
+    return res.status(400).json({ ok: false, error: "bad_course" });
+  }
+
   const db = readDB();
   db.progress = db.progress || {};
 
-  const all = db.progress[studentId] || {};
+  const all = db.progress?.[studentId]?.[course] || {};
   const flat = {};
 
   for (const [grade, subjects] of Object.entries(all)) {
@@ -875,13 +912,14 @@ app.get("/api/progress/summary", requireAuth, (req, res) => {
           updatedAt: item?.updatedAt || "",
           schoolGrade: Number(grade),
           subject,
-          blockNumber: Number(block)
+          blockNumber: Number(block),
+          course
         };
       }
     }
   }
 
-  return res.json({ ok: true, data: flat });
+  return res.json({ ok: true, course, data: flat });
 });
 
 // ✅ Admin sets grade/status/feedback (lessonNumber OR lesson) + auto graded status
@@ -894,25 +932,38 @@ app.post("/api/progress/set", requireAdmin, (req, res) => {
   const subject = normalizeSubject(grade, body.subject);
   const block = Number(body.blockNumber);
 
+  let course = String(body.course || body.package || "").toLowerCase().trim();
+  if (course === "baza") course = "base";
+  if (course === "standard") course = "standart";
+
   const gradeRaw = body.gradeValue;
   const statusRaw = body.status;
   const feedbackText = body.feedbackText;
   const feedbackFileUrl = body.feedbackFileUrl;
 
- if (!studentId || !grade || !subject || !safeBlockNumber(block, grade, subject)) {
-  return res.status(400).json({ ok: false, error: "bad_input" });
-}
+  if (!studentId || !grade || !subject || !safeBlockNumber(block, grade, subject)) {
+    return res.status(400).json({ ok: false, error: "bad_input" });
+  }
+
+  if (!["base", "standart", "premium"].includes(course)) {
+    return res.status(400).json({ ok: false, error: "bad_course" });
+  }
 
   const db = readDB();
 
-  const prev = { ...(db.progress?.[studentId]?.[grade]?.[subject]?.[String(block)] || {}) };
-
   db.progress = db.progress || {};
   db.progress[studentId] = db.progress[studentId] || {};
-  db.progress[studentId][grade] = db.progress[studentId][grade] || {};
-  db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
-  db.progress[studentId][grade][subject][String(block)] =
-    db.progress[studentId][grade][subject][String(block)] || {
+  db.progress[studentId][course] = db.progress[studentId][course] || {};
+  db.progress[studentId][course][grade] = db.progress[studentId][course][grade] || {};
+  db.progress[studentId][course][grade][subject] =
+    db.progress[studentId][course][grade][subject] || {};
+
+  const prev = {
+    ...(db.progress[studentId][course][grade][subject][String(block)] || {})
+  };
+
+  db.progress[studentId][course][grade][subject][String(block)] =
+    db.progress[studentId][course][grade][subject][String(block)] || {
       grade: null,
       status: "none",
       feedbackText: "",
@@ -920,7 +971,7 @@ app.post("/api/progress/set", requireAdmin, (req, res) => {
       updatedAt: nowISO(),
     };
 
-  const item = db.progress[studentId][grade][subject][String(block)];
+  const item = db.progress[studentId][course][grade][subject][String(block)];
 
   let gradeSet = false;
   if (gradeRaw !== undefined && gradeRaw !== null && gradeRaw !== "") {
@@ -935,7 +986,8 @@ app.post("/api/progress/set", requireAdmin, (req, res) => {
   if (statusRaw !== undefined && statusRaw !== null && statusRaw !== "") {
     item.status = String(statusRaw).toLowerCase();
   }
-if (gradeSet) item.status = "graded";
+
+  if (gradeSet) item.status = "graded";
 
   if (feedbackText !== undefined) item.feedbackText = String(feedbackText || "");
   if (feedbackFileUrl !== undefined) item.feedbackFileUrl = String(feedbackFileUrl || "");
@@ -949,11 +1001,21 @@ if (gradeSet) item.status = "graded";
   const newFeedback = String(item?.feedbackText || "").trim();
 
   if (newFeedback && newFeedback !== oldFeedback) {
-    pushNotif(db, studentId, "feedback", `(${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`);
+    pushNotif(
+      db,
+      studentId,
+      "feedback",
+      `[${course}] (${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`
+    );
   }
 
   if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
-    pushNotif(db, studentId, "review", `(${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`);
+    pushNotif(
+      db,
+      studentId,
+      "review",
+      `[${course}] (${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`
+    );
   }
 
   writeDB(db);

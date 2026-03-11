@@ -674,13 +674,13 @@ async function fetchProgressFromServer(){
   }
 
   try{
-    const res = await fetch(
-      `/api/progress/summary?studentId=${encodeURIComponent(effectiveStudentId)}`,
-      {
-        credentials:"include",
-        cache:"no-store"
-      }
-    );
+   const res = await fetch(
+  `/api/progress/summary?studentId=${encodeURIComponent(effectiveStudentId)}&course=${encodeURIComponent(getPkgAPI())}`,
+  {
+    credentials:"include",
+    cache:"no-store"
+  }
+);
 
     const j = await res.json().catch(()=>null);
     if(!j || !j.ok){
@@ -1270,14 +1270,14 @@ window.pingStreakServer = pingStreakServer;
   async function fetchServerProgress(){
   const sid = effectiveStudentId;
   if(!sid) return {};
-
+  
   const res = await fetch(
-    `/api/progress/summary?studentId=${encodeURIComponent(sid)}`,
-    {
-      credentials:"include",
-      cache:"no-store"
-    }
-  );
+  `/api/progress/summary?studentId=${encodeURIComponent(sid)}&course=${encodeURIComponent(getPkgAPI())}`,
+  {
+    credentials:"include",
+    cache:"no-store"
+  }
+); 
 
   const data = await res.json().catch(()=>null);
   return (data && data.ok && data.data) ? data.data : {};

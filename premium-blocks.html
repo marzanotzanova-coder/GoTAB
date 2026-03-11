@@ -299,10 +299,10 @@ async function fetchEffectiveStudentForPreview(){
 async function serverGetProgress(grade, subject){
   if(!effectiveStudentId) return {};
 
-  const r = await fetch(
-    `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}`,
-    { credentials:"include", cache:"no-store" }
-  );
+ const r = await fetch(
+  `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&course=premium&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}`,
+  { credentials:"include", cache:"no-store" }
+); 
 
   const j = await r.json().catch(()=>null);
   return (j && j.ok && j.data) ? j.data : {};
@@ -322,6 +322,7 @@ async function serverSetGrade(grade, subject, blockNumber, gradeValue, feedbackT
       blockNumber,
       gradeValue,
       status:"graded",
+      course: "premium",
       feedbackText
     })
   });
