@@ -276,6 +276,33 @@ function normCourseToApi(courseUI){
   return "";
 }
 
+function getAllowedGradeOptions(pkgUI){
+  let pkg = String(pkgUI || "").toLowerCase().trim();
+
+  if(pkg === "baza") pkg = "base";
+  if(pkg === "standard") pkg = "standart";
+
+  if(pkg === "base") return [5,6,7];
+  if(pkg === "standart") return [8,9];
+  if(pkg === "premium") return [10,11];
+
+  return [5,6,7,8,9,10,11];
+}
+
+function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
+  const grades = getAllowedGradeOptions(pkgValue);
+
+  gradeSel.innerHTML = grades.map(g => `
+    <option value="${g}" ${Number(currentGrade) === g ? "selected" : ""}>
+      ${g} сынып
+    </option>
+  `).join("");
+
+  if(!grades.includes(Number(gradeSel.value))){
+    gradeSel.value = String(grades[0]);
+  }
+}
+
   // ===== students list =====
   const listBox = document.getElementById("studentsList");
   const reloadBtn = document.getElementById("reloadStudents");
@@ -345,6 +372,16 @@ function normCourseToApi(courseUI){
     </div>
   </div>
 
+  <select class="gradeSelect">
+  <option value="5" ${Number(st.grade)===5 ? "selected" : ""}>5 сынып</option>
+  <option value="6" ${Number(st.grade)===6 ? "selected" : ""}>6 сынып</option>
+  <option value="7" ${Number(st.grade)===7 ? "selected" : ""}>7 сынып</option>
+  <option value="8" ${Number(st.grade)===8 ? "selected" : ""}>8 сынып</option>
+  <option value="9" ${Number(st.grade)===9 ? "selected" : ""}>9 сынып</option>
+  <option value="10" ${Number(st.grade)===10 ? "selected" : ""}>10 сынып</option>
+  <option value="11" ${Number(st.grade)===11 ? "selected" : ""}>11 сынып</option>
+</select>
+
   <div class="studentBtns">
     <button class="btnView">Көру</button>
     <button class="btnCopy">ID</button>
@@ -367,12 +404,17 @@ function normCourseToApi(courseUI){
       }
     };
 
-    const pkgSel = row.querySelector(".packageSelect");
-    if(pkgSel){
-      pkgSel.onchange = (e)=>{
-        changePackage(st.studentId, e.target.value);
-      };
-    }
+   const pkgSel = row.querySelector(".packageSelect");
+const gradeSel = row.querySelector(".gradeSelect");
+
+if(pkgSel && gradeSel){
+  const saveMeta = ()=>{
+    saveStudentMeta(st.studentId, pkgSel.value, gradeSel.value);
+  };
+
+  pkgSel.onchange = saveMeta;
+  gradeSel.onchange = saveMeta;
+}
 
     listBox.appendChild(row);
 
@@ -385,9 +427,9 @@ function normCourseToApi(courseUI){
   }
 
   reloadBtn.onclick = loadStudents;
-  loadStudents();
+loadStudents();
 
-  async function changePackage(studentId, pkgUI){
+async function changePackage(studentId, pkgUI){
   let pkg = String(pkgUI || "").toLowerCase();
   if(pkg === "baza") pkg = "base";
   if(pkg === "standard") pkg = "standart";
@@ -413,10 +455,46 @@ function normCourseToApi(courseUI){
   alert("Пакет жаңартылды");
   loadStudents();
 }
-  function escapeHtml(s){
-    return String(s ?? "").replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[m]));
+
+async function saveStudentMeta(studentId, pkgUI, gradeUI){
+  let pkg = String(pkgUI || "").toLowerCase();
+  if(pkg === "baza") pkg = "base";
+  if(pkg === "standard") pkg = "standart";
+
+  const grade = Number(gradeUI);
+
+  const r = await fetch("/api/admin/set-student-meta", {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    credentials: "include",
+    cache: "no-store",
+    body: JSON.stringify({
+      studentId,
+      package: pkg,
+      grade
+    })
+  });
+
+  const j = await r.json().catch(()=>null);
+
+  if(!r.ok || !j?.ok){
+    alert("Сақталмады");
+    return;
   }
 
+  alert("Сынып пен пакет сақталды");
+  loadStudents();
+}
+
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, m=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[m]));
+}
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 

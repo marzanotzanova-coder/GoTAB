@@ -324,9 +324,61 @@ function normalizeSubject(grade, subject) {
   return "";
 }
 
-function safeBlockNumber(n) {
+function getAllowedGradesByPackage(pkg, grade) {
+  const p = String(pkg || "").toLowerCase().trim();
+  const g = Number(grade);
+
+  if (p === "base") {
+    if (g === 5) return [5];
+    if (g === 6) return [5, 6];
+    if (g === 7) return [5, 6, 7];
+    return [];
+  }
+
+  if (p === "standart") {
+    if (g === 8) return [5, 6, 7, 8];
+    if (g === 9) return [5, 6, 7, 8, 9];
+    return [];
+  }
+
+  if (p === "premium") {
+    if (g === 10) return [5, 6, 7, 8, 9, 10];
+    if (g === 11) return [5, 6, 7, 8, 9, 10, 11];
+    return [];
+  }
+
+  return [];
+}
+
+function isValidPackageGrade(pkg, grade) {
+  return getAllowedGradesByPackage(pkg, grade).length > 0;
+}
+
+function getBlockCount(grade, subject) {
+  const g = Number(grade);
+  const s = String(subject || "").toLowerCase().trim();
+
+  if (g === 5 || g === 6) {
+    return s === "math" ? 50 : 0;
+  }
+
+  if (g === 7 || g === 8) {
+    if (s === "algebra" || s === "geometry") return 25;
+    return 0;
+  }
+
+  if ([9, 10, 11].includes(g)) {
+    if (s === "algebra" || s === "geometry") return 30;
+    return 0;
+  }
+
+  return 0;
+}
+
+function safeBlockNumber(n, grade, subject) {
   const x = Number(n);
-  return Number.isFinite(x) && x >= 1 && x <= 100;
+  const max = getBlockCount(grade, subject);
+  return Number.isFinite(x) && x >= 1 && x <= max;
 }
 
 // ===================== AUTH (demo) =====================
@@ -380,16 +432,16 @@ app.post("/api/auth/register", async (req, res) => {
     const passwordHash = await bcrypt.hash(String(password), 10);
 
     const user = {
-      studentId,
-      fullName: `${String(firstName).trim()} ${String(lastName).trim()}`.trim(),
-      firstName: String(firstName).trim(),
-      lastName: String(lastName).trim(),
-      phone: String(phone).trim(),
-      email: String(email).trim().toLowerCase(),
-      passwordHash,
-      grade: 5,
-      package: "pending"
-    };
+  studentId,
+  fullName: `${String(firstName).trim()} ${String(lastName).trim()}`.trim(),
+  firstName: String(firstName).trim(),
+  lastName: String(lastName).trim(),
+  phone: String(phone).trim(),
+  email: String(email).trim().toLowerCase(),
+  passwordHash,
+  grade: 5,
+  package: "pending"
+};
 
     db.users.push(user);
 
@@ -463,11 +515,58 @@ app.post("/api/admin/set-package", requireAdmin, (req,res)=>{
 
   return res.json({ok:true});
 });
-app.get("/api/admin/student/:studentId", (req, res) => {
+
+app.post("/api/admin/set-student-meta", requireAdmin, (req,res)=>{
+  const db = readDB();
+  const studentId = String(req.body?.studentId || "").trim();
+  let pkg = String(req.body?.package || "").trim().toLowerCase();
+  const grade = Number(req.body?.grade);
+
+  if(pkg === "baza") pkg = "base";
+  if(pkg === "standard") pkg = "standart";
+
+  if(!["pending","base","standart","premium"].includes(pkg)){
+    return res.status(400).json({ok:false,error:"bad_package"});
+  }
+
+  if(![5,6,7,8,9,10,11].includes(grade)){
+    return res.status(400).json({ok:false,error:"bad_grade"});
+  }
+
+  if(pkg !== "pending" && !isValidPackageGrade(pkg, grade)){
+    return res.status(400).json({
+      ok:false,
+      error:"bad_package_grade_combo"
+    });
+  }
+
+  const user = db.users.find(x => String(x.studentId || "") === studentId);
+  if(!user){
+    return res.status(404).json({ok:false,error:"student_not_found"});
+  }
+
+  user.package = pkg;
+  user.grade = grade;
+
+  writeDB(db);
+  return res.json({
+    ok:true,
+    allowedGrades: getAllowedGradesByPackage(pkg, grade)
+  });
+});
+
+app.get("/api/admin/student/:studentId", requireAdmin, (req, res) => {
   const sid = String(req.params.studentId || "");
   const db = readDB();
   const u = (db.users || []).find((x) => String(x.studentId) === sid);
-  if (!u) return res.status(404).json({ ok: false, error: "not_found" });
+
+  if (!u) {
+    return res.status(404).json({ ok: false, error: "not_found" });
+  }
+
+  const pkg = String(u.package || "pending").toLowerCase();
+  const grade = Number(u.grade || 5);
+
   res.json({
     ok: true,
     student: {
@@ -475,7 +574,9 @@ app.get("/api/admin/student/:studentId", (req, res) => {
       fullName: u.fullName,
       phone: u.phone,
       email: u.email,
-      package: u.package || "baza",
+      package: pkg,
+      grade,
+      allowedGrades: getAllowedGradesByPackage(pkg, grade)
     },
   });
 });
@@ -488,9 +589,9 @@ const adminStorage = multer.diskStorage({
     const subject = normalizeSubject(grade, req.body.subject);
     const block = Number(req.body.blockNumber);
 
-    if (!grade || !subject || !safeBlockNumber(block)) {
-      return cb(new Error("Bad grade/subject/block"));
-    }
+if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
+  return cb(new Error("Bad grade/subject/block"));
+}
 
     const dest = path.join(__dirname, "uploads", grade, subject, "block" + block);
     ensureDir(dest);
@@ -511,9 +612,9 @@ const studentStorage = multer.diskStorage({
     const block = Number(req.body.blockNumber);
     const studentId = String(req.session?.user?.studentId || "");
 
-    if (!grade || !subject || !safeBlockNumber(block) || !studentId) {
-      return cb(new Error("Bad input"));
-    }
+   if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId) {
+  return cb(new Error("Bad input"));
+}
 
     const dest = path.join(__dirname, "student_uploads", grade, subject, "block" + block, studentId);
     ensureDir(dest);
@@ -535,9 +636,9 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), (req, re
     const block = Number(req.body.blockNumber);
     const type = String(req.body.type || "").toLowerCase(); // video|audio|doc
 
-    if (!grade || !subject || !safeBlockNumber(block)) {
-      return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
-    }
+   if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
+  return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
+}
 
     const db = readDB();
 
@@ -590,9 +691,9 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (r
     const block = Number(req.body.blockNumber);
     const studentId = String(req.session?.user?.studentId || "");
 
-    if (!grade || !subject || !safeBlockNumber(block) || !studentId) {
-      return res.status(400).json({ ok: false, error: "bad_input" });
-    }
+   if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId) {
+  return res.status(400).json({ ok: false, error: "bad_input" });
+} 
 
     const db = readDB();
 
@@ -677,10 +778,9 @@ app.get("/api/materials", (req, res) => {
   const subject = normalizeSubject(grade, req.query.subject);
   const block = Number(req.query.blockNumber);
 
-  if (!grade || !subject || !safeBlockNumber(block)) {
-    return res.json({ videos: [], audios: [], docs: [], studentUploads: [] });
-  }
-
+ if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
+  return res.json({ videos: [], audios: [], docs: [], studentUploads: [] });
+}
   const db = readDB();
   const data =
     (db.materials &&
@@ -759,9 +859,9 @@ app.post("/api/progress/set", requireAdmin, (req, res) => {
   const feedbackText = body.feedbackText;
   const feedbackFileUrl = body.feedbackFileUrl;
 
-  if (!studentId || !grade || !subject || !safeBlockNumber(block)) {
-    return res.status(400).json({ ok: false, error: "bad_input" });
-  }
+ if (!studentId || !grade || !subject || !safeBlockNumber(block, grade, subject)) {
+  return res.status(400).json({ ok: false, error: "bad_input" });
+}
 
   const db = readDB();
 
