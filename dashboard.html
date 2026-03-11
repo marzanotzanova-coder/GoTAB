@@ -1036,23 +1036,62 @@ window.pingStreakServer = pingStreakServer;
   // 6) KPI + Sparkline (LOCAL fallback)
   // =========================================================
 
-  async function renderKpiAndSpark(){
-  const { gradesMap } = await fetchProgressFromServer();
+ function getAllowedGradesForDashboard(){
+  const p = String(effectivePackage || "").toLowerCase();
+  const grade = Number(sessionUser?.grade || 5);
 
-  let sum = 0, cnt = 0;
-  const grades = [];
-
-  for(let i=1;i<=30;i++){
-    const n = Number(gradesMap[String(i)] || 0);
-    if(n > 0){
-      sum += n;
-      cnt += 1;
-      grades.push({lesson:i, grade:n});
-    }
+  if(p === "base" || p === "baza"){
+    if(grade === 5) return [5];
+    if(grade === 6) return [5,6];
+    if(grade === 7) return [5,6,7];
   }
 
+  if(p === "standart" || p === "standard"){
+    if(grade === 8) return [5,6,7,8];
+    if(grade === 9) return [5,6,7,8,9];
+  }
+
+  if(p === "premium"){
+    if(grade === 10) return [5,6,7,8,9,10];
+    if(grade === 11) return [5,6,7,8,9,10,11];
+  }
+
+  return [5];
+}
+ 
+  async function renderKpiAndSpark(){
+  const serverProg = await fetchServerProgress();
+
+  const items = Object.values(serverProg || {});
+
+  const gradedItems = items.filter(item => Number(item?.grade ?? 0) > 0);
+
+  let sum = 0;
+  gradedItems.forEach(item => {
+    sum += Number(item.grade || 0);
+  });
+
+  const cnt = gradedItems.length;
   const avg = cnt ? Math.round(sum / cnt) : 0;
-  const progressPct = Math.round((cnt / 30) * 100);
+
+  const allowedGrades = getAllowedGradesForDashboard();
+  let totalBlocks = 0;
+
+  allowedGrades.forEach(g => {
+    g = Number(g);
+
+    if(g === 5 || g === 6){
+      totalBlocks += 50;
+    }else if(g === 7 || g === 8){
+      totalBlocks += 25 + 25;
+    }else if([9,10,11].includes(g)){
+      totalBlocks += 30 + 30;
+    }
+  });
+
+  const progressPct = totalBlocks > 0
+    ? Math.round((cnt / totalBlocks) * 100)
+    : 0;
 
   const kpiAvg = document.getElementById("kpiAvg");
   const kpiDone = document.getElementById("kpiDone");
@@ -1060,21 +1099,40 @@ window.pingStreakServer = pingStreakServer;
   const bar = document.getElementById("progressBar");
 
   if(kpiAvg) kpiAvg.textContent = String(avg);
-  if(kpiDone) kpiDone.textContent = cnt + "/30";
+  if(kpiDone) kpiDone.textContent = `${cnt}/${totalBlocks}`;
   if(kpiGoal) kpiGoal.textContent = progressPct + "%";
   if(bar) bar.style.width = progressPct + "%";
 
-  grades.sort((a,b)=> a.lesson - b.lesson);
-  const last10 = grades.slice(-10).map(x=>x.grade);
+  const sortedGrades = gradedItems
+    .slice()
+    .sort((a,b)=>{
+      if ((a.schoolGrade || 0) !== (b.schoolGrade || 0)) {
+        return (a.schoolGrade || 0) - (b.schoolGrade || 0);
+      }
+      if (String(a.subject || "") !== String(b.subject || "")) {
+        return String(a.subject || "").localeCompare(String(b.subject || ""));
+      }
+      return (a.blockNumber || 0) - (b.blockNumber || 0);
+    });
+
+  const last10 = sortedGrades.slice(-10).map(x => Number(x.grade || 0));
   drawSparkline(last10);
 
-  // бұрынғы кодтармен совместимость үшін:
   const progressValues = {};
-  grades.forEach(x => progressValues[String(x.lesson)] = x.grade);
+  sortedGrades.forEach((x, idx) => {
+    progressValues[String(idx + 1)] = Number(x.grade || 0);
+  });
 
-  return { avg, progressValues, grades };
+  const grades = sortedGrades.map((x, idx) => ({
+    lesson: idx + 1,
+    grade: Number(x.grade || 0),
+    schoolGrade: x.schoolGrade,
+    subject: x.subject,
+    blockNumber: x.blockNumber
+  }));
+
+  return { avg, progressValues, grades, totalBlocks, gradedCount: cnt };
 }
-
   function drawSparkline(values){
     const c = document.getElementById("spark");
     const hint = document.getElementById("sparkHint");
