@@ -539,6 +539,8 @@ function escapeHtml(s){
   const audioInput = document.getElementById("audio-upload");
   const docInput   = document.getElementById("doc-upload");
   const feedbackInput = document.getElementById("feedbackText");
+  const youtubeUrl = document.getElementById("youtubeUrl").value.trim();
+
 
   const feedbackText = String(feedbackInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
