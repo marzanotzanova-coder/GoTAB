@@ -780,7 +780,7 @@ app.get("/api/materials", async (req, res) => {
     const { grade, subject, blockNumber } = req.query;
 
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/materials?grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
+  `${SUPABASE_URL}/rest/v1/materials?select=*&grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -1195,39 +1195,44 @@ app.get("/api/health", (req, res) => {
 
 app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
   try {
-    const grade = normalizeGrade(req.body.grade);
-    const subject = normalizeSubject(grade, req.body.subject);
-    const block = Number(req.body.blockNumber);
+    const grade = String(req.body.grade || "").trim();
+    const subject = String(req.body.subject || "").trim();
+    const blockNumber = Number(req.body.blockNumber);
     const url = String(req.body.url || "").trim();
 
-    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !url) {
+    if (!grade || !subject || !blockNumber || !url) {
       return res.status(400).json({ ok: false, error: "bad_input" });
     }
 
-    const db = readDB();
-
-    db.materials = db.materials || {};
-    db.materials[grade] = db.materials[grade] || {};
-    db.materials[grade][subject] = db.materials[grade][subject] || {};
-    db.materials[grade][subject][String(block)] =
-      db.materials[grade][subject][String(block)] || {
-        videos: [],
-        audios: [],
-        docs: [],
-        studentUploads: []
-      };
-
-    db.materials[grade][subject][String(block)].videos.push({
-      url: url,
-      name: "YouTube video",
-      createdAt: nowISO()
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/materials`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify([
+        {
+          grade,
+          subject,
+          block: blockNumber,
+          type: "video",
+          url
+        }
+      ])
     });
 
-    writeDB(db);
-    return res.json({ ok: true });
+    const data = await r.json().catch(() => null);
 
+    if (!r.ok) {
+      console.error("supabase insert error:", data);
+      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data });
+    }
+
+    return res.json({ ok: true, data });
   } catch (e) {
-    console.error("add-video-link error", e);
+    console.error("add-video-link error:", e);
     return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
