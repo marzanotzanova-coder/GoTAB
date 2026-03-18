@@ -1189,6 +1189,7 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 
     const db = readDB();
 
+    db.materials = db.materials || {};
     db.materials[grade] = db.materials[grade] || {};
     db.materials[grade][subject] = db.materials[grade][subject] || {};
     db.materials[grade][subject][String(block)] =
@@ -1208,7 +1209,6 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
     writeDB(db);
 
     res.json({ ok: true });
-
   } catch (e) {
     console.error(e);
     res.status(500).json({ ok: false });
