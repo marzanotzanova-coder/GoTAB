@@ -2,6 +2,8 @@ process.env.TZ = "Asia/Almaty";
 
 // server.js (GoTAB LMS Core - WORKING FULL)
 const express = require("express");
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_KEY = process.env.SUPABASE_KEY;
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
@@ -773,27 +775,42 @@ app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), (r
 });
 
 // Get block materials
-app.get("/api/materials", (req, res) => {
-  const grade = normalizeGrade(req.query.grade);
-  const subject = normalizeSubject(grade, req.query.subject);
-  const block = Number(req.query.blockNumber);
+app.get("/api/materials", async (req, res) => {
+  try {
+    const { grade, subject, blockNumber } = req.query;
 
- if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
-  return res.json({ videos: [], audios: [], docs: [], studentUploads: [] });
-}
-  const db = readDB();
-  const data =
-    (db.materials &&
-      db.materials[grade] &&
-      db.materials[grade][subject] &&
-      db.materials[grade][subject][String(block)]) || {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/materials?grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const data = await r.json();
+
+    const videos = data.filter(x => x.type === "video");
+    const docs = data.filter(x => x.type === "doc");
+    const audios = data.filter(x => x.type === "audio");
+
+    res.json({
+      videos,
+      docs,
+      audios,
+      studentUploads: []
+    });
+
+  } catch (e) {
+    console.error(e);
+    res.json({
       videos: [],
-      audios: [],
       docs: [],
-      studentUploads: [],
-    };
-
-  res.json(data);
+      audios: [],
+      studentUploads: []
+    });
+  }
 });
 
 // ===================== PROGRESS PIPELINE =====================
