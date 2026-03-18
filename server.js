@@ -1207,11 +1207,11 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
     });
 
     writeDB(db);
+    return res.json({ ok: true });
 
-    res.json({ ok: true });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false });
+    console.error("add-video-link error", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
