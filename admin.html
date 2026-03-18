@@ -545,17 +545,17 @@ function escapeHtml(s){
   const feedbackText = String(feedbackInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
 
-  const videos = Array.from(videoInput.files || []);
-  const audios = Array.from(audioInput.files || []);
-  const docs   = Array.from(docInput.files || []);
+ const videos = Array.from(videoInput.files || []);
+const audios = Array.from(audioInput.files || []);
+const docs   = Array.from(docInput.files || []);
 
-  const hasFiles = videos.length > 0 || audios.length > 0 || docs.length > 0;
-  const hasFeedback = feedbackText.length > 0;
+const hasFiles = videos.length > 0 || audios.length > 0 || docs.length > 0 || !!youtubeUrl;
+const hasFeedback = feedbackText.length > 0;
 
-  if(!hasFiles && !hasFeedback){
-    alert("Файл да, пікір де енгізілмеген!");
-    return;
-  }
+if(!hasFiles && !hasFeedback){
+  alert("Файл да, пікір де енгізілмеген!");
+  return;
+} 
 
   saveBtn.disabled = true;
   const oldText = saveBtn.textContent;
@@ -563,19 +563,44 @@ function escapeHtml(s){
 
   try{
 
-    const tasks = [];
+const tasks = [];
 
-    videos.forEach(f =>
-      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video"))
-    );
+// ✅ YouTube ссылка — ДҰРЫС сақтау
+if(youtubeUrl){
 
-    audios.forEach(f =>
-      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio"))
-    );
+  const r = await fetch("/api/admin/add-video-link", {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    credentials: "include",
+    body: JSON.stringify({
+      course: normCourseToApi(document.getElementById("course-select").value),
+      grade,
+      subject,
+      blockNumber,
+      url: youtubeUrl
+    })
+  });
 
-    docs.forEach(f =>
-      tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc"))
-    );
+  const j = await r.json().catch(()=>null);
+
+  if(!r.ok || !j?.ok){
+    alert("YouTube видео сақталмады");
+    return;
+  }
+}
+
+// 📁 Қалған файлдар бұрынғыдай
+videos.forEach(f =>
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video"))
+);
+
+audios.forEach(f =>
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio"))
+);
+
+docs.forEach(f =>
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc"))
+);
 
     await Promise.all(tasks);
 

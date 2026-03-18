@@ -154,6 +154,23 @@ button{
 </div>
 
 <script>
+
+function toEmbedUrl(url){
+  if(!url) return "";
+
+  if(url.includes("youtu.be/")){
+    const id = url.split("youtu.be/")[1];
+    return "https://www.youtube.com/embed/" + id;
+  }
+
+  if(url.includes("watch?v=")){
+    const id = url.split("watch?v=")[1];
+    return "https://www.youtube.com/embed/" + id;
+  }
+
+  return url;
+}
+
 const gradeSelect = document.getElementById("gradeSelect");
 const subjectSelect = document.getElementById("subjectSelect");
 const container = document.getElementById("block-container");

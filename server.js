@@ -1176,6 +1176,45 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, time: nowISO() });
 });
 
+app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
+    const url = String(req.body.url || "").trim();
+
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !url) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+
+    const db = readDB();
+
+    db.materials[grade] = db.materials[grade] || {};
+    db.materials[grade][subject] = db.materials[grade][subject] || {};
+    db.materials[grade][subject][String(block)] =
+      db.materials[grade][subject][String(block)] || {
+        videos: [],
+        audios: [],
+        docs: [],
+        studentUploads: []
+      };
+
+    db.materials[grade][subject][String(block)].videos.push({
+      url: url,
+      name: "YouTube video",
+      createdAt: nowISO()
+    });
+
+    writeDB(db);
+
+    res.json({ ok: true });
+
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ ok: false });
+  }
+});
+
 // ===================== START =====================
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
