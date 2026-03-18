@@ -747,10 +747,12 @@ function migrateOldKeyToNew(prefix){
 
 function pkgLabel(){
   const p = String(effectivePackage || "").toLowerCase();
+
   if(p === "pending") return "Күтілуде";
-  if(p === "baza") return "База";
-  if(p === "standart") return "Стандарт";
+  if(p === "baza" || p === "base") return "База";
+  if(p === "standart" || p === "standard") return "Стандарт";
   if(p === "premium") return "Премиум";
+
   return "Күтілуде";
 }
 
