@@ -4,6 +4,28 @@ process.env.TZ = "Asia/Almaty";
 const express = require("express");
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
+async function uploadBufferToSupabaseStorage(bucket, filePath, buffer, contentType) {
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
+
+  const r = await fetch(url, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": contentType || "application/octet-stream",
+      "x-upsert": "true"
+    },
+    body: buffer
+  });
+
+  const data = await r.text().catch(() => "");
+
+  if (!r.ok) {
+    throw new Error(`Supabase storage upload failed: ${r.status} ${data}`);
+  }
+
+  return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
+}
 const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
@@ -631,16 +653,103 @@ const uploadStudent = multer({ storage: studentStorage });
 
 // ===================== MATERIALS =====================
 // Admin upload 1 file
-app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), (req, res) => {
+app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (req, res) => {
   try {
     const grade = normalizeGrade(req.body.grade);
     const subject = normalizeSubject(grade, req.body.subject);
     const block = Number(req.body.blockNumber);
     const type = String(req.body.type || "").toLowerCase(); // video|audio|doc
 
-   if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
-  return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
-}
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !req.file) {
+      return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
+    }
+
+    const safeName = String(req.file.originalname || "file").replace(/\s+/g, "_");
+    const filePath = `materials/${grade}/${subject}/block${block}/${Date.now()}-${safeName}`;
+
+    const buffer = fs.readFileSync(req.file.path);
+
+    const publicUrl = await uploadBufferToSupabaseStorage(
+      "files",
+      filePath,
+      buffer,
+      req.file.mimetype
+    );
+
+    try { fs.unlinkSync(req.file.path); } catch {}
+
+    const dbType =
+      type === "video" ? "video" :
+      type === "audio" ? "audio" : "doc";
+
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/materials`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify([{
+        grade,
+        subject,
+        block,
+        type: dbType,
+        url: publicUrl
+      }])
+    });
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("supabase insert materials error:", data);
+      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data });
+    }
+
+    const item = {
+      url: publicUrl,
+      name: req.file.originalname,
+      createdAt: nowISO()
+    };
+
+    return res.json({
+      ok: true,
+      grade,
+      subject,
+      block: String(block),
+      item
+    });
+  } catch (e) {
+    console.error("admin upload error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Student upload homework
+app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
+    const studentId = String(req.session?.user?.studentId || "");
+
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId || !req.file) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+
+    const safeName = String(req.file.originalname || "file").replace(/\s+/g, "_");
+    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}-${safeName}`;
+
+    const buffer = fs.readFileSync(req.file.path);
+
+    const publicUrl = await uploadBufferToSupabaseStorage(
+      "files",
+      filePath,
+      buffer,
+      req.file.mimetype
+    );
+
+    try { fs.unlinkSync(req.file.path); } catch {}
 
     const db = readDB();
 
@@ -655,63 +764,8 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), (req, re
         studentUploads: []
       };
 
-    const relUrl = `/uploads/${grade}/${subject}/block${block}/${req.file.filename}`;
     const item = {
-      url: relUrl,
-      name: req.file.originalname,
-      createdAt: nowISO()
-    };
-
-    if (type === "video") {
-      db.materials[grade][subject][String(block)].videos.push(item);
-    } else if (type === "audio") {
-      db.materials[grade][subject][String(block)].audios.push(item);
-    } else {
-      db.materials[grade][subject][String(block)].docs.push(item);
-    }
-
-    writeDB(db);
-
-    res.json({
-      ok: true,
-      grade,
-      subject,
-      block: String(block),
-      item
-    });
-  } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false, error: "server_error" });
-  }
-});
-
-// Student upload homework
-app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (req, res) => {
-  try {
-    const grade = normalizeGrade(req.body.grade);
-    const subject = normalizeSubject(grade, req.body.subject);
-    const block = Number(req.body.blockNumber);
-    const studentId = String(req.session?.user?.studentId || "");
-
-   if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId) {
-  return res.status(400).json({ ok: false, error: "bad_input" });
-} 
-
-    const db = readDB();
-
-    db.materials[grade] = db.materials[grade] || {};
-    db.materials[grade][subject] = db.materials[grade][subject] || {};
-    db.materials[grade][subject][String(block)] =
-      db.materials[grade][subject][String(block)] || {
-        videos: [],
-        audios: [],
-        docs: [],
-        studentUploads: []
-      };
-
-    const relUrl = `/student_uploads/${grade}/${subject}/block${block}/${studentId}/${req.file.filename}`;
-    const item = {
-      url: relUrl,
+      url: publicUrl,
       name: req.file.originalname,
       studentId,
       createdAt: nowISO(),
@@ -719,6 +773,7 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (r
     };
 
     db.materials[grade][subject][String(block)].studentUploads.push(item);
+
     db.progress = db.progress || {};
     db.progress[studentId] = db.progress[studentId] || {};
     db.progress[studentId][grade] = db.progress[studentId][grade] || {};
@@ -738,10 +793,11 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), (r
     pushNotif(db, studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
 
     writeDB(db);
-    res.json({ ok: true, grade, subject, block: String(block), item });
+
+    return res.json({ ok: true, grade, subject, block: String(block), item });
   } catch (e) {
-    console.error(e);
-    res.status(500).json({ ok: false, error: "server_error" });
+    console.error("student upload error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
