@@ -552,10 +552,12 @@ const docs   = Array.from(docInput.files || []);
 const hasFiles = videos.length > 0 || audios.length > 0 || docs.length > 0 || !!youtubeUrl;
 const hasFeedback = feedbackText.length > 0;
 
-if(!hasFiles && !hasFeedback){
-  alert("Файл да, пікір де енгізілмеген!");
+const hasYoutube = youtubeUrl.length > 0;
+
+if(!hasFiles && !hasFeedback && !hasYoutube){
+  alert("Ештеңе енгізілмеген!");
   return;
-} 
+}
 
   saveBtn.disabled = true;
   const oldText = saveBtn.textContent;
