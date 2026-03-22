@@ -1,10 +1,20 @@
 process.env.TZ = "Asia/Almaty";
+require("dotenv").config();
 
 // server.js (GoTAB LMS Core - WORKING FULL)
 const express = require("express");
+const cors = require("cors");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+const session = require("express-session");
+const bcrypt = require("bcrypt");
+const rateLimit = require("express-rate-limit");
+
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
-async function uploadBufferToSupabaseStorage(bucket, filePath, buffer, contentType) {
+  
+  async function uploadBufferToSupabaseStorage(bucket, filePath, buffer, contentType) {
   const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
 
   const r = await fetch(url, {
@@ -26,14 +36,6 @@ async function uploadBufferToSupabaseStorage(bucket, filePath, buffer, contentTy
 
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 }
-const cors = require("cors");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const session = require("express-session");
-const bcrypt = require("bcrypt");
-const rateLimit = require("express-rate-limit");
-require("dotenv").config();
 
 const avatarStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -664,8 +666,8 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
       return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
     }
 
-    const safeName = String(req.file.originalname || "file").replace(/\s+/g, "_");
-    const filePath = `materials/${grade}/${subject}/block${block}/${Date.now()}-${safeName}`;
+   const ext = path.extname(req.file.originalname || "") || ".bin";
+   const filePath = `materials/${grade}/${subject}/block${block}/${Date.now()}${ext}`; 
 
     const buffer = fs.readFileSync(req.file.path);
 
@@ -720,8 +722,8 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
       item
     });
   } catch (e) {
-    console.error("admin upload error:", e);
-    return res.status(500).json({ ok: false, error: "server_error" });
+   console.error("admin upload error:", e);
+return res.status(500).json({ ok: false, error: "server_error", message: String(e.message || e) });
   }
 });
 
@@ -737,9 +739,9 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
       return res.status(400).json({ ok: false, error: "bad_input" });
     }
 
-    const safeName = String(req.file.originalname || "file").replace(/\s+/g, "_");
-    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}-${safeName}`;
-
+    const ext = path.extname(req.file.originalname || "") || ".bin";
+    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
+    
     const buffer = fs.readFileSync(req.file.path);
 
     const publicUrl = await uploadBufferToSupabaseStorage(
