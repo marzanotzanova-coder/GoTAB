@@ -499,6 +499,25 @@ function escapeHtml(s){
     "'":"&#039;"
   }[m]));
 }
+
+function getMaxBlockByGradeSubject(grade, subject){
+  const g = Number(grade);
+  const s = String(subject || "").toLowerCase().trim();
+
+  if(g === 5 || g === 6){
+    return s === "math" ? 50 : 0;
+  }
+
+  if(g === 7 || g === 8){
+    return (s === "algebra" || s === "geometry") ? 25 : 0;
+  }
+
+  if([9,10,11].includes(g)){
+    return (s === "algebra" || s === "geometry") ? 30 : 0;
+  }
+
+  return 0;
+}
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 
@@ -526,27 +545,20 @@ function escapeHtml(s){
 }
  saveBtn.addEventListener("click", async ()=>{
 
-  const grade = document.getElementById("grade-select").value;
-  const subject = document.getElementById("subject-select").value;
+ const grade = document.getElementById("grade-select").value;
+const subject = document.getElementById("subject-select").value;
 
-function getMaxBlockByGradeSubject(grade, subject){
-  const g = Number(grade);
-  const s = String(subject || "").toLowerCase().trim();
+const maxBlock = getMaxBlockByGradeSubject(grade, subject);
 
-  if(g === 5 || g === 6){
-    return s === "math" ? 50 : 0;
-  }
+let blockNumber = parseInt(
+  prompt(`Блок нөмірін енгізіңіз (1-${maxBlock}):`),
+  10
+);
 
-  if(g === 7 || g === 8){
-    return (s === "algebra" || s === "geometry") ? 25 : 0;
-  }
-
-  if([9,10,11].includes(g)){
-    return (s === "algebra" || s === "geometry") ? 30 : 0;
-  }
-
-  return 0;
-}
+if(isNaN(blockNumber) || blockNumber < 1 || blockNumber > maxBlock){
+  alert(`Қате блок нөмірі! Бұл бөлім үшін 1-${maxBlock} аралығы ғана болады.`);
+  return;
+} 
 
   const videoInput = document.getElementById("video-upload");
   const audioInput = document.getElementById("audio-upload");
