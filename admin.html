@@ -529,11 +529,24 @@ function escapeHtml(s){
   const grade = document.getElementById("grade-select").value;
   const subject = document.getElementById("subject-select").value;
 
-  let blockNumber = parseInt(prompt("Блок нөмірін енгізіңіз (1-100):"), 10);
-  if(isNaN(blockNumber) || blockNumber < 1 || blockNumber > 100){
-    alert("Қате блок нөмірі!");
-    return;
+function getMaxBlockByGradeSubject(grade, subject){
+  const g = Number(grade);
+  const s = String(subject || "").toLowerCase().trim();
+
+  if(g === 5 || g === 6){
+    return s === "math" ? 50 : 0;
   }
+
+  if(g === 7 || g === 8){
+    return (s === "algebra" || s === "geometry") ? 25 : 0;
+  }
+
+  if([9,10,11].includes(g)){
+    return (s === "algebra" || s === "geometry") ? 30 : 0;
+  }
+
+  return 0;
+}
 
   const videoInput = document.getElementById("video-upload");
   const audioInput = document.getElementById("audio-upload");
@@ -638,7 +651,7 @@ docs.forEach(f =>
 
   }catch(e){
     console.error(e);
-    alert("Қате пайда болды");
+   alert("Қате: " + (e?.message || "upload error"));
   }
 
   saveBtn.disabled = false;
