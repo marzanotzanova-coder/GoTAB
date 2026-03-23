@@ -479,8 +479,48 @@ async function renderBlocks(){
 
     input.click();
   };
-
   block.appendChild(uBtn);
+
+  const myBtn = document.createElement("button");
+  myBtn.className = "pdf-btn";
+  myBtn.textContent = "Менің тапсырмам";
+  myBtn.onclick = async () => {
+    try {
+      const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
+        credentials: "include",
+        cache: "no-store"
+      }).then(r => r.json()).catch(() => null);
+
+      const uploads = Array.isArray(fresh?.studentUploads) ? fresh.studentUploads : [];
+      const mine = uploads
+        .filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
+        .sort((a, b) => {
+          const ta = Date.parse(a?.createdAt || "") || 0;
+          const tb = Date.parse(b?.createdAt || "") || 0;
+          return ta - tb;
+        });
+
+      if (!mine.length) {
+        alert("Сен бұл сабаққа әлі тапсырма жүктемедің");
+        return;
+      }
+
+      const last = mine[mine.length - 1];
+      const name = String(last.name || "").toLowerCase();
+
+      if (name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov")) {
+        openVideo(last.url);
+      } else if (name.endsWith(".mp3") || name.endsWith(".wav")) {
+        openAudio(last.url);
+      } else {
+        openDoc(last.url);
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Тапсырма ашылмады");
+    }
+  };
+  block.appendChild(myBtn);
 }
 
     if (role === "admin") {
