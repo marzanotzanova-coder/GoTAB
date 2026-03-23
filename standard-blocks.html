@@ -434,61 +434,54 @@ async function renderBlocks(){
     };
     block.appendChild(dBtn);
 
-    if (role === "student") {
+   if (role === "student") {
+  const uBtn = document.createElement("button");
+  uBtn.className = "upload-btn";
+  uBtn.textContent = "Тапсырма жүктеу";
 
-      const uBtn = document.createElement("button");
-      uBtn.className = "upload-btn";
-      uBtn.textContent = "Тапсырма жүктеу";
+  uBtn.onclick = async () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
 
-      uBtn.onclick = async () => {
+    input.onchange = async () => {
+      const file = input.files && input.files[0];
+      if (!file) return;
 
-        const input = document.createElement("input");
-        input.type = "file";
-        input.accept = ".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
+      try {
+        const fd = new FormData();
+        fd.append("grade", String(grade));
+        fd.append("subject", String(subject));
+        fd.append("blockNumber", String(i));
+        fd.append("file", file);
 
-        input.onchange = async () => {
+        const r = await fetch("/api/student/upload", {
+          method: "POST",
+          body: fd,
+          credentials: "include",
+          cache: "no-store"
+        });
 
-          const file = input.files && input.files[0];
-          if (!file) return;
+        const j = await r.json().catch(() => null);
 
-          try {
+        if (!r.ok || !j?.ok) {
+          alert("Қате: " + (j?.message || j?.error || "Жүктелмеді"));
+          return;
+        }
 
-            const fd = new FormData();
-            fd.append("grade", grade);
-            fd.append("subject", subject);
-            fd.append("blockNumber", i);
-            fd.append("file", file);
+        alert("✅ Тапсырма жүктелді!");
+        await renderBlocks();
+      } catch (err) {
+        console.error(err);
+        alert("Қате: " + (err?.message || "Upload error"));
+      }
+    };
 
-            const r = await fetch("/api/student/upload", {
-              method: "POST",
-              body: fd,
-              credentials: "include"
-            });
+    input.click();
+  };
 
-            const j = await r.json().catch(() => null);
-
-            if (!r.ok || !j?.ok) {
-              alert("Жүктелмеді");
-              return;
-            }
-
-            alert("✅ Тапсырма жүктелді!");
-            await renderBlocks();
-
-          } catch (err) {
-            console.error(err);
-            alert("Upload error");
-          }
-
-        };
-
-        input.click();
-
-      };
-
-      block.appendChild(uBtn);
-
-    }
+  block.appendChild(uBtn);
+} 
 
     if (role === "admin") {
 

@@ -741,7 +741,7 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 
     const ext = path.extname(req.file.originalname || "") || ".bin";
     const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
-    
+
     const buffer = fs.readFileSync(req.file.path);
 
     const publicUrl = await uploadBufferToSupabaseStorage(
@@ -753,28 +753,35 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 
     try { fs.unlinkSync(req.file.path); } catch {}
 
-    const db = readDB();
-
-    db.materials = db.materials || {};
-    db.materials[grade] = db.materials[grade] || {};
-    db.materials[grade][subject] = db.materials[grade][subject] || {};
-    db.materials[grade][subject][String(block)] =
-      db.materials[grade][subject][String(block)] || {
-        videos: [],
-        audios: [],
-        docs: [],
-        studentUploads: []
-      };
-
-    const item = {
+    const supaItem = {
+      student_id: studentId,
+      grade,
+      subject,
+      block,
       url: publicUrl,
       name: req.file.originalname,
-      studentId,
-      createdAt: nowISO(),
-      status: "uploaded",
+      status: "uploaded"
     };
 
-    db.materials[grade][subject][String(block)].studentUploads.push(item);
+    const sr = await fetch(`${SUPABASE_URL}/rest/v1/student_uploads`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify([supaItem])
+    });
+
+    const supaData = await sr.json().catch(() => null);
+
+    if (!sr.ok) {
+      console.error("student_uploads insert error:", supaData);
+      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data: supaData });
+    }
+
+    const db = readDB();
 
     db.progress = db.progress || {};
     db.progress[studentId] = db.progress[studentId] || {};
@@ -796,10 +803,22 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 
     writeDB(db);
 
-    return res.json({ ok: true, grade, subject, block: String(block), item });
+    return res.json({
+      ok: true,
+      grade,
+      subject,
+      block: String(block),
+      item: {
+        url: publicUrl,
+        name: req.file.originalname,
+        studentId,
+        createdAt: nowISO(),
+        status: "uploaded"
+      }
+    });
   } catch (e) {
     console.error("student upload error:", e);
-    return res.status(500).json({ ok: false, error: "server_error" });
+    return res.status(500).json({ ok: false, error: "server_error", message: String(e.message || e) });
   }
 });
 
@@ -837,8 +856,8 @@ app.get("/api/materials", async (req, res) => {
   try {
     const { grade, subject, blockNumber } = req.query;
 
-    const r = await fetch(
-  `${SUPABASE_URL}/rest/v1/materials?select=*&grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
+    const r1 = await fetch(
+      `${SUPABASE_URL}/rest/v1/materials?select=*&grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -847,21 +866,40 @@ app.get("/api/materials", async (req, res) => {
       }
     );
 
-    const data = await r.json();
+    const materialsData = await r1.json().catch(() => []);
 
-    const videos = data.filter(x => x.type === "video");
-    const docs = data.filter(x => x.type === "doc");
-    const audios = data.filter(x => x.type === "audio");
+    const r2 = await fetch(
+      `${SUPABASE_URL}/rest/v1/student_uploads?select=*&grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const uploadsData = await r2.json().catch(() => []);
+
+    const videos = materialsData.filter(x => x.type === "video");
+    const docs = materialsData.filter(x => x.type === "doc");
+    const audios = materialsData.filter(x => x.type === "audio");
+
+    const studentUploads = uploadsData.map(x => ({
+      url: x.url,
+      name: x.name,
+      studentId: x.student_id,
+      createdAt: x.created_at,
+      status: x.status || "uploaded"
+    }));
 
     res.json({
       videos,
       docs,
       audios,
-      studentUploads: []
+      studentUploads
     });
-
   } catch (e) {
-    console.error(e);
+    console.error("materials error:", e);
     res.json({
       videos: [],
       docs: [],
