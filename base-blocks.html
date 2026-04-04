@@ -108,8 +108,9 @@ button{
   width:90%;
   height:85%;
   border-radius:15px;
-  padding:10px;
+  padding:0px;
   position:relative;
+  overflow:hidden;
 }
 
 #viewerContent{
@@ -118,18 +119,27 @@ button{
   overflow:hidden;
 }
 
-.video-frame{
-  width:100%;
-  max-width:1100px;
-  aspect-ratio:16 / 9;
+.video-frame {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
-.video-frame iframe,
-.video-frame video{
-  width:100%;
-  height:100%;
-  border:none;
-  border-radius:10px;
+/* YouTube iframe үшін */
+.video-frame iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%);
+}
+
+/* Кәдімгі video үшін */
+.video-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* немесе cover */
 }
 
 .closeBtn{

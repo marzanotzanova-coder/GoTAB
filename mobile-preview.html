@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GoTAB Mobile Preview</title>
+  <style>
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#111827;
+      font-family:Arial,sans-serif;
+      padding:20px;
+    }
+
+    .phone{
+      width:390px;
+      height:844px;
+      background:#000;
+      border-radius:40px;
+      padding:14px;
+      box-shadow:0 20px 60px rgba(0,0,0,.45);
+      position:relative;
+    }
+
+    .notch{
+      position:absolute;
+      top:10px;
+      left:50%;
+      transform:translateX(-50%);
+      width:140px;
+      height:26px;
+      background:#000;
+      border-radius:20px;
+      z-index:2;
+    }
+
+    .screen{
+      width:100%;
+      height:100%;
+      border:none;
+      border-radius:30px;
+      background:#fff;
+    }
+
+    .controls{
+      position:fixed;
+      top:16px;
+      left:16px;
+      right:16px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+
+    .controls a{
+      text-decoration:none;
+      background:#fff;
+      color:#111827;
+      padding:10px 14px;
+      border-radius:12px;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="phone">
+    <div class="notch"></div>
+    <iframe class="screen" id="mobileFrame"></iframe>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get("page") || "dashboard.html";
+    document.getElementById("mobileFrame").src = page;
+  </script>
+</body>
+</html>
