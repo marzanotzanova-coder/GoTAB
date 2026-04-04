@@ -97,22 +97,26 @@ button{
   z-index:9999;
   justify-content:center;
   align-items:center;
+  padding:12px;
+  box-sizing:border-box;
 }
 
 #viewerBox{
   background:#fff;
-  width:90%;
-  height:85%;
-  border-radius:15px;
-  padding:0;
+  width:min(1000px, 100%);
+  height:min(90vh, 100%);
+  border-radius:18px;
   position:relative;
   overflow:hidden;
+  box-sizing:border-box;
 }
 
 #viewerContent{
   width:100%;
   height:100%;
-  overflow:hidden;
+  overflow:auto;
+  -webkit-overflow-scrolling:touch;
+  background:#fff;
 }
 
 .video-frame{
@@ -121,41 +125,52 @@ button{
   position:relative;
 }
 
-.video-frame iframe{
-  position:absolute;
-  top:50%;
-  left:50%;
-  width:100%;
-  height:100%;
-  transform:translate(-50%, -50%);
-  border:none;
-}
-
+.video-frame iframe,
 .video-frame video{
   width:100%;
   height:100%;
   border:none;
-  object-fit:contain;
-  background:#000;
+  display:block;
 }
 
 #viewerClose{
   position:absolute;
-  top:12px;
-  right:12px;
+  top:10px;
+  right:10px;
   width:42px;
   height:42px;
   border:none;
   border-radius:50%;
-  background:rgba(0,0,0,.85);
+  background:rgba(0,0,0,.72);
   color:#fff;
-  font-size:24px;
+  font-size:26px;
   font-weight:700;
   cursor:pointer;
-  z-index:99999;
+  z-index:10001;
   display:flex;
   align-items:center;
   justify-content:center;
+}
+
+@media (max-width: 768px){
+  #viewerModal{
+    padding:0;
+    align-items:flex-end;
+  }
+
+  #viewerBox{
+    width:100%;
+    height:92vh;
+    border-radius:18px 18px 0 0;
+  }
+
+  #viewerClose{
+    top:8px;
+    right:8px;
+    width:40px;
+    height:40px;
+    font-size:24px;
+  }
 }
 </style>
 </head>
@@ -321,16 +336,22 @@ window.openAudio = function(url){
 };
 
 window.openDoc = function(url){
+  const isMobile = window.innerWidth <= 768;
   const isPdf = String(url).toLowerCase().includes(".pdf");
 
+  if (isMobile && isPdf) {
+    window.open(url, "_blank");
+    return;
+  }
+
   const finalUrl = isPdf
-    ? `${url}#toolbar=0&navpanes=0&scrollbar=1&zoom=page-width`
+    ? `${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`
     : url;
 
   document.getElementById("viewerContent").innerHTML = `
     <iframe
       src="${finalUrl}"
-      style="width:100%;height:100%;border:none;border-radius:10px;background:#fff;"
+      style="width:100%;height:100%;border:none;background:#fff;display:block;"
     ></iframe>
   `;
 
