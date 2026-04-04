@@ -63,7 +63,6 @@ app.use(express.static(__dirname));
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
-app.use("/uploads", express.static("uploads"));
 
 // ===================== MIDDLEWARE =====================
 app.use(cors({
@@ -922,7 +921,7 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
       block,
       url: publicUrl,
       name: req.file.originalname,
-      status: "uploaded"
+      status: prevProg?.status === "graded" ? "graded" : "uploaded",
     };
 
     const sr = await fetch(`${SUPABASE_URL}/rest/v1/student_uploads`, {
@@ -943,27 +942,85 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
       return res.status(500).json({ ok: false, error: "supabase_insert_failed", data: supaData });
     }
 
-    const db = readDB();
+    let course = String(req.session?.user?.package || "").toLowerCase().trim();
+if (course === "baza") course = "base";
+if (course === "standard") course = "standart";
 
-    db.progress = db.progress || {};
-    db.progress[studentId] = db.progress[studentId] || {};
-    db.progress[studentId][grade] = db.progress[studentId][grade] || {};
-    db.progress[studentId][grade][subject] = db.progress[studentId][grade][subject] || {};
-    db.progress[studentId][grade][subject][String(block)] =
-      db.progress[studentId][grade][subject][String(block)] || {
-        grade: null,
-        status: "none",
-        feedbackText: "",
-        feedbackFileUrl: "",
-        updatedAt: nowISO(),
-      };
+if (!["base", "standart", "premium"].includes(course)) {
+  course = "base";
+}
 
-    db.progress[studentId][grade][subject][String(block)].status = "uploaded";
-    db.progress[studentId][grade][subject][String(block)].updatedAt = nowISO();
+const checkProgRes = await fetch(
+  `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${block}`,
+  {
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`
+    }
+  }
+);
 
-    pushNotif(db, studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
+const existingProgRows = await checkProgRes.json().catch(() => []);
+if (!checkProgRes.ok) {
+  console.error("student upload progress check error:", existingProgRows);
+  return res.status(500).json({ ok: false, error: "supabase_progress_check_failed" });
+}
 
-    writeDB(db);
+const prevProg = Array.isArray(existingProgRows) ? existingProgRows[0] : null;
+
+const progressRow = {
+  student_id: studentId,
+  course,
+  grade,
+  subject,
+  block,
+  grade_value: prevProg?.grade_value ?? null,
+  status: "uploaded",
+  feedback_text: prevProg?.feedback_text || "",
+  feedback_file_url: prevProg?.feedback_file_url || "",
+  updated_at: new Date().toISOString()
+};
+
+let progSaveRes;
+let progSaveData;
+
+if (prevProg) {
+  progSaveRes = await fetch(
+    `${SUPABASE_URL}/rest/v1/progress?student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${block}`,
+    {
+      method: "PATCH",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify(progressRow)
+    }
+  );
+  progSaveData = await progSaveRes.json().catch(() => null);
+} else {
+  progSaveRes = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+    method: "POST",
+    headers: {
+      apikey: SUPABASE_KEY,
+      Authorization: `Bearer ${SUPABASE_KEY}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation"
+    },
+    body: JSON.stringify([progressRow])
+  });
+  progSaveData = await progSaveRes.json().catch(() => null);
+}
+
+if (!progSaveRes.ok) {
+  console.error("student upload progress save error:", progSaveData);
+  return res.status(500).json({ ok: false, error: "supabase_progress_save_failed", data: progSaveData });
+}
+
+const db = readDB();
+pushNotif(db, studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
+writeDB(db);
 
     return res.json({
       ok: true,
@@ -1096,230 +1153,316 @@ app.get("/api/materials", async (req, res) => {
 
 // ===================== PROGRESS PIPELINE =====================
 // ✅ Get progress (per student, per course) + gradesMap + feedbackMap
-app.get("/api/progress/get", requireAuth, (req, res) => {
-  const sessionUser = req.session?.user || null;
-  const requestedStudentId = String(req.query.studentId || "");
-  const grade = normalizeGrade(req.query.grade);
-  const subject = normalizeSubject(grade, req.query.subject);
+app.get("/api/progress/get", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user || null;
+    const requestedStudentId = String(req.query.studentId || "");
+    const grade = normalizeGrade(req.query.grade);
+    const subject = normalizeSubject(grade, req.query.subject);
 
-  let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
-  if (course === "baza") course = "base";
-  if (course === "standard") course = "standart";
+    let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
+    if (course === "baza") course = "base";
+    if (course === "standard") course = "standart";
 
-  const studentId =
-    sessionUser?.role === "admin"
-      ? requestedStudentId
-      : String(sessionUser?.studentId || "");
+    const studentId =
+      sessionUser?.role === "admin"
+        ? requestedStudentId
+        : String(sessionUser?.studentId || "");
 
-  if (!studentId || !grade || !subject) {
-    return res.status(400).json({ ok: false, error: "bad_input" });
-  }
-
-  if (!["base", "standart", "premium"].includes(course)) {
-    course =
-      String(sessionUser?.package || "").toLowerCase() === "baza"
-        ? "base"
-        : String(sessionUser?.package || "").toLowerCase() === "standard"
-          ? "standart"
-          : String(sessionUser?.package || "").toLowerCase();
-  }
-
-  if (!["base", "standart", "premium"].includes(course)) {
-    return res.status(400).json({ ok: false, error: "bad_course" });
-  }
-
-  const db = readDB();
-  db.progress = db.progress || {};
-  db.progress[studentId] = db.progress[studentId] || {};
-  db.progress[studentId][course] = db.progress[studentId][course] || {};
-  db.progress[studentId][course][grade] = db.progress[studentId][course][grade] || {};
-  db.progress[studentId][course][grade][subject] =
-    db.progress[studentId][course][grade][subject] || {};
-
-  const subjProg = db.progress[studentId][course][grade][subject];
-
-  const gradesMap = {};
-  const feedbackMap = {};
-
-  for (const [block, item] of Object.entries(subjProg || {})) {
-    const g = Number(item?.grade);
-    if (Number.isFinite(g) && g > 0) gradesMap[String(block)] = g;
-
-    const fb = String(item?.feedbackText || "");
-    if (fb.trim()) {
-      feedbackMap[String(block)] = { text: fb, updatedAt: item?.updatedAt || "" };
+    if (!studentId || !grade || !subject) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
     }
-  }
 
-  return res.json({
-    ok: true,
-    course,
-    grade,
-    subject,
-    data: subjProg,
-    gradesMap,
-    feedbackMap,
-  });
+    if (!["base", "standart", "premium"].includes(course)) {
+      course =
+        String(sessionUser?.package || "").toLowerCase() === "baza"
+          ? "base"
+          : String(sessionUser?.package || "").toLowerCase() === "standard"
+            ? "standart"
+            : String(sessionUser?.package || "").toLowerCase();
+    }
+
+    if (!["base", "standart", "premium"].includes(course)) {
+      return res.status(400).json({ ok: false, error: "bad_course" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) {
+      console.error("progress/get supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    const subjProg = {};
+    const gradesMap = {};
+    const feedbackMap = {};
+
+    (Array.isArray(rows) ? rows : []).forEach((item) => {
+      const block = String(item.block);
+      subjProg[block] = {
+        grade: item.grade_value,
+        status: item.status || "none",
+        feedbackText: item.feedback_text || "",
+        feedbackFileUrl: item.feedback_file_url || "",
+        updatedAt: item.updated_at || ""
+      };
+
+      const g = Number(item.grade_value);
+      if (Number.isFinite(g) && g > 0) gradesMap[block] = g;
+
+      const fb = String(item.feedback_text || "");
+      if (fb.trim()) {
+        feedbackMap[block] = { text: fb, updatedAt: item.updated_at || "" };
+      }
+    });
+
+    return res.json({
+      ok: true,
+      course,
+      grade,
+      subject,
+      data: subjProg,
+      gradesMap,
+      feedbackMap,
+    });
+  } catch (e) {
+    console.error("progress/get error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
 });
 
-app.get("/api/progress/summary", requireAuth, (req, res) => {
-  const sessionUser = req.session?.user || null;
-  const requestedStudentId = String(req.query.studentId || "");
+app.get("/api/progress/summary", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user || null;
+    const requestedStudentId = String(req.query.studentId || "");
 
-  let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
-  if (course === "baza") course = "base";
-  if (course === "standard") course = "standart";
+    let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
+    if (course === "baza") course = "base";
+    if (course === "standard") course = "standart";
 
-  const studentId =
-    sessionUser?.role === "admin"
-      ? requestedStudentId
-      : String(sessionUser?.studentId || "");
+    const studentId =
+      sessionUser?.role === "admin"
+        ? requestedStudentId
+        : String(sessionUser?.studentId || "");
 
-  if (!studentId) {
-    return res.status(400).json({ ok: false, error: "bad_input" });
-  }
-
-  if (!["base", "standart", "premium"].includes(course)) {
-    course =
-      String(sessionUser?.package || "").toLowerCase() === "baza"
-        ? "base"
-        : String(sessionUser?.package || "").toLowerCase() === "standard"
-          ? "standart"
-          : String(sessionUser?.package || "").toLowerCase();
-  }
-
-  if (!["base", "standart", "premium"].includes(course)) {
-    return res.status(400).json({ ok: false, error: "bad_course" });
-  }
-
-  const db = readDB();
-  db.progress = db.progress || {};
-
-  const all = db.progress?.[studentId]?.[course] || {};
-  const flat = {};
-
-  for (const [grade, subjects] of Object.entries(all)) {
-    for (const [subject, blocks] of Object.entries(subjects || {})) {
-      for (const [block, item] of Object.entries(blocks || {})) {
-        const key = `${grade}_${subject}_${block}`;
-        flat[key] = {
-          grade: Number(item?.grade ?? 0),
-          status: String(item?.status || ""),
-          feedbackText: String(item?.feedbackText || ""),
-          feedbackFileUrl: String(item?.feedbackFileUrl || ""),
-          updatedAt: item?.updatedAt || "",
-          schoolGrade: Number(grade),
-          subject,
-          blockNumber: Number(block),
-          course
-        };
-      }
+    if (!studentId) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
     }
-  }
 
-  return res.json({ ok: true, course, data: flat });
+    if (!["base", "standart", "premium"].includes(course)) {
+      course =
+        String(sessionUser?.package || "").toLowerCase() === "baza"
+          ? "base"
+          : String(sessionUser?.package || "").toLowerCase() === "standard"
+            ? "standart"
+            : String(sessionUser?.package || "").toLowerCase();
+    }
+
+    if (!["base", "standart", "premium"].includes(course)) {
+      return res.status(400).json({ ok: false, error: "bad_course" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) {
+      console.error("progress/summary supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    const flat = {};
+
+    (Array.isArray(rows) ? rows : []).forEach((item) => {
+      const key = `${item.grade}_${item.subject}_${item.block}`;
+      flat[key] = {
+        grade: Number(item.grade_value ?? 0),
+        status: String(item.status || ""),
+        feedbackText: String(item.feedback_text || ""),
+        feedbackFileUrl: String(item.feedback_file_url || ""),
+        updatedAt: item.updated_at || "",
+        schoolGrade: Number(item.grade),
+        subject: item.subject,
+        blockNumber: Number(item.block),
+        course: item.course
+      };
+    });
+
+    return res.json({ ok: true, course, data: flat });
+  } catch (e) {
+    console.error("progress/summary error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
 });
 
 // ✅ Admin sets grade/status/feedback (lessonNumber OR lesson) + auto graded status
 
-app.post("/api/progress/set", requireAdmin, (req, res) => {
-  const body = req.body || {};
+app.post("/api/progress/set", requireAdmin, async (req, res) => {
+  try {
+    const body = req.body || {};
 
-  const studentId = String(body.studentId || "");
-  const grade = normalizeGrade(body.grade);
-  const subject = normalizeSubject(grade, body.subject);
-  const block = Number(body.blockNumber);
+    const studentId = String(body.studentId || "");
+    const grade = normalizeGrade(body.grade);
+    const subject = normalizeSubject(grade, body.subject);
+    const block = Number(body.blockNumber);
 
-  let course = String(body.course || body.package || "").toLowerCase().trim();
-  if (course === "baza") course = "base";
-  if (course === "standard") course = "standart";
+    let course = String(body.course || body.package || "").toLowerCase().trim();
+    if (course === "baza") course = "base";
+    if (course === "standard") course = "standart";
 
-  const gradeRaw = body.gradeValue;
-  const statusRaw = body.status;
-  const feedbackText = body.feedbackText;
-  const feedbackFileUrl = body.feedbackFileUrl;
+    const gradeRaw = body.gradeValue;
+    const statusRaw = body.status;
+    const feedbackText = body.feedbackText;
+    const feedbackFileUrl = body.feedbackFileUrl;
 
-  if (!studentId || !grade || !subject || !safeBlockNumber(block, grade, subject)) {
-    return res.status(400).json({ ok: false, error: "bad_input" });
-  }
+    if (!studentId || !grade || !subject || !safeBlockNumber(block, grade, subject)) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
 
-  if (!["base", "standart", "premium"].includes(course)) {
-    return res.status(400).json({ ok: false, error: "bad_course" });
-  }
+    if (!["base", "standart", "premium"].includes(course)) {
+      return res.status(400).json({ ok: false, error: "bad_course" });
+    }
 
-  const db = readDB();
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${block}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
 
-  db.progress = db.progress || {};
-  db.progress[studentId] = db.progress[studentId] || {};
-  db.progress[studentId][course] = db.progress[studentId][course] || {};
-  db.progress[studentId][course][grade] = db.progress[studentId][course][grade] || {};
-  db.progress[studentId][course][grade][subject] =
-    db.progress[studentId][course][grade][subject] || {};
+    const existingRows = await checkRes.json().catch(() => []);
+    if (!checkRes.ok) {
+      console.error("progress/set check error:", existingRows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
 
-  const prev = {
-    ...(db.progress[studentId][course][grade][subject][String(block)] || {})
-  };
+    const prev = Array.isArray(existingRows) && existingRows[0] ? existingRows[0] : null;
 
-  db.progress[studentId][course][grade][subject][String(block)] =
-    db.progress[studentId][course][grade][subject][String(block)] || {
-      grade: null,
-      status: "none",
-      feedbackText: "",
-      feedbackFileUrl: "",
-      updatedAt: nowISO(),
+    let nextGradeValue = prev?.grade_value ?? null;
+    let nextStatus = prev?.status || "none";
+    let nextFeedbackText = prev?.feedback_text || "";
+    let nextFeedbackFileUrl = prev?.feedback_file_url || "";
+
+    let gradeSet = false;
+    if (gradeRaw !== undefined && gradeRaw !== null && gradeRaw !== "") {
+      const g = Number(gradeRaw);
+      if (!Number.isFinite(g) || g < 0 || g > 100) {
+        return res.status(400).json({ ok: false, error: "bad_grade" });
+      }
+      nextGradeValue = g;
+      gradeSet = true;
+    }
+
+    if (statusRaw !== undefined && statusRaw !== null && statusRaw !== "") {
+      nextStatus = String(statusRaw).toLowerCase();
+    }
+
+    if (gradeSet) nextStatus = "graded";
+    if (feedbackText !== undefined) nextFeedbackText = String(feedbackText || "");
+    if (feedbackFileUrl !== undefined) nextFeedbackFileUrl = String(feedbackFileUrl || "");
+
+    const row = {
+      student_id: studentId,
+      course,
+      grade,
+      subject,
+      block,
+      grade_value: nextGradeValue,
+      status: nextStatus,
+      feedback_text: nextFeedbackText,
+      feedback_file_url: nextFeedbackFileUrl,
+      updated_at: new Date().toISOString()
     };
 
-  const item = db.progress[studentId][course][grade][subject][String(block)];
+    let saveRes;
+    let saveData;
 
-  let gradeSet = false;
-  if (gradeRaw !== undefined && gradeRaw !== null && gradeRaw !== "") {
-    const g = Number(gradeRaw);
-    if (!Number.isFinite(g) || g < 0 || g > 100) {
-      return res.status(400).json({ ok: false, error: "bad_grade" });
+    if (prev) {
+      saveRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/progress?student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${block}`,
+        {
+          method: "PATCH",
+          headers: {
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation"
+          },
+          body: JSON.stringify(row)
+        }
+      );
+      saveData = await saveRes.json().catch(() => null);
+    } else {
+      saveRes = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
+        method: "POST",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify([row])
+      });
+      saveData = await saveRes.json().catch(() => null);
     }
-    item.grade = g;
-    gradeSet = true;
+
+    if (!saveRes.ok) {
+      console.error("progress/set save error:", saveData);
+      return res.status(500).json({ ok: false, error: "supabase_save_failed", data: saveData });
+    }
+
+    const db = readDB();
+
+    const oldGrade = Number(prev?.grade_value ?? 0);
+    const newGrade = Number(nextGradeValue ?? 0);
+
+    const oldFeedback = String(prev?.feedback_text || "").trim();
+    const newFeedback = String(nextFeedbackText || "").trim();
+
+    if (newFeedback && newFeedback !== oldFeedback) {
+      pushNotif(
+        db,
+        studentId,
+        "feedback",
+        `[${course}] (${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`
+      );
+    }
+
+    if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
+      pushNotif(
+        db,
+        studentId,
+        "review",
+        `[${course}] (${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`
+      );
+    }
+
+    writeDB(db);
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("progress/set error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
-
-  if (statusRaw !== undefined && statusRaw !== null && statusRaw !== "") {
-    item.status = String(statusRaw).toLowerCase();
-  }
-
-  if (gradeSet) item.status = "graded";
-
-  if (feedbackText !== undefined) item.feedbackText = String(feedbackText || "");
-  if (feedbackFileUrl !== undefined) item.feedbackFileUrl = String(feedbackFileUrl || "");
-
-  item.updatedAt = nowISO();
-
-  const oldGrade = Number(prev?.grade ?? 0);
-  const newGrade = Number(item?.grade ?? 0);
-
-  const oldFeedback = String(prev?.feedbackText || "").trim();
-  const newFeedback = String(item?.feedbackText || "").trim();
-
-  if (newFeedback && newFeedback !== oldFeedback) {
-    pushNotif(
-      db,
-      studentId,
-      "feedback",
-      `[${course}] (${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`
-    );
-  }
-
-  if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
-    pushNotif(
-      db,
-      studentId,
-      "review",
-      `[${course}] (${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`
-    );
-  }
-
-  writeDB(db);
-  return res.json({ ok: true });
 });
-
 // ================= STREAK (SERVER) =================
 const STREAK_FILE = path.join(__dirname, "data", "streak_days.json");
 
