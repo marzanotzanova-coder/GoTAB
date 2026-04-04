@@ -142,16 +142,23 @@ button{
   object-fit: contain; /* немесе cover */
 }
 
-.closeBtn{
+#viewerClose{
   position:absolute;
-  top:8px;
+  top:12px;
   right:12px;
-  background:red;
-  color:white;
+  width:42px;
+  height:42px;
   border:none;
-  padding:5px 10px;
-  border-radius:8px;
+  border-radius:50%;
+  background:rgba(0,0,0,.85);
+  color:#fff;
+  font-size:24px;
+  font-weight:700;
   cursor:pointer;
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 
 </style>
@@ -169,7 +176,7 @@ button{
 
 <div id="viewerModal">
   <div id="viewerBox">
-    <button class="closeBtn" onclick="closeViewer()">✕</button>
+   <button id="viewerClose">×</button>
     <div id="viewerContent"></div>
   </div>
 </div>
@@ -698,6 +705,22 @@ subjectSelect.addEventListener("change", async ()=>{
   fillSubjectOptions();
   await renderBlocks();
 })();
+
+document.getElementById("viewerClose").onclick = function () {
+  closeViewer();
+};
+
+document.getElementById("viewerModal").addEventListener("click", function (e) {
+  if (e.target.id === "viewerModal") {
+    closeViewer();
+  }
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    closeViewer();
+  }
+});
 </script>
 
 </body>
