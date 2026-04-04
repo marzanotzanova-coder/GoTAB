@@ -187,12 +187,12 @@ function toEmbedUrl(url){
   if(!url) return "";
 
   if(url.includes("youtu.be/")){
-    const id = url.split("youtu.be/")[1];
+    const id = url.split("youtu.be/")[1].split("?")[0];
     return "https://www.youtube.com/embed/" + id;
   }
 
   if(url.includes("watch?v=")){
-    const id = url.split("watch?v=")[1];
+    const id = url.split("watch?v=")[1].split("&")[0];
     return "https://www.youtube.com/embed/" + id;
   }
 
@@ -341,6 +341,30 @@ window.closeViewer = function(){
   document.getElementById("viewerContent").innerHTML = "";
 };
 
+window.closeViewer = function(){
+  document.getElementById("viewerModal").style.display = "none";
+  document.getElementById("viewerContent").innerHTML = "";
+};
+
+document.getElementById("viewerClose").onclick = function(){
+  closeViewer();
+};
+
+document.getElementById("viewerModal").addEventListener("click", function(e){
+  if(e.target.id === "viewerModal"){
+    closeViewer();
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    closeViewer();
+  }
+});
+
+async function fetchEffectiveStudentForPreview(){
+  if(!isPreview) return null;
+}
 async function fetchEffectiveStudentForPreview(){
   if(!isPreview) return null;
 
@@ -705,22 +729,6 @@ subjectSelect.addEventListener("change", async ()=>{
   fillSubjectOptions();
   await renderBlocks();
 })();
-
-document.getElementById("viewerClose").onclick = function () {
-  closeViewer();
-};
-
-document.getElementById("viewerModal").addEventListener("click", function (e) {
-  if (e.target.id === "viewerModal") {
-    closeViewer();
-  }
-});
-
-document.addEventListener("keydown", function (e) {
-  if (e.key === "Escape") {
-    closeViewer();
-  }
-});
 </script>
 
 </body>

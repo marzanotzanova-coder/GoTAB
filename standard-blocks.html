@@ -98,13 +98,15 @@ button{
   justify-content:center;
   align-items:center;
 }
+
 #viewerBox{
   background:#fff;
   width:90%;
   height:85%;
   border-radius:15px;
-  padding:10px;
+  padding:0;
   position:relative;
+  overflow:hidden;
 }
 
 #viewerContent{
@@ -115,28 +117,45 @@ button{
 
 .video-frame{
   width:100%;
-  max-width:1100px;
-  aspect-ratio:16 / 9;
+  height:100%;
+  position:relative;
 }
 
-.video-frame iframe,
+.video-frame iframe{
+  position:absolute;
+  top:50%;
+  left:50%;
+  width:100%;
+  height:100%;
+  transform:translate(-50%, -50%);
+  border:none;
+}
+
 .video-frame video{
   width:100%;
   height:100%;
   border:none;
-  border-radius:10px;
+  object-fit:contain;
+  background:#000;
 }
 
-.closeBtn{
+#viewerClose{
   position:absolute;
-  top:8px;
+  top:12px;
   right:12px;
-  background:red;
-  color:white;
+  width:42px;
+  height:42px;
   border:none;
-  padding:5px 10px;
-  border-radius:8px;
+  border-radius:50%;
+  background:rgba(0,0,0,.85);
+  color:#fff;
+  font-size:24px;
+  font-weight:700;
   cursor:pointer;
+  z-index:99999;
+  display:flex;
+  align-items:center;
+  justify-content:center;
 }
 </style>
 </head>
@@ -153,7 +172,7 @@ button{
 
 <div id="viewerModal">
   <div id="viewerBox">
-    <button class="closeBtn" onclick="closeViewer()">✕</button>
+    <button id="viewerClose">×</button>
     <div id="viewerContent"></div>
   </div>
 </div>
@@ -164,12 +183,12 @@ function toEmbedUrl(url){
   if(!url) return "";
 
   if(url.includes("youtu.be/")){
-    const id = url.split("youtu.be/")[1];
+    const id = url.split("youtu.be/")[1].split("?")[0];
     return "https://www.youtube.com/embed/" + id;
   }
 
   if(url.includes("watch?v=")){
-    const id = url.split("watch?v=")[1];
+    const id = url.split("watch?v=")[1].split("&")[0];
     return "https://www.youtube.com/embed/" + id;
   }
 
@@ -322,6 +341,22 @@ window.closeViewer = function(){
   document.getElementById("viewerModal").style.display = "none";
   document.getElementById("viewerContent").innerHTML = "";
 };
+
+document.getElementById("viewerClose").onclick = function(){
+  closeViewer();
+};
+
+document.getElementById("viewerModal").addEventListener("click", function(e){
+  if(e.target.id === "viewerModal"){
+    closeViewer();
+  }
+});
+
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape"){
+    closeViewer();
+  }
+});
 
 async function fetchEffectiveStudentForPreview(){
   if(!isPreview) return null;

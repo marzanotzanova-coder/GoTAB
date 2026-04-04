@@ -39,10 +39,12 @@ const SUPABASE_KEY = process.env.SUPABASE_KEY;
 
 const avatarStorage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/avatars");
+    const dest = path.join(__dirname, "uploads", "avatars");
+    ensureDir(dest);
+    cb(null, dest);
   },
   filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
+    const ext = path.extname(file.originalname || "") || ".jpg";
     const name = "avatar_" + Date.now() + ext;
     cb(null, name);
   }
@@ -125,9 +127,64 @@ function requireStudent(req, res, next){
   return res.status(403).json({ ok:false, error:"forbidden" });
 }
 
-app.get("/api/auth/me", (req,res)=>{
-  const u = req.session?.user || null;
-  return res.json({ ok:true, user: u });
+app.get("/api/auth/me", async (req, res) => {
+  try {
+    const u = req.session?.user || null;
+
+    if (!u) {
+      return res.json({ ok: true, user: null });
+    }
+
+    if (u.role === "admin") {
+      return res.json({ ok: true, user: u });
+    }
+
+    const studentId = String(u.studentId || "").trim();
+    if (!studentId) {
+      return res.json({ ok: true, user: null });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?select=*&student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+
+    if (!r.ok) {
+      console.error("auth/me supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    const st = Array.isArray(rows) ? rows[0] : null;
+
+    if (!st) {
+      return res.json({ ok: true, user: null });
+    }
+
+    const freshUser = {
+      role: "student",
+      studentId: String(st.student_id || ""),
+      package: String(st.package || "pending").toLowerCase(),
+      grade: Number(st.grade || 5),
+      fullName: st.full_name || "Оқушы",
+      phone: st.phone || "",
+      email: st.email || "",
+      avatar: st.avatar || ""
+    };
+
+    req.session.user = freshUser;
+
+    return res.json({ ok: true, user: freshUser });
+  } catch (e) {
+    console.error("auth/me error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
 });
 
 app.post("/api/auth/logout", (req,res)=>{
@@ -164,46 +221,56 @@ if(!ok){
   }
 
   // ===== STUDENT LOGIN (әзірше studentId) =====
- if(role === "student"){
+ if (role === "student") {
   const phone = String(req.body?.phone || "").trim();
   const password = String(req.body?.password || "");
 
-  if(!phone || !password){
-    return res.status(400).json({ ok:false, error:"missing_fields" });
+  if (!phone || !password) {
+    return res.status(400).json({ ok: false, error: "missing_fields" });
   }
 
-  const db = readDB();
-  const users = Array.isArray(db.users) ? db.users : [];
+  const r = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?select=*&phone=eq.${encodeURIComponent(phone)}`,
+    {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
+    }
+  );
 
-  const st = users.find(x => String(x.phone || "") === phone);
-
-  if(!st){
-    return res.status(401).json({ ok:false, error:"student_not_found" });
+  const rows = await r.json().catch(() => []);
+  if (!r.ok) {
+    console.error("student login supabase error:", rows);
+    return res.status(500).json({ ok: false, error: "supabase_error" });
   }
 
-  const ok = await bcrypt.compare(password, st.passwordHash);
+  const st = Array.isArray(rows) ? rows[0] : null;
 
-  if(!ok){
-    return res.status(401).json({ ok:false, error:"bad_credentials" });
+  if (!st) {
+    return res.status(401).json({ ok: false, error: "student_not_found" });
   }
 
-  const sid = String(st.studentId || "").trim();
-  const pkg = String(st.package || "baza").toLowerCase();
+  const ok = await bcrypt.compare(password, st.password_hash);
+
+  if (!ok) {
+    return res.status(401).json({ ok: false, error: "bad_credentials" });
+  }
 
   req.session.user = {
-  role:"student",
-  studentId: sid,
-  package: pkg,
-  grade: Number(st.grade || 5),
-  fullName: st.fullName || "Оқушы",
-  phone: st.phone || "",
-  email: st.email || "",
-  avatar: st.avatar || ""
-};
+    role: "student",
+    studentId: String(st.student_id || "").trim(),
+    package: String(st.package || "pending").toLowerCase(),
+    grade: Number(st.grade || 5),
+    fullName: st.full_name || "Оқушы",
+    phone: st.phone || "",
+    email: st.email || "",
+    avatar: st.avatar || ""
+  };
 
-  return res.json({ ok:true, user: req.session.user });
+  return res.json({ ok: true, user: req.session.user });
 }
-  return res.status(400).json({ ok:false, error:"bad_role" });
+return res.status(400).json({ ok:false, error:"bad_role" });
 });
 
 // Static folders for uploaded files
@@ -430,181 +497,276 @@ function pushNotif(db, studentId, type, text) {
 
 // Register
 app.post("/api/auth/register", async (req, res) => {
-  try{
-   const { firstName, lastName, phone, email, password, password2 } = req.body || {};
+  try {
+    const { firstName, lastName, phone, email, password, password2 } = req.body || {};
 
     if (!firstName || !lastName || !phone || !email || !password) {
       return res.status(400).json({ ok: false, error: "missing_fields" });
     }
+
     if (password !== password2) {
-  return res.status(400).json({ ok: false, error: "password_mismatch" });
-}
+      return res.status(400).json({ ok: false, error: "password_mismatch" });
+    }
 
     if (String(password).length < 4) {
       return res.status(400).json({ ok: false, error: "weak_password" });
     }
 
-    const db = readDB();
+    const phoneClean = String(phone).trim();
+    const emailClean = String(email).trim().toLowerCase();
 
-    const exists = db.users.find(
-      (u) => String(u.phone || "").trim() === String(phone || "").trim()
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?select=student_id,phone&phone=eq.${encodeURIComponent(phoneClean)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
     );
 
-    if (exists) {
+    const existing = await checkRes.json().catch(() => []);
+
+    if (Array.isArray(existing) && existing.length > 0) {
       return res.status(409).json({ ok: false, error: "phone_exists" });
     }
 
-    const studentId = makeStudentId(phone, email);
+    const studentId = makeStudentId(phoneClean, emailClean);
     const passwordHash = await bcrypt.hash(String(password), 10);
 
     const user = {
-  studentId,
-  fullName: `${String(firstName).trim()} ${String(lastName).trim()}`.trim(),
-  firstName: String(firstName).trim(),
-  lastName: String(lastName).trim(),
-  phone: String(phone).trim(),
-  email: String(email).trim().toLowerCase(),
-  passwordHash,
-  grade: 5,
-  package: "pending"
-};
-
-    db.users.push(user);
-
-    db.progress[studentId] = db.progress[studentId] || {};
-    db.notifications[studentId] = db.notifications[studentId] || [];
-    db.streak[studentId] = db.streak[studentId] || {
-      lastVisitDate: "",
-      current: 0,
-      best: 0,
-      totalLogins: 0,
+      student_id: studentId,
+      full_name: `${String(firstName).trim()} ${String(lastName).trim()}`.trim(),
+      first_name: String(firstName).trim(),
+      last_name: String(lastName).trim(),
+      phone: phoneClean,
+      email: emailClean,
+      password_hash: passwordHash,
+      grade: 5,
+      package: "pending",
+      avatar: ""
     };
 
-    pushNotif(db, studentId, "welcome", `Қош келдің, ${user.fullName}! Аккаунтың ашылды ✅`);
-    pushNotif(db, studentId, "package", `Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады ⏳`);
+    const insertRes = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify([user])
+    });
 
-    writeDB(db);
+    const inserted = await insertRes.json().catch(() => null);
 
-   req.session.user = {
-  role: "student",
-  studentId: user.studentId,
-  package: user.package,
-  grade: Number(user.grade || 5),
-  fullName: user.fullName,
-  phone: user.phone,
-  email: user.email,
-  avatar: user.avatar || ""
-};
+    if (!insertRes.ok) {
+      console.error("users insert error:", inserted);
+      return res.status(500).json({
+        ok: false,
+        error: "supabase_insert_failed",
+        data: inserted
+      });
+    }
+
+    req.session.user = {
+      role: "student",
+      studentId: studentId,
+      package: "pending",
+      grade: 5,
+      fullName: user.full_name,
+      phone: user.phone,
+      email: user.email,
+      avatar: user.avatar || ""
+    };
+
     return res.json({
       ok: true,
       user: req.session.user
     });
-  }catch(e){
+  } catch (e) {
     console.error("register error", e);
-    return res.status(500).json({ ok:false, error:"server_error" });
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 // ===================== ADMIN: STUDENTS LIST =====================
-app.get("/api/admin/students", requireAdmin, (req, res) => {
-  const db = readDB();
-  const students = (db.users || []).map((u) => ({
-    studentId: u.studentId,
-    fullName: u.fullName,
-    phone: u.phone,
-    email: u.email,
-    package: u.package || "pending",
-    grade: Number(u.grade || 5),
-    avatar: u.avatar || "",
-  }));
-  res.json({ ok: true, students });
-});
-
-app.post("/api/admin/set-package", requireAdmin, (req,res)=>{
-  const db = readDB();
-  const studentId = String(req.body?.studentId || "").trim();
-  let pkg = String(req.body?.package || "").trim().toLowerCase();
-
-  if(pkg === "baza") pkg = "base";
-  if(pkg === "standard") pkg = "standart";
-
-  if(!["pending","base","standart","premium"].includes(pkg)){
-    return res.status(400).json({ok:false,error:"bad_package"});
-  }
-
-  const user = db.users.find(x => String(x.studentId || "") === studentId);
-  if(!user){
-    return res.status(404).json({ok:false,error:"student_not_found"});
-  }
-
-  user.package = pkg;
-  writeDB(db);
-
-  return res.json({ok:true});
-});
-
-app.post("/api/admin/set-student-meta", requireAdmin, (req,res)=>{
-  const db = readDB();
-  const studentId = String(req.body?.studentId || "").trim();
-  let pkg = String(req.body?.package || "").trim().toLowerCase();
-  const grade = Number(req.body?.grade);
-
-  if(pkg === "baza") pkg = "base";
-  if(pkg === "standard") pkg = "standart";
-
-  if(!["pending","base","standart","premium"].includes(pkg)){
-    return res.status(400).json({ok:false,error:"bad_package"});
-  }
-
-  if(![5,6,7,8,9,10,11].includes(grade)){
-    return res.status(400).json({ok:false,error:"bad_grade"});
-  }
-
-  if(pkg !== "pending" && !isValidPackageGrade(pkg, grade)){
-    return res.status(400).json({
-      ok:false,
-      error:"bad_package_grade_combo"
+app.get("/api/admin/students", requireAdmin, async (req, res) => {
+  try {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/users?select=*`, {
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`
+      }
     });
-  }
 
-  const user = db.users.find(x => String(x.studentId || "") === studentId);
-  if(!user){
-    return res.status(404).json({ok:false,error:"student_not_found"});
-  }
+    const rows = await r.json().catch(() => []);
 
-  user.package = pkg;
-  user.grade = grade;
+    if (!r.ok) {
+      console.error("admin/students supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
 
-  writeDB(db);
-  return res.json({
-    ok:true,
-    allowedGrades: getAllowedGradesByPackage(pkg, grade)
-  });
-});
-
-app.get("/api/admin/student/:studentId", requireAdmin, (req, res) => {
-  const sid = String(req.params.studentId || "");
-  const db = readDB();
-  const u = (db.users || []).find((x) => String(x.studentId) === sid);
-
-  if (!u) {
-    return res.status(404).json({ ok: false, error: "not_found" });
-  }
-
-  const pkg = String(u.package || "pending").toLowerCase();
-  const grade = Number(u.grade || 5);
-
-  res.json({
-    ok: true,
-    student: {
-      studentId: u.studentId,
-      fullName: u.fullName,
+    const students = (Array.isArray(rows) ? rows : []).map((u) => ({
+      studentId: u.student_id,
+      fullName: u.full_name,
       phone: u.phone,
       email: u.email,
-      package: pkg,
-      grade,
+      package: u.package || "pending",
+      grade: Number(u.grade || 5),
+      avatar: u.avatar || "",
+      createdAt: u.created_at || ""
+    }));
+
+    res.json({ ok: true, students });
+  } catch (e) {
+    console.error("admin/students error:", e);
+    res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+app.post("/api/admin/set-package", requireAdmin, async (req, res) => {
+  try {
+    const studentId = String(req.body?.studentId || "").trim();
+    let pkg = String(req.body?.package || "").trim().toLowerCase();
+
+    if (pkg === "baza") pkg = "base";
+    if (pkg === "standard") pkg = "standart";
+
+    if (!["pending", "base", "standart", "premium"].includes(pkg)) {
+      return res.status(400).json({ ok: false, error: "bad_package" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({ package: pkg })
+      }
+    );
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("set-package supabase error:", data);
+      return res.status(500).json({ ok: false, error: "supabase_update_failed", data });
+    }
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("set-package error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
+  try {
+    const studentId = String(req.body?.studentId || "").trim();
+    let pkg = String(req.body?.package || "").trim().toLowerCase();
+    const grade = Number(req.body?.grade);
+
+    if (pkg === "baza") pkg = "base";
+    if (pkg === "standard") pkg = "standart";
+
+    if (!["pending", "base", "standart", "premium"].includes(pkg)) {
+      return res.status(400).json({ ok: false, error: "bad_package" });
+    }
+
+    if (![5,6,7,8,9,10,11].includes(grade)) {
+      return res.status(400).json({ ok: false, error: "bad_grade" });
+    }
+
+    if (pkg !== "pending" && !isValidPackageGrade(pkg, grade)) {
+      return res.status(400).json({
+        ok: false,
+        error: "bad_package_grade_combo"
+      });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          package: pkg,
+          grade: grade
+        })
+      }
+    );
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("set-student-meta supabase error:", data);
+      return res.status(500).json({ ok: false, error: "supabase_update_failed", data });
+    }
+
+    return res.json({
+      ok: true,
       allowedGrades: getAllowedGradesByPackage(pkg, grade)
-    },
-  });
+    });
+  } catch (e) {
+    console.error("set-student-meta error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+app.get("/api/admin/student/:studentId", requireAdmin, async (req, res) => {
+  try {
+    const sid = String(req.params.studentId || "");
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?select=*&student_id=eq.${encodeURIComponent(sid)}`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) {
+      console.error("admin/student supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    const u = Array.isArray(rows) ? rows[0] : null;
+
+    if (!u) {
+      return res.status(404).json({ ok: false, error: "not_found" });
+    }
+
+    const pkg = String(u.package || "pending").toLowerCase();
+    const grade = Number(u.grade || 5);
+
+    res.json({
+      ok: true,
+      student: {
+        studentId: u.student_id,
+        fullName: u.full_name,
+        phone: u.phone,
+        email: u.email,
+        package: pkg,
+        grade,
+        allowedGrades: getAllowedGradesByPackage(pkg, grade)
+      }
+    });
+  } catch (e) {
+    console.error("admin/student error:", e);
+    res.status(500).json({ ok: false, error: "server_error" });
+  }
 });
 
 // ===================== MULTER STORAGE =====================
@@ -823,32 +985,55 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 });
 
 // Avatar upload
-app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), (req, res) => {
-  const studentId = String(req.session?.user?.studentId || "");
+app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), async (req, res) => {
+  try {
+    const studentId = String(req.session?.user?.studentId || "");
 
-  if(!studentId || !req.file){
-    return res.status(400).json({ ok:false, error:"bad_input" });
+    if (!studentId || !req.file) {
+      return res.status(400).json({ ok:false, error:"bad_input" });
+    }
+
+    const avatarUrl = "/uploads/avatars/" + req.file.filename;
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/users?student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({
+          avatar: avatarUrl
+        })
+      }
+    );
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("avatar update supabase error:", data);
+      return res.status(500).json({ ok:false, error:"supabase_update_failed", data });
+    }
+
+    if (req.session?.user) {
+      req.session.user.avatar = avatarUrl;
+    }
+
+    return res.json({
+      ok:true,
+      url: avatarUrl
+    });
+  } catch (e) {
+    console.error("avatar upload error:", e);
+    return res.status(500).json({
+      ok:false,
+      error:"server_error",
+      message:String(e.message || e)
+    });
   }
-
-  const db = readDB();
-  const user = db.users.find(u => String(u.studentId || "") === studentId);
-
-  if(!user){
-    return res.status(404).json({ ok:false, error:"student_not_found" });
-  }
-
-  user.avatar = "/uploads/avatars/" + req.file.filename;
-  writeDB(db);
-
-  // session-ды да жаңартып қоямыз
-  if(req.session?.user){
-    req.session.user.avatar = user.avatar;
-  }
-
-  return res.json({
-    ok:true,
-    url:user.avatar
-  });
 });
 
 // Get block materials
