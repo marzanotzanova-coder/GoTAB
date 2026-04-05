@@ -481,17 +481,35 @@ function makeStudentId(phone, email) {
   return "st_" + h.toString(16);
 }
 
-function pushNotif(db, studentId, type, text) {
-  db.notifications = db.notifications || {};
-  db.notifications[studentId] = db.notifications[studentId] || [];
-  db.notifications[studentId].unshift({
-    id: "n_" + Date.now() + "_" + Math.random().toString(16).slice(2),
-    type,
-    text,
-    createdAt: nowISO(),
-    read: false,
-  });
-  db.notifications[studentId] = db.notifications[studentId].slice(0, 50);
+async function pushNotif(studentId, type, text) {
+  try {
+    const row = {
+      id: "n_" + Date.now() + "_" + Math.random().toString(16).slice(2),
+      student_id: String(studentId || ""),
+      type: String(type || ""),
+      text: String(text || ""),
+      read: false
+    };
+
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "return=representation"
+      },
+      body: JSON.stringify([row])
+    });
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("pushNotif supabase error:", data);
+    }
+  } catch (e) {
+    console.error("pushNotif error:", e);
+  }
 }
 
 // Register
@@ -578,6 +596,8 @@ app.post("/api/auth/register", async (req, res) => {
       email: user.email,
       avatar: user.avatar || ""
     };
+    await pushNotif(studentId, "welcome", `Қош келдің, ${user.full_name}! Аккаунтың ашылды ✅`);
+    await pushNotif(studentId, "package", `Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады ⏳`);
 
     return res.json({
       ok: true,
@@ -914,15 +934,15 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 
     try { fs.unlinkSync(req.file.path); } catch {}
 
-    const supaItem = {
-      student_id: studentId,
-      grade,
-      subject,
-      block,
-      url: publicUrl,
-      name: req.file.originalname,
-      status: prevProg?.status === "graded" ? "graded" : "uploaded",
-    };
+   const supaItem = {
+  student_id: studentId,
+  grade,
+  subject,
+  block,
+  url: publicUrl,
+  name: req.file.originalname,
+  status: "uploaded"
+};
 
     const sr = await fetch(`${SUPABASE_URL}/rest/v1/student_uploads`, {
       method: "POST",
@@ -1019,7 +1039,7 @@ if (!progSaveRes.ok) {
 }
 
 const db = readDB();
-pushNotif(db, studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
+await pushNotif(studentId, "upload", `(${grade} сынып, ${subject}) Блок ${block}: тапсырма жүктелді ✅`);
 writeDB(db);
 
     return res.json({
@@ -1439,22 +1459,20 @@ app.post("/api/progress/set", requireAdmin, async (req, res) => {
     const newFeedback = String(nextFeedbackText || "").trim();
 
     if (newFeedback && newFeedback !== oldFeedback) {
-      pushNotif(
-        db,
-        studentId,
-        "feedback",
-        `[${course}] (${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`
-      );
-    }
+  await pushNotif(
+    studentId,
+    "feedback",
+    `[${course}] (${grade} сынып, ${subject}) Блок ${block}: мұғалім пікір қалдырды 💬`
+  );
+}
 
-    if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
-      pushNotif(
-        db,
-        studentId,
-        "review",
-        `[${course}] (${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`
-      );
-    }
+if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
+  await pushNotif(
+    studentId,
+    "review",
+    `[${course}] (${grade} сынып, ${subject}) Блок ${block}: баға қойылды 🏅`
+  );
+}
 
     writeDB(db);
     return res.json({ ok: true });
@@ -1464,28 +1482,6 @@ app.post("/api/progress/set", requireAdmin, async (req, res) => {
   }
 });
 // ================= STREAK (SERVER) =================
-const STREAK_FILE = path.join(__dirname, "data", "streak_days.json");
-
-function loadStreakDB(){
-  try{
-    if(!fs.existsSync(STREAK_FILE)) return {};
-    const txt = fs.readFileSync(STREAK_FILE, "utf8");
-    const j = JSON.parse(txt || "{}");
-    return (j && typeof j === "object") ? j : {};
-  }catch{
-    return {};
-  }
-}
-
-function saveStreakDB(db){
-  try{
-    fs.mkdirSync(path.dirname(STREAK_FILE), { recursive: true });
-    fs.writeFileSync(STREAK_FILE, JSON.stringify(db, null, 2), "utf8");
-  }catch(e){
-    console.error("saveStreakDB error", e);
-  }
-}
-
 // days = ["YYYY-MM-DD", ...]
 function calcStreakFromDays(days, todayStr){
   const set = new Set(Array.isArray(days) ? days : []);
@@ -1510,33 +1506,89 @@ function calcStreakFromDays(days, todayStr){
 }
 
 // POST /api/streak/ping  { studentId, dayKey: "YYYY-MM-DD" }
-app.post("/api/streak/ping", (req,res)=>{
+app.post("/api/streak/ping", async (req,res)=>{
   try{
     const studentId = String(req.body?.studentId || "").trim();
-    const dayKey = String(req.body?.dayKey || "").trim(); // "YYYY-MM-DD"
+    const dayKey = String(req.body?.dayKey || "").trim();
 
     if(!studentId || !dayKey){
       return res.status(400).json({ ok:false, error:"bad_input" });
     }
 
-    const db = loadStreakDB();
-    const rec = db[studentId] || { days: [] };
-    const days = Array.isArray(rec.days) ? rec.days : [];
+    const checkRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/streak?select=student_id,days,updated_at&student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const checkRows = await checkRes.json().catch(() => []);
+    if(!checkRes.ok){
+      console.error("streak/ping check error:", checkRows);
+      return res.status(500).json({ ok:false, error:"supabase_error" });
+    }
+
+    const existing = Array.isArray(checkRows) ? checkRows[0] : null;
+
+    let days = Array.isArray(existing?.days) ? existing.days : [];
 
     if(!days.includes(dayKey)){
       days.push(dayKey);
     }
 
-    // 180 күннен асырмай қояйық
-    days.sort(); // YYYY-MM-DD болғандықтан дұрыс сортталады
-    const trimmed = days.slice(-180);
+    days.sort();
+    days = days.slice(-180);
 
-    db[studentId] = { days: trimmed, updatedAt: new Date().toISOString() };
-    saveStreakDB(db);
+    let saveRes;
+    let saveData;
 
-    const streak = calcStreakFromDays(trimmed, dayKey);
+    if(existing){
+      saveRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/streak?student_id=eq.${encodeURIComponent(studentId)}`,
+        {
+          method:"PATCH",
+          headers:{
+            apikey: SUPABASE_KEY,
+            Authorization: `Bearer ${SUPABASE_KEY}`,
+            "Content-Type":"application/json",
+            Prefer:"return=representation"
+          },
+          body: JSON.stringify({
+            days,
+            updated_at: new Date().toISOString()
+          })
+        }
+      );
+      saveData = await saveRes.json().catch(() => null);
+    } else {
+      saveRes = await fetch(`${SUPABASE_URL}/rest/v1/streak`, {
+        method:"POST",
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type":"application/json",
+          Prefer:"return=representation"
+        },
+        body: JSON.stringify([{
+          student_id: studentId,
+          days,
+          updated_at: new Date().toISOString()
+        }])
+      });
+      saveData = await saveRes.json().catch(() => null);
+    }
 
-    return res.json({ ok:true, studentId, dayKey, streak, days: trimmed });
+    if(!saveRes.ok){
+      console.error("streak/ping save error:", saveData);
+      return res.status(500).json({ ok:false, error:"supabase_save_failed", data: saveData });
+    }
+
+    const streak = calcStreakFromDays(days, dayKey);
+
+    return res.json({ ok:true, studentId, dayKey, streak, days });
   }catch(e){
     console.error("streak/ping error", e);
     return res.status(500).json({ ok:false, error:"server_error" });
@@ -1544,7 +1596,7 @@ app.post("/api/streak/ping", (req,res)=>{
 });
 
 // GET /api/streak/get?studentId=...&dayKey=YYYY-MM-DD
-app.get("/api/streak/get", (req,res)=>{
+app.get("/api/streak/get", async (req,res)=>{
   try{
     const studentId = String(req.query?.studentId || "").trim();
     const dayKey = String(req.query?.dayKey || "").trim();
@@ -1553,9 +1605,24 @@ app.get("/api/streak/get", (req,res)=>{
       return res.status(400).json({ ok:false, error:"bad_input" });
     }
 
-    const db = loadStreakDB();
-    const rec = db[studentId] || { days: [] };
-    const days = Array.isArray(rec.days) ? rec.days : [];
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/streak?select=student_id,days,updated_at&student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        headers:{
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+    if(!r.ok){
+      console.error("streak/get error:", rows);
+      return res.status(500).json({ ok:false, error:"supabase_error" });
+    }
+
+    const rec = Array.isArray(rows) ? rows[0] : null;
+    const days = Array.isArray(rec?.days) ? rec.days : [];
     const streak = calcStreakFromDays(days, dayKey);
 
     return res.json({ ok:true, studentId, dayKey, streak, days });
@@ -1566,50 +1633,96 @@ app.get("/api/streak/get", (req,res)=>{
 });
 
 // ===================== NOTIFICATIONS =====================
-app.get("/api/notifications", requireAuth, (req, res) => {
-  const sessionUser = req.session?.user || null;
-  if (!sessionUser) return res.status(401).json({ ok: false, error: "unauthorized" });
+app.get("/api/notifications", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user || null;
+    if (!sessionUser) return res.status(401).json({ ok: false, error: "unauthorized" });
 
-  const requestedStudentId = String(req.query.studentId || "");
-  const sessionStudentId = String(sessionUser.studentId || "");
+    const requestedStudentId = String(req.query.studentId || "");
+    const sessionStudentId = String(sessionUser.studentId || "");
 
-  // admin болмаса — тек өз notification-ын ғана көре алады
-  const studentId =
-    sessionUser.role === "admin"
-      ? requestedStudentId
-      : sessionStudentId;
+    const studentId =
+      sessionUser.role === "admin"
+        ? requestedStudentId
+        : sessionStudentId;
 
-  if (!studentId) {
-    return res.status(400).json({ ok: false, error: "missing_studentId" });
+    if (!studentId) {
+      return res.status(400).json({ ok: false, error: "missing_studentId" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/notifications?select=*&student_id=eq.${encodeURIComponent(studentId)}&order=created_at.desc&limit=30`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) {
+      console.error("notifications get supabase error:", rows);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    const list = (Array.isArray(rows) ? rows : []).map((n) => ({
+      id: n.id,
+      type: n.type,
+      text: n.text,
+      createdAt: n.created_at,
+      read: !!n.read
+    }));
+
+    return res.json({ ok: true, list });
+  } catch (e) {
+    console.error("notifications get error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
-
-  const db = readDB();
-  const list = db.notifications?.[studentId] || [];
-  res.json({ ok: true, list: list.slice(0, 30) });
 });
 
-app.post("/api/notifications/mark-read", requireAuth, (req, res) => {
-  const sessionUser = req.session?.user || null;
-  const { studentId: requestedStudentId, id } = req.body || {};
+app.post("/api/notifications/mark-read", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user || null;
+    const { studentId: requestedStudentId, id } = req.body || {};
 
-  if (!id) return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!id) return res.status(400).json({ ok: false, error: "bad_input" });
 
-  const studentId =
-    sessionUser?.role === "admin"
-      ? String(requestedStudentId || "")
-      : String(sessionUser?.studentId || "");
+    const studentId =
+      sessionUser?.role === "admin"
+        ? String(requestedStudentId || "")
+        : String(sessionUser?.studentId || "");
 
-  if (!studentId) {
-    return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!studentId) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/notifications?id=eq.${encodeURIComponent(id)}&student_id=eq.${encodeURIComponent(studentId)}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({ read: true })
+      }
+    );
+
+    const data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("notifications mark-read supabase error:", data);
+      return res.status(500).json({ ok: false, error: "supabase_error" });
+    }
+
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("notifications mark-read error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
-
-  const db = readDB();
-  const list = db.notifications?.[studentId] || [];
-  const n = list.find((x) => x.id === id);
-  if (n) n.read = true;
-
-  writeDB(db);
-  res.json({ ok: true });
 });
 
 // ===================== HEALTH =====================
