@@ -1,54 +1,380 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GoTAB - Вход / Регистрация</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTAB — Вход</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .lang-wrap {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    border: 1px solid rgba(90,120,255,0.14);
+    box-shadow: 0 4px 16px rgba(90,120,255,0.07);
+    z-index: 10;
+  }
+  .lang-wrap select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #14213D;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .sp {
+    position: absolute;
+    color: #8A5CFF;
+    opacity: 0.45;
+    pointer-events: none;
+    font-style: normal;
+  }
+
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 60px;
+    z-index: 1;
+    width: 100%;
+    max-width: 400px;
+    padding: 0 20px;
+  }
+
+  .gotab-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .logo-go {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #2F6BFF, #20C9FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .logo-tab {
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #20C9FF, #1DE9B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    margin-bottom: 32px;
+    letter-spacing: 0.4px;
+  }
+  .subtitle .s-blue { color: #2F6BFF; }
+  .subtitle .s-cyan { color: #20C9FF; }
+  .subtitle .s-mint { color: #1DE9B6; }
+
+  .form-card {
+    width: 100%;
+    background: rgba(255,255,255,0.92);
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 40px rgba(90,120,255,0.08);
+    padding: 28px 24px;
+  }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .input-wrap .icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    font-size: 15px;
+    pointer-events: none;
+  }
+  .input-wrap input {
+    width: 100%;
+    height: 52px;
+    padding: 0 16px 0 44px;
+    border: 1.5px solid rgba(90,120,255,0.16);
+    border-radius: 16px;
+    font-size: 15px;
+    color: #14213D;
+    background: rgba(255,255,255,0.9);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrap input:focus {
+    border-color: #2F6BFF;
+    box-shadow: 0 0 0 3px rgba(47,107,255,0.12);
+  }
+  .input-wrap input::placeholder { color: #9CA3AF; }
+
+  .eye-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #9CA3AF;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .eye-btn:hover { color: #2F6BFF; }
+
+  .btn-main {
+    display: block;
+    width: 100%;
+    height: 52px;
+    margin-top: 6px;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(90deg, #2F6BFF 0%, #20C9FF 60%, #1DE9B6 100%);
+    box-shadow: 0 8px 24px rgba(47,107,255,0.24);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(47,107,255,0.32); }
+
+  .btn-back {
+    display: block;
+    width: 100%;
+    height: 52px;
+    border: 2px solid #2F6BFF;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #2F6BFF;
+    background: white;
+    transition: transform 0.18s;
+  }
+  .btn-back:hover { transform: translateY(-1px); background: rgba(47,107,255,0.04); }
+
+  .error-msg {
+    color: #EF4444;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  .mountain-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cloud-left, .cloud-right {
+    position: absolute;
+    bottom: 145px;
+    opacity: 0.7;
+  }
+  .cloud-left { left: 4%; }
+  .cloud-right { right: 4%; }
+
+  @media (max-width: 480px) {
+    .logo-go, .logo-tab { font-size: 44px; }
+    .center { margin-top: 44px; }
+  }
+</style>
 </head>
 <body>
-  <!-- Тіл таңдау оң жақ жоғарғы шет -->
-  <div style="position:absolute; top:10px; right:10px;">
-    <select id="langSelect">
-      <option value="kk">Қазақша</option>
-      <option value="ru">Русский</option>
-    </select>
+
+<div class="lang-wrap">
+  🌐
+  <select id="langSelect">
+    <option value="kk">Қазақша</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
+
+<i class="sp" style="top:8%;left:8%;font-size:15px">✦</i>
+<i class="sp" style="top:15%;right:12%;font-size:10px;color:#20C9FF">✦</i>
+<i class="sp" style="top:28%;left:14%;font-size:8px">✦</i>
+<i class="sp" style="bottom:40%;right:16%;font-size:10px;color:#1DE9B6">✦</i>
+<i class="sp" style="bottom:35%;left:20%;font-size:8px;color:#20C9FF">✦</i>
+
+<div class="center">
+  <div class="gotab-logo">
+    <span class="logo-go">GO</span>
+    <span class="logo-tab">TAB</span>
+  </div>
+  <div class="subtitle">
+    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
+    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
+    <span class="s-mint">Өсу</span>
   </div>
 
-  <div class="container">
-    <div class="login-card">
-      <h1 class="logo">GoTAB</h1>
-      <p class="tagline" id="titleText">Оқу • Бағалау • Өсу</p>
-
-      <!-- Негізгі форма -->
-      <form id="login-form">
-        <div class="input-group">
-          <input type="text" id="phone" placeholder="Телефон номер" required>
-        </div>
-        <div class="input-group">
-          <input type="email" id="email" placeholder="Email" required>
-        </div>
-
-        <!-- Пароль бастында жасырын -->
-        <div id="password-block" style="display:none;">
-          <div class="input-group">
-            <input type="password" id="password" placeholder="Пароль">
-          </div>
-          <p id="forgot" style="color:blue; cursor:pointer; display:none;">
-            Парольді ұмыттыңыз ба?
-          </p>
-        </div>
-
-        <button type="submit" class="btn-login">Вход</button>
-        <button type="button" id="register-btn" class="btn-register">Регистрация</button>
-      </form>
-
-      <p id="error" style="color:red;"></p>
+  <div class="form-card">
+    <div class="input-wrap">
+      <span class="icon">📱</span>
+      <input type="text" id="phone" placeholder="Телефон нөмірі">
     </div>
-  </div>
+    <div class="input-wrap">
+      <span class="icon">✉️</span>
+      <input type="email" id="email" placeholder="Email">
+    </div>
+    <div class="input-wrap">
+      <span class="icon">🔒</span>
+      <input type="password" id="password" placeholder="Құпиясөз">
+      <button class="eye-btn" id="togglePass" type="button">👁</button>
+    </div>
 
-  <!-- JS қосу -->
-  <script src="lang.js"></script>
-  <script src="script.js"></script>
+    <button class="btn-main" id="loginBtn">Вход</button>
+    <button class="btn-back" id="backBtn">← Артқа</button>
+    <div class="error-msg" id="errorMsg"></div>
+  </div>
+</div>
+
+<div class="cloud-left">
+  <svg width="88" height="52" viewBox="0 0 88 52">
+    <ellipse cx="44" cy="36" rx="38" ry="17" fill="#E2DEFF" opacity="0.85"/>
+    <ellipse cx="29" cy="30" rx="22" ry="15" fill="#EAE7FF" opacity="0.9"/>
+    <ellipse cx="57" cy="28" rx="17" ry="13" fill="#EAE7FF" opacity="0.9"/>
+  </svg>
+</div>
+<div class="cloud-right">
+  <svg width="88" height="52" viewBox="0 0 88 52">
+    <ellipse cx="44" cy="36" rx="38" ry="17" fill="#CEFAF3" opacity="0.85"/>
+    <ellipse cx="29" cy="30" rx="22" ry="15" fill="#D8FDF6" opacity="0.9"/>
+    <ellipse cx="57" cy="28" rx="17" ry="13" fill="#D8FDF6" opacity="0.9"/>
+  </svg>
+</div>
+
+<div class="mountain-area">
+  <svg width="440" height="260" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="mG1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6B3FF7"/><stop offset="50%" stop-color="#2F6BFF"/><stop offset="100%" stop-color="#20C9FF"/>
+      </linearGradient>
+      <linearGradient id="mG2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#20C9FF"/><stop offset="100%" stop-color="#1DE9B6"/>
+      </linearGradient>
+      <linearGradient id="pathG" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#87EFFF" stop-opacity="0.95"/><stop offset="100%" stop-color="#B8FAFF" stop-opacity="0.75"/>
+      </linearGradient>
+    </defs>
+    <polygon points="75,280 175,105 275,280" fill="#4B30C0" opacity="0.38"/>
+    <polygon points="215,280 330,75 445,280" fill="#1A7ABF" opacity="0.3"/>
+    <polygon points="0,280 100,130 200,280" fill="#3B28A8" opacity="0.35"/>
+    <polygon points="240,10 395,290 85,290" fill="url(#mG1)"/>
+    <polygon points="240,10 395,290 240,290" fill="url(#mG2)" opacity="0.48"/>
+    <polygon points="240,10 268,68 212,68" fill="rgba(255,255,255,0.26)"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290" stroke="url(#pathG)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.32"/>
+    <line x1="240" y1="10" x2="240" y2="-8" stroke="#888" stroke-width="2.5"/>
+    <circle cx="240" cy="-8" r="4.5" fill="#FF3B3B"/>
+    <polygon points="240,-8 266,3 240,13" fill="#1DE9B6"/>
+  </svg>
+</div>
+
+<script>
+(function(){
+  const langSelect = document.getElementById("langSelect");
+  langSelect.value = localStorage.getItem("lang") || "kk";
+  langSelect.addEventListener("change", () => { localStorage.setItem("lang", langSelect.value); applyLang(); });
+
+  function applyLang(){
+    const lang = langSelect.value;
+    document.getElementById("phone").placeholder = lang === "ru" ? "Номер телефона" : "Телефон нөмірі";
+    document.getElementById("email").placeholder = "Email";
+    document.getElementById("password").placeholder = lang === "ru" ? "Пароль" : "Құпиясөз";
+    document.getElementById("backBtn").textContent = lang === "ru" ? "← Назад" : "← Артқа";
+  }
+  applyLang();
+
+  document.getElementById("togglePass").addEventListener("click", () => {
+    const p = document.getElementById("password");
+    p.type = p.type === "password" ? "text" : "password";
+  });
+
+  document.getElementById("backBtn").addEventListener("click", () => { window.location.href = "index.html"; });
+
+  const ADMIN_PHONE = "77055894347";
+  const ADMIN_EMAIL = "admin@gotab.kz";
+  const errorMsg = document.getElementById("errorMsg");
+
+  document.getElementById("loginBtn").addEventListener("click", async () => {
+    const phone = document.getElementById("phone").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    const lang = langSelect.value;
+    errorMsg.textContent = "";
+
+    if(!phone || !password){
+      errorMsg.textContent = lang === "ru" ? "Заполните все поля" : "Барлық өрістерді толтырыңыз";
+      return;
+    }
+
+    try{
+      if(phone === ADMIN_PHONE && email === ADMIN_EMAIL){
+        const r = await fetch("/api/auth/login", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          credentials: "include", cache: "no-store",
+          body: JSON.stringify({ role: "admin", email, password })
+        });
+        const j = await r.json().catch(() => null);
+        if(!r.ok || !j?.ok){ errorMsg.textContent = "Admin login қате"; return; }
+        window.location.href = "admin.html";
+        return;
+      }
+
+      const r = await fetch("/api/auth/login", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        credentials: "include", cache: "no-store",
+        body: JSON.stringify({ role: "student", phone, password })
+      });
+      const j = await r.json().catch(() => null);
+      if(!r.ok || !j?.ok){
+        errorMsg.textContent = lang === "ru" ? "Неверный телефон или пароль" : "Телефон немесе пароль қате";
+        return;
+      }
+      window.location.href = "dashboard.html";
+    }catch(e){
+      console.error(e);
+      errorMsg.textContent = lang === "ru" ? "Ошибка сервера" : "Сервер байланыспады";
+    }
+  });
+})();
+</script>
 </body>
 </html>

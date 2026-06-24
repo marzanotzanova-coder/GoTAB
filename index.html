@@ -3,215 +3,242 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GoTAB - Басты бет</title>
+<title>GoTAB</title>
 <style>
-body {
-    margin:0;
-    padding:0;
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #f3e8ff, #dcd1ff);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
-}
-.container {
-    background: linear-gradient(135deg, #ffffff, #f5f3ff);
-    border-radius:25px;
-    padding:40px;
-    text-align:center;
-    width:350px;
-    box-shadow:0 10px 30px rgba(0,0,0,0.1);
-    position:relative;
-}
-.logo {
-    font-size:36px;
-    font-weight:bold;
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .lang-wrap {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    border: 1px solid rgba(90,120,255,0.14);
+    box-shadow: 0 4px 16px rgba(90,120,255,0.07);
+    z-index: 10;
+  }
+  .lang-wrap select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #14213D;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .sp {
+    position: absolute;
+    color: #8A5CFF;
+    opacity: 0.45;
+    pointer-events: none;
+    font-style: normal;
+  }
+
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 90px;
+    z-index: 1;
+  }
+
+  .gotab-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .logo-go {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #2F6BFF, #20C9FF);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom:10px;
-}
-.slogan {
-    font-size:16px;
-    color:#7c3aed;
-    margin-bottom:20px;
-}
-input[type=text],
-input[type=email],
-input[type=password] {
-    width:80%;
-    padding:10px;
-    margin:8px 0;
-    border-radius:12px;
-    border:1px solid #ccc;
-    font-size:14px;
-}
-button {
-    width:80%;
-    padding:12px;
-    margin:8px 0;
-    border:none;
-    border-radius:12px;
-    font-size:16px;
-    font-weight:bold;
-    cursor:pointer;
-    color:white;
-    background: linear-gradient(135deg, #7c3aed, #a855f7);
-    transition:0.3s;
-}
-button:hover { opacity:0.9; }
-.lang-switch {
-    position:absolute;
-    top:15px;
-    right:15px;
-    font-size:14px;
-}
-.lang-switch select {
-    padding:5px 10px;
-    border-radius:8px;
-    border:1px solid #7c3aed;
-    background:white;
-    color:#7c3aed;
-    font-weight:bold;
-    cursor:pointer;
-}
+    background-clip: text;
+    line-height: 1;
+  }
+  .logo-tab {
+    font-size: 72px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #20C9FF, #1DE9B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+
+  .subtitle {
+    font-size: 17px;
+    margin-bottom: 52px;
+    letter-spacing: 0.5px;
+  }
+  .subtitle .s-blue { color: #2F6BFF; }
+  .subtitle .s-cyan { color: #20C9FF; }
+  .subtitle .s-mint { color: #1DE9B6; }
+
+  .btn-main {
+    display: block;
+    width: 320px;
+    padding: 17px;
+    margin-bottom: 14px;
+    border: none;
+    border-radius: 20px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(90deg, #2F6BFF 0%, #20C9FF 60%, #1DE9B6 100%);
+    box-shadow: 0 10px 30px rgba(47,107,255,0.26);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .btn-main:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(47,107,255,0.34); }
+
+  .btn-outline {
+    display: block;
+    width: 320px;
+    padding: 17px;
+    border: 2px solid #2F6BFF;
+    border-radius: 20px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #2F6BFF;
+    background: white;
+    transition: transform 0.18s, background 0.18s;
+  }
+  .btn-outline:hover { transform: translateY(-2px); background: rgba(47,107,255,0.04); }
+
+  .mountain-area {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cloud-left, .cloud-right {
+    position: absolute;
+    bottom: 165px;
+    opacity: 0.72;
+  }
+  .cloud-left { left: 6%; }
+  .cloud-right { right: 6%; }
+
+  @media (max-width: 480px) {
+    .logo-go, .logo-tab { font-size: 52px; }
+    .btn-main, .btn-outline { width: 280px; }
+    .center { margin-top: 70px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="lang-switch">
-    <select id="langSelect">
-      <option value="kk">Қазақша</option>
-      <option value="ru">Русский</option>
-    </select>
+<div class="lang-wrap">
+  🌐
+  <select id="langSelect">
+    <option value="kk">Қазақша</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
+
+<i class="sp" style="top:11%;left:9%;font-size:16px">✦</i>
+<i class="sp" style="top:18%;right:13%;font-size:11px;color:#20C9FF">✦</i>
+<i class="sp" style="top:32%;left:16%;font-size:9px">✦</i>
+<i class="sp" style="top:22%;left:43%;font-size:8px;color:#1DE9B6">✦</i>
+<i class="sp" style="top:40%;right:18%;font-size:12px;color:#1DE9B6">✦</i>
+<i class="sp" style="bottom:40%;left:22%;font-size:10px;color:#20C9FF">✦</i>
+<i class="sp" style="bottom:44%;right:15%;font-size:8px">✦</i>
+
+<div class="center">
+  <div class="gotab-logo">
+    <span class="logo-go">GO</span>
+    <span class="logo-tab">TAB</span>
   </div>
+  <div class="subtitle">
+    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
+    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
+    <span class="s-mint">Өсу</span>
+  </div>
+  <button class="btn-main" id="loginBtn">Вход</button>
+  <button class="btn-outline" id="registerBtn">Регистрация</button>
+</div>
 
-  <div class="logo">GoTAB</div>
-  <div class="slogan" id="slogan">Оқу • Бағалау • Өсу</div>
+<div class="cloud-left">
+  <svg width="90" height="54" viewBox="0 0 90 54">
+    <ellipse cx="45" cy="38" rx="38" ry="17" fill="#E2DEFF" opacity="0.85"/>
+    <ellipse cx="30" cy="32" rx="22" ry="16" fill="#EAE7FF" opacity="0.9"/>
+    <ellipse cx="58" cy="30" rx="18" ry="13" fill="#EAE7FF" opacity="0.9"/>
+  </svg>
+</div>
+<div class="cloud-right">
+  <svg width="90" height="54" viewBox="0 0 90 54">
+    <ellipse cx="45" cy="38" rx="38" ry="17" fill="#CEFAF3" opacity="0.85"/>
+    <ellipse cx="30" cy="32" rx="22" ry="16" fill="#D8FDF6" opacity="0.9"/>
+    <ellipse cx="58" cy="30" rx="18" ry="13" fill="#D8FDF6" opacity="0.9"/>
+  </svg>
+</div>
 
-  <input type="text" id="phone" placeholder="Телефон нөмірі"><br>
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Құпиясөз"><br> 
-
-  <button id="registerBtn">Регистрация</button>
-  <button id="loginBtn">Вход</button>
+<div class="mountain-area">
+  <svg width="480" height="300" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="mG1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6B3FF7"/>
+        <stop offset="50%" stop-color="#2F6BFF"/>
+        <stop offset="100%" stop-color="#20C9FF"/>
+      </linearGradient>
+      <linearGradient id="mG2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#20C9FF"/>
+        <stop offset="100%" stop-color="#1DE9B6"/>
+      </linearGradient>
+      <linearGradient id="pathG" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#87EFFF" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#B8FAFF" stop-opacity="0.75"/>
+      </linearGradient>
+    </defs>
+    <polygon points="75,280 175,105 275,280" fill="#4B30C0" opacity="0.38"/>
+    <polygon points="215,280 330,75 445,280" fill="#1A7ABF" opacity="0.3"/>
+    <polygon points="0,280 100,130 200,280" fill="#3B28A8" opacity="0.35"/>
+    <polygon points="240,10 395,290 85,290" fill="url(#mG1)"/>
+    <polygon points="240,10 395,290 240,290" fill="url(#mG2)" opacity="0.48"/>
+    <polygon points="240,10 268,68 212,68" fill="rgba(255,255,255,0.26)"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290"
+          stroke="url(#pathG)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290"
+          stroke="white" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.32"/>
+    <line x1="240" y1="10" x2="240" y2="-8" stroke="#888" stroke-width="2.5"/>
+    <circle cx="240" cy="-8" r="4.5" fill="#FF3B3B"/>
+    <polygon points="240,-8 266,3 240,13" fill="#1DE9B6"/>
+    <ellipse cx="240" cy="294" rx="155" ry="9" fill="rgba(100,160,255,0.09)"/>
+  </svg>
 </div>
 
 <script>
-// ===== Тіл ауыстыру =====
 const langSelect = document.getElementById("langSelect");
 langSelect.value = localStorage.getItem("lang") || "kk";
-
-langSelect.addEventListener("change", ()=>{
-  localStorage.setItem("lang", langSelect.value);
-  updateLang();
-});
-
-function updateLang(){
-  const lang = langSelect.value;
-
-  document.getElementById("slogan").textContent =
-    (lang==="kk") ? "Оқу • Бағалау • Өсу" : "Учёба • Оценка • Рост";
-
-  document.getElementById("phone").placeholder =
-    (lang==="kk") ? "Телефон нөмірі" : "Номер телефона";
-
-  document.getElementById("email").placeholder =
-    (lang==="kk") ? "Email" : "Электронная почта";
-
-  document.getElementById("password").placeholder =
-    (lang==="kk") ? "Құпиясөз" : "Пароль";
-
-  document.getElementById("registerBtn").textContent =
-    (lang==="kk") ? "Регистрация" : "Регистрация";
-
-  document.getElementById("loginBtn").textContent =
-    (lang==="kk") ? "Вход" : "Вход";
-}
-
-updateLang();
-
-// ===== Helpers =====
-function isAdmin(phone, email){
-  return phone === "77055894347" && email === "admin@gotab.kz";
-}
-
-// ===== Регистрация батырмасы =====
-document.getElementById("registerBtn").addEventListener("click", ()=>{
-  const phone = document.getElementById("phone").value.trim();
-  const email = document.getElementById("email").value.trim();
-
-  const qs = new URLSearchParams();
-  if(phone) qs.set("phone", phone);
-  if(email) qs.set("email", email);
-
-  window.location.href = "register.html" + (qs.toString() ? ("?" + qs.toString()) : "");
-});
-
-// ===== Вход батырмасы =====
-document.getElementById("loginBtn").addEventListener("click", async ()=>{
-  const phone = document.getElementById("phone").value.trim();
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-
-  if(!phone || !password){
-    alert("Барлық өрістерді толтырыңыз / Заполните все поля");
-    return;
-  }
-
-  try{
-    // ===== ADMIN LOGIN =====
-    if(isAdmin(phone, email)){
-      const r = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type":"application/json" },
-        credentials: "include",
-        cache: "no-store",
-        body: JSON.stringify({
-          role: "admin",
-          email,
-          password
-        })
-      });
-
-      const j = await r.json().catch(()=>null);
-
-      if(!r.ok || !j?.ok){
-        alert("Admin login қате");
-        return;
-      }
-
-      window.location.href = "admin.html";
-      return;
-    }
-
-    // ===== STUDENT LOGIN =====
-    const r = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      credentials: "include",
-      cache: "no-store",
-      body: JSON.stringify({
-        role: "student",
-        phone,
-        password
-      })
-    });
-
-    const j = await r.json().catch(()=>null);
-
-    if(!r.ok || !j?.ok){
-      alert("Телефон немесе пароль қате / Неверный телефон или пароль");
-      return;
-    }
-
-    window.location.href = "dashboard.html";
-
-  }catch(e){
-    console.error(e);
-    alert("Сервер байланыспады (login)");
-  }
-});
+langSelect.addEventListener("change", () => { localStorage.setItem("lang", langSelect.value); });
+document.getElementById("loginBtn").addEventListener("click", () => { window.location.href = "login.html"; });
+document.getElementById("registerBtn").addEventListener("click", () => { window.location.href = "register.html"; });
 </script>
+</body>
+</html>

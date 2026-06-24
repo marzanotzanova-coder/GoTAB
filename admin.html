@@ -6,21 +6,17 @@
   <title>GoTAB • Admin</title>
   <style>
     :root{
-      --bg1:#f3e8ff; --bg2:#dcd1ff;
-      --text:#111827; --muted:#6b7280;
-      --brand1:#7c3aed; --brand2:#a855f7;
-      --shadow: 0 18px 50px rgba(0,0,0,.12);
-      --radius: 22px;
+      --text:#14213D; --muted:#6B7280;
+      --brand1:#2F6BFF; --brand2:#20C9FF; --mint:#1DE9B6;
+      --shadow: 0 10px 40px rgba(90,120,255,0.08);
+      --radius: 28px;
     }
     *{box-sizing:border-box}
     body{
       margin:0;
       font-family: Arial, sans-serif;
       color:var(--text);
-      background:
-        radial-gradient(1000px 500px at 20% 10%, rgba(124,58,237,.25), transparent 60%),
-        radial-gradient(900px 520px at 90% 15%, rgba(168,85,247,.22), transparent 60%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
+      background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
       min-height:100vh;
     }
 
@@ -34,77 +30,97 @@
     }
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.93), rgba(245,243,255,.93));
+      background: rgba(255,255,255,0.92);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
-      padding: 18px;
-      border: 1px solid rgba(124,58,237,.15);
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.8);
       overflow:hidden;
     }
 
     .brand{
-      display:flex; align-items:center; gap:12px;
-      margin-bottom:14px;
+      display:flex; align-items:center; gap:10px;
+      margin-bottom:16px;
     }
-    .logo{
-      width:44px;height:44px;border-radius:16px;
-      background: linear-gradient(135deg, var(--brand1), var(--brand2));
-      box-shadow: 0 10px 22px rgba(124,58,237,.35);
-      position:relative;
-    }
-    .logo:after{
-      content:""; position:absolute; inset:12px; border-radius:12px;
-      background: rgba(255,255,255,.35); transform: rotate(18deg);
-    }
+    .logo{ display:none; }
     .brandTitle .name{
-      font-weight:900; font-size:20px;
-      background: linear-gradient(135deg, var(--brand1), var(--brand2));
-      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      font-weight:900; font-size:22px; letter-spacing:-0.5px;
+      display:flex; align-items:center; gap:4px;
+    }
+    .brandTitle .name .logo-go{
+      background: linear-gradient(135deg, #2F6BFF, #20C9FF);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    }
+    .brandTitle .name .logo-tab{
+      background: linear-gradient(135deg, #20C9FF, #1DE9B6);
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
     }
     .brandTitle .sub{font-size:12px;color:var(--muted);margin-top:2px}
 
     .muted{color:var(--muted); font-size:12px}
-
-    .sectionTitle{font-weight:900; margin:0 0 10px 0; font-size:14px; color:#1f2937;}
+    .sectionTitle{font-weight:900; margin:0 0 12px 0; font-size:14px; color:var(--text);}
 
     .row{
       display:flex; justify-content:space-between; align-items:center; gap:10px;
       padding:12px; border-radius:16px;
-      background: rgba(255,255,255,.75);
-      border: 1px solid rgba(124,58,237,.14);
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(47,107,255,.08);
       margin-top:10px;
     }
     .rowLeft{display:flex; flex-direction:column}
-    .rowTitle{font-weight:900; font-size:13px}
+    .rowTitle{font-weight:800; font-size:13px; color:var(--text);}
     .rowSub{font-size:12px; color:var(--muted); margin-top:2px}
 
     .btn{
       border:0; cursor:pointer;
-      border-radius:16px;
-      padding:10px 12px;
-      font-weight:900;
+      border-radius:14px;
+      padding:10px 14px;
+      font-weight:700; font-size:13px;
     }
     .btn.primary{
-      background: linear-gradient(135deg, var(--brand1), var(--brand2));
+      background: linear-gradient(90deg, #2F6BFF, #20C9FF, #1DE9B6);
       color:white;
-      box-shadow: 0 14px 28px rgba(124,58,237,.28);
+      box-shadow: 0 8px 22px rgba(47,107,255,.22);
     }
     .btn.ghost{
-      background: rgba(255,255,255,.75);
-      border: 1px solid rgba(124,58,237,.18);
-      color:#2b1a78;
-      box-shadow:none;
+      background: rgba(255,255,255,.85);
+      border: 1.5px solid rgba(47,107,255,.18);
+      color:#2F6BFF;
     }
 
     select, input[type="file"]{
       width:100%;
-      padding:10px;
+      padding:12px 14px;
       border-radius:14px;
-      border:1px solid #ccc;
+      border:1.5px solid rgba(47,107,255,.14);
       font-size:14px;
       outline:none;
-      background:white;
+      background:rgba(255,255,255,.9);
       margin-top:8px;
+      color:var(--text);
+      transition: border-color 0.2s;
+    }
+    select:focus, input:focus{ border-color:#2F6BFF; }
+
+    textarea{
+      border-radius:14px !important;
+      border:1.5px solid rgba(47,107,255,.14) !important;
+      background:rgba(255,255,255,.9) !important;
+      color:var(--text) !important;
+      transition: border-color 0.2s;
+    }
+    textarea:focus{ border-color:#2F6BFF !important; outline:none; }
+
+    input[type="text"]{
+      width:100%;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1.5px solid rgba(47,107,255,.14);
+      font-size:14px;
+      outline:none;
+      background:rgba(255,255,255,.9);
+      margin-top:8px;
+      color:var(--text);
     }
 
     .list{
@@ -119,22 +135,36 @@
 
     .studentRow{
       display:flex; align-items:center; justify-content:space-between; gap:12px;
-      padding:12px; border-radius:16px;
-      background: rgba(255,255,255,.75);
-      border: 1px solid rgba(124,58,237,.14);
+      padding:14px; border-radius:18px;
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(47,107,255,.08);
     }
     .studentLeft{display:flex;flex-direction:column}
-    .studentName{font-weight:900;color:#2b1a78}
-    .studentMeta{font-size:12px;color:#6b7280;margin-top:2px}
+    .studentName{font-weight:800;color:var(--text);}
+    .studentMeta{font-size:12px;color:var(--muted);margin-top:2px}
     .studentBtns{display:flex;gap:8px;flex-wrap:wrap}
     .studentBtns button{
-      padding:8px 10px;border-radius:12px;border:0;cursor:pointer;font-weight:900;
+      padding:8px 12px;border-radius:12px;border:0;cursor:pointer;font-weight:700;font-size:13px;
     }
-    .btnView{background:linear-gradient(135deg,#7f3ff0,#a855f7); color:white;}
-    .btnCopy{background:rgba(124,58,237,.10); border:1px solid rgba(124,58,237,.18); color:#2b1a78;}
+    .btnView{
+      background: linear-gradient(90deg, #2F6BFF, #20C9FF);
+      color:white;
+    }
+    .btnCopy{
+      background:rgba(47,107,255,.08);
+      border:1.5px solid rgba(47,107,255,.18);
+      color:#2F6BFF;
+    }
+
+    .packageSelect, .gradeSelect{
+      width:auto !important;
+      margin-top:6px;
+      font-size:12px;
+      padding:6px 8px;
+    }
 
     @media (max-width: 980px){
-      .app{grid-template-columns: 1fr}
+      .app{grid-template-columns: 1fr; padding:12px; gap:12px;}
     }
   </style>
 </head>
@@ -144,9 +174,8 @@
   <!-- LEFT: students -->
   <aside class="card">
     <div class="brand">
-      <div class="logo"></div>
       <div class="brandTitle">
-        <div class="name">GoTAB</div>
+        <div class="name"><span class="logo-go">GO</span><span class="logo-tab">TAB</span></div>
         <div class="sub">Admin панель • Оқушылар</div>
       </div>
     </div>

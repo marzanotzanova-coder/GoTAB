@@ -4,292 +4,365 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>GoTAB • Регистрация</title>
-
 <style>
- *{
-  box-sizing:border-box;
-} 
-body{
-margin:0;height:100vh;display:flex;align-items:center;justify-content:center;
-font-family:Arial,sans-serif;
-background:linear-gradient(135deg,#f3e8ff,#dcd1ff);
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.card{
-width:420px;max-width:94%;
-background:linear-gradient(135deg,#ffffff,#f5f3ff);
-border-radius:25px;padding:28px;
-box-shadow:0 10px 30px rgba(0,0,0,0.12);
-}
+  body {
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+  }
 
-.logo{
-font-size:32px;font-weight:900;
-background:linear-gradient(135deg,#7c3aed,#a855f7);
--webkit-background-clip:text;
--webkit-text-fill-color:transparent;
-text-align:center;
-margin-bottom:8px;
-}
+  .sp {
+    position: absolute;
+    color: #8A5CFF;
+    opacity: 0.45;
+    pointer-events: none;
+    font-style: normal;
+  }
 
-.sub{
-text-align:center;
-color:#7c3aed;
-font-size:14px;
-margin-bottom:18px;
-}
+  .center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 40px;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    padding: 0 16px 120px;
+  }
 
-input{
-width:100%;
-display:block;
-margin:10px auto;
-padding:12px 14px;
-border-radius:16px;
-border:1px solid rgba(124,58,237,.22);
-font-size:14px;
-outline:none;
-background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(168,85,247,.06));
-box-shadow:0 8px 18px rgba(0,0,0,.06);
-}
+  .gotab-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .logo-go {
+    font-size: 50px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #2F6BFF, #20C9FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .logo-tab {
+    font-size: 50px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    background: linear-gradient(135deg, #20C9FF, #1DE9B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
 
-input:focus{
-border-color:rgba(124,58,237,.55);
-box-shadow:0 0 0 4px rgba(124,58,237,.18);
-}
+  .subtitle {
+    font-size: 15px;
+    margin-bottom: 22px;
+    letter-spacing: 0.4px;
+  }
+  .subtitle .s-blue { color: #2F6BFF; }
+  .subtitle .s-cyan { color: #20C9FF; }
+  .subtitle .s-mint { color: #1DE9B6; }
 
-.passWrap{
-  width:100%;
-  margin:10px auto;
-  position:relative;
-}
+  .form-card {
+    width: 100%;
+    background: rgba(255,255,255,0.92);
+    border-radius: 28px;
+    border: 1px solid rgba(255,255,255,0.8);
+    box-shadow: 0 10px 40px rgba(90,120,255,0.08);
+    padding: 24px 20px;
+  }
 
-.passWrap input{
-  width:100%;
-  display:block;
-  margin:0;
-  padding:12px 40px 12px 14px;
-  border-radius:16px;
-  border:1px solid rgba(124,58,237,.22);
-  font-size:14px;
-  outline:none;
-  background: linear-gradient(135deg, rgba(124,58,237,.08), rgba(168,85,247,.06));
-  box-shadow: 0 8px 18px rgba(0,0,0,.06);
-}
+  .input-wrap {
+    position: relative;
+    margin-bottom: 12px;
+  }
+  .input-wrap .icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9CA3AF;
+    font-size: 15px;
+    pointer-events: none;
+  }
+  .input-wrap input {
+    width: 100%;
+    height: 52px;
+    padding: 0 16px 0 44px;
+    border: 1.5px solid rgba(90,120,255,0.16);
+    border-radius: 16px;
+    font-size: 15px;
+    color: #14213D;
+    background: rgba(255,255,255,0.9);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .input-wrap input:focus {
+    border-color: #2F6BFF;
+    box-shadow: 0 0 0 3px rgba(47,107,255,0.12);
+  }
+  .input-wrap input::placeholder { color: #9CA3AF; }
 
-.passWrap input:focus{
-  border-color: rgba(124,58,237,.55);
-  box-shadow: 0 0 0 4px rgba(124,58,237,.18);
-}
+  .input-wrap.has-eye input { padding-right: 44px; }
+  .eye-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #9CA3AF;
+    font-size: 16px;
+    line-height: 1;
+  }
+  .eye-btn:hover { color: #2F6BFF; }
 
-.eyeBtn{
-  position:absolute;
-  right:12px;
-  top:50%;
-  transform:translateY(-50%);
-  width:14px !important;
-  height:14px !important;
-  min-width:14px !important;
-  padding:0 !important;
-  margin:0 !important;
-  border:none !important;
-  border-radius:0 !important;
-  background-color:transparent !important;
-  background-repeat:no-repeat !important;
-  background-position:center !important;
-  background-size:14px 14px !important;
-  box-shadow:none !important;
-  cursor:pointer;
-  z-index:3;
-  display:block;
+  .btn-main {
+    display: block;
+    width: 100%;
+    height: 52px;
+    margin-top: 8px;
+    margin-bottom: 12px;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: white;
+    background: linear-gradient(90deg, #2F6BFF 0%, #20C9FF 60%, #1DE9B6 100%);
+    box-shadow: 0 8px 24px rgba(47,107,255,0.24);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  .btn-main:hover { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(47,107,255,0.32); }
 
-  color:transparent !important;
-  font-size:0 !important;
-  line-height:0 !important;
+  .btn-back {
+    display: block;
+    width: 100%;
+    height: 52px;
+    border: 2px solid #2F6BFF;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    color: #2F6BFF;
+    background: white;
+    transition: transform 0.18s;
+  }
+  .btn-back:hover { transform: translateY(-1px); background: rgba(47,107,255,0.04); }
 
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%237c3aed' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7Z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
-}
+  .error {
+    color: #EF4444;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 6px;
+    min-height: 18px;
+  }
 
-.eyeBtn:hover,
-.eyeBtn:focus{
-  opacity:.8;
-  outline:none;
-  background-color:transparent;
-}
-button{
-width:86%;
-display:block;
-margin:12px auto 0;
-padding:12px;
-border:none;
-border-radius:16px;
-font-size:16px;
-font-weight:800;
-cursor:pointer;
-color:white;
-background:linear-gradient(135deg,#7c3aed,#a855f7);
-}
+  .mountain-area {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .cloud-left, .cloud-right {
+    position: fixed;
+    bottom: 120px;
+    opacity: 0.65;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .cloud-left { left: 3%; }
+  .cloud-right { right: 3%; }
 
-button:hover{opacity:.92;}
-
-.back{
-margin-top:10px;
-width:86%;
-background:rgba(255,255,255,0.7);
-color:#2b1a78;
-border:1px solid rgba(124,58,237,.18);
-}
-
-.error{
-color:red;
-font-size:12px;
-text-align:center;
-margin-top:4px;
-}
+  @media (max-width: 480px) {
+    .logo-go, .logo-tab { font-size: 40px; }
+    .center { margin-top: 30px; }
+  }
 </style>
 </head>
-
 <body>
 
-<div class="card">
+<i class="sp" style="top:5%;left:7%;font-size:14px">✦</i>
+<i class="sp" style="top:11%;right:10%;font-size:9px;color:#20C9FF">✦</i>
+<i class="sp" style="top:24%;left:11%;font-size:8px">✦</i>
+<i class="sp" style="bottom:36%;right:13%;font-size:9px;color:#1DE9B6">✦</i>
 
-<div class="logo">GoTAB</div>
-<div class="sub" id="subTitle">Регистрация (оқушы)</div>
+<div class="center">
+  <div class="gotab-logo">
+    <span class="logo-go">GO</span>
+    <span class="logo-tab">TAB</span>
+  </div>
+  <div class="subtitle">
+    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
+    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
+    <span class="s-mint">Өсу</span>
+  </div>
 
-<input type="text" id="firstName" placeholder="Аты">
-<input type="text" id="lastName" placeholder="Тегі">
-<input type="text" id="phone" placeholder="Телефон нөмірі">
-<input type="email" id="email" placeholder="Email">
-<div class="passWrap">
-  <input type="password" id="password" placeholder="Оқу платформасына арналған құпиясөз">
-  <button type="button" class="eyeBtn" id="togglePass1" aria-label="Көрсету"></button>
+  <div class="form-card">
+    <div class="input-wrap">
+      <span class="icon">👤</span>
+      <input type="text" id="firstName" placeholder="Аты">
+    </div>
+    <div class="input-wrap">
+      <span class="icon">👤</span>
+      <input type="text" id="lastName" placeholder="Тегі">
+    </div>
+    <div class="input-wrap">
+      <span class="icon">📱</span>
+      <input type="text" id="phone" placeholder="Телефон нөмірі">
+    </div>
+    <div class="input-wrap">
+      <span class="icon">✉️</span>
+      <input type="email" id="email" placeholder="Email">
+    </div>
+    <div class="input-wrap has-eye">
+      <span class="icon">🔒</span>
+      <input type="password" id="password" placeholder="Оқу платформасына арналған құпиясөз">
+      <button class="eye-btn" id="togglePass1" type="button">👁</button>
+    </div>
+    <div class="input-wrap has-eye">
+      <span class="icon">🔒</span>
+      <input type="password" id="password2" placeholder="Құпиясөзді қайталаңыз">
+      <button class="eye-btn" id="togglePass2" type="button">👁</button>
+    </div>
+
+    <div id="errorBox" class="error"></div>
+
+    <button class="btn-main" id="submitBtn">Тіркелу</button>
+    <button class="btn-back" id="backBtn">← Артқа</button>
+  </div>
 </div>
 
-<div class="passWrap">
-  <input type="password" id="password2" placeholder="Құпиясөзді қайталаңыз">
-  <button type="button" class="eyeBtn" id="togglePass2" aria-label="Көрсету"></button>
+<div class="cloud-left">
+  <svg width="88" height="52" viewBox="0 0 88 52">
+    <ellipse cx="44" cy="36" rx="38" ry="17" fill="#E2DEFF" opacity="0.85"/>
+    <ellipse cx="29" cy="30" rx="22" ry="15" fill="#EAE7FF" opacity="0.9"/>
+    <ellipse cx="57" cy="28" rx="17" ry="13" fill="#EAE7FF" opacity="0.9"/>
+  </svg>
+</div>
+<div class="cloud-right">
+  <svg width="88" height="52" viewBox="0 0 88 52">
+    <ellipse cx="44" cy="36" rx="38" ry="17" fill="#CEFAF3" opacity="0.85"/>
+    <ellipse cx="29" cy="30" rx="22" ry="15" fill="#D8FDF6" opacity="0.9"/>
+    <ellipse cx="57" cy="28" rx="17" ry="13" fill="#D8FDF6" opacity="0.9"/>
+  </svg>
 </div>
 
-<div id="errorBox" class="error"></div>
-
-<button id="submitBtn">Тіркелу</button>
-<button class="back" id="backBtn">← Артқа</button>
-
+<div class="mountain-area">
+  <svg width="440" height="230" viewBox="0 0 480 300" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="mG1" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#6B3FF7"/><stop offset="50%" stop-color="#2F6BFF"/><stop offset="100%" stop-color="#20C9FF"/>
+      </linearGradient>
+      <linearGradient id="mG2" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#20C9FF"/><stop offset="100%" stop-color="#1DE9B6"/>
+      </linearGradient>
+      <linearGradient id="pathG" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#87EFFF" stop-opacity="0.95"/><stop offset="100%" stop-color="#B8FAFF" stop-opacity="0.75"/>
+      </linearGradient>
+    </defs>
+    <polygon points="75,280 175,105 275,280" fill="#4B30C0" opacity="0.38"/>
+    <polygon points="215,280 330,75 445,280" fill="#1A7ABF" opacity="0.3"/>
+    <polygon points="0,280 100,130 200,280" fill="#3B28A8" opacity="0.35"/>
+    <polygon points="240,10 395,290 85,290" fill="url(#mG1)"/>
+    <polygon points="240,10 395,290 240,290" fill="url(#mG2)" opacity="0.48"/>
+    <polygon points="240,10 268,68 212,68" fill="rgba(255,255,255,0.26)"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290" stroke="url(#pathG)" stroke-width="11" fill="none" stroke-linecap="round"/>
+    <path d="M240,10 C232,52 216,86 203,120 C190,154 172,180 156,212 C143,238 137,264 139,290" stroke="white" stroke-width="5" fill="none" stroke-linecap="round" opacity="0.32"/>
+    <line x1="240" y1="10" x2="240" y2="-8" stroke="#888" stroke-width="2.5"/>
+    <circle cx="240" cy="-8" r="4.5" fill="#FF3B3B"/>
+    <polygon points="240,-8 266,3 240,13" fill="#1DE9B6"/>
+  </svg>
 </div>
 
 <script>
 (function(){
+  const lang = localStorage.getItem("lang") || "kk";
 
-const lang = localStorage.getItem("lang") || "kk";
+  if(lang === "ru"){
+    document.getElementById("firstName").placeholder = "Имя";
+    document.getElementById("lastName").placeholder = "Фамилия";
+    document.getElementById("phone").placeholder = "Номер телефона";
+    document.getElementById("password").placeholder = "Придумайте пароль для платформы";
+    document.getElementById("password2").placeholder = "Повторите пароль";
+    document.getElementById("submitBtn").textContent = "Зарегистрироваться";
+    document.getElementById("backBtn").textContent = "← Назад";
+  }
 
-if(lang === "ru"){
-document.getElementById("subTitle").textContent="Регистрация (ученик)";
+  const firstNameInput = document.getElementById("firstName");
+  const lastNameInput  = document.getElementById("lastName");
+  const phoneInput     = document.getElementById("phone");
+  const emailInput     = document.getElementById("email");
+  const passInput      = document.getElementById("password");
+  const pass2Input     = document.getElementById("password2");
+  const errorBox       = document.getElementById("errorBox");
 
-document.getElementById("firstName").placeholder="Имя";
-document.getElementById("lastName").placeholder="Фамилия";
-document.getElementById("phone").placeholder="Номер телефона";
-document.getElementById("password").placeholder="Придумайте пароль для платформы";
-document.getElementById("password2").placeholder="Повторите пароль";
+  document.getElementById("togglePass1").addEventListener("click", () => {
+    passInput.type = passInput.type === "password" ? "text" : "password";
+  });
+  document.getElementById("togglePass2").addEventListener("click", () => {
+    pass2Input.type = pass2Input.type === "password" ? "text" : "password";
+  });
 
-document.getElementById("submitBtn").textContent="Зарегистрироваться";
-document.getElementById("backBtn").textContent="← Назад";
-}
+  document.getElementById("backBtn").onclick = () => { window.location.href = "index.html"; };
 
-const firstNameInput=document.getElementById("firstName");
-const lastNameInput=document.getElementById("lastName");
-const phoneInput=document.getElementById("phone");
-const emailInput=document.getElementById("email");
-const passInput=document.getElementById("password");
-const pass2Input=document.getElementById("password2");
+  document.getElementById("submitBtn").onclick = async () => {
+    errorBox.textContent = "";
+    const firstName = firstNameInput.value.trim();
+    const lastName  = lastNameInput.value.trim();
+    const phone     = phoneInput.value.trim();
+    const email     = emailInput.value.trim();
+    const password  = passInput.value.trim();
+    const password2 = pass2Input.value.trim();
 
-const errorBox=document.getElementById("errorBox");
+    if(!firstName || !lastName || !phone || !email || !password || !password2){
+      errorBox.textContent = lang === "ru" ? "Заполните все поля" : "Барлық өрістерді толтырыңыз";
+      return;
+    }
+    if(password !== password2){
+      errorBox.textContent = lang === "ru" ? "Пароли не совпадают" : "Пароль сәйкес емес";
+      return;
+    }
 
-const togglePass1 = document.getElementById("togglePass1");
-const togglePass2 = document.getElementById("togglePass2");
-
-togglePass1.addEventListener("click", ()=>{
-  passInput.type = passInput.type === "password" ? "text" : "password";
-});
-
-togglePass2.addEventListener("click", ()=>{
-  pass2Input.type = pass2Input.type === "password" ? "text" : "password";
-});
-
-document.getElementById("backBtn").onclick=()=>{
-window.location.href="index.html";
-};
-
-document.getElementById("submitBtn").onclick=async()=>{
-
-errorBox.textContent="";
-
-const firstName=firstNameInput.value.trim();
-const lastName=lastNameInput.value.trim();
-const phone=phoneInput.value.trim();
-const email=emailInput.value.trim();
-const password=passInput.value.trim();
-const password2=pass2Input.value.trim();
-
-if(!firstName||!lastName||!phone||!email||!password||!password2){
-errorBox.textContent=(lang==="ru")
-?"Заполните все поля"
-:"Барлық өрістерді толтырыңыз";
-return;
-}
-
-if(password!==password2){
-errorBox.textContent=(lang==="ru")
-?"Пароли не совпадают"
-:"Пароль сәйкес емес";
-return;
-}
-
-try{
-
-const res=await fetch("/api/auth/register",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-credentials:"include",
-body:JSON.stringify({
-firstName,
-lastName,
-phone,
-email,
-password,
-password2
-})
-});
-
-const data=await res.json().catch(()=>null);
-
-if(!res.ok||!data?.ok){
-
-if(data?.error==="phone_exists"){
-errorBox.textContent=(lang==="ru")
-?"Этот номер уже зарегистрирован"
-:"Бұл номермен тіркелген аккаунт бар";
-}
-else{
-errorBox.textContent =
-(lang==="ru")
-? ("Ошибка регистрации: " + (data?.error || "unknown"))
-: ("Регистрация қатесі: " + (data?.error || "unknown"));
-}
-
-return;
-}
-
-window.location.href="dashboard.html";
-
-}catch(e){
-console.error(e);
-errorBox.textContent=(lang==="ru")
-?"Ошибка сервера"
-:"Сервер қатесі";
-}
-
-};
-
+    try{
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ firstName, lastName, phone, email, password, password2 })
+      });
+      const data = await res.json().catch(() => null);
+      if(!res.ok || !data?.ok){
+        if(data?.error === "phone_exists"){
+          errorBox.textContent = lang === "ru" ? "Этот номер уже зарегистрирован" : "Бұл номермен тіркелген аккаунт бар";
+        } else {
+          errorBox.textContent = (lang === "ru" ? "Ошибка регистрации: " : "Регистрация қатесі: ") + (data?.error || "unknown");
+        }
+        return;
+      }
+      window.location.href = "dashboard.html";
+    }catch(e){
+      console.error(e);
+      errorBox.textContent = lang === "ru" ? "Ошибка сервера" : "Сервер қатесі";
+    }
+  };
 })();
 </script>
-
 </body>
 </html>
