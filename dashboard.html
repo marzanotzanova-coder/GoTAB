@@ -568,9 +568,9 @@
     <section class="topbar">
       <div class="topText">
         <div class="hello" id="hello">Сәлем 👋</div>
-        <h1 class="headline">Жеке кабинет</h1>
+        <h1 class="headline">Бұл сенің жеке кабинетің.</h1>
         <div class="desc">
-          Мұнда сенің пакетің, прогрессің, тапсырма статусы, streak және жаңалықтар көрінеді.
+          Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.
         </div>
       </div>
 
@@ -583,18 +583,18 @@
       <!-- Today plan -->
       <div class="card" style="grid-column: span 7;">
         <div class="cardTitle">🗓 Бүгінгі жоспар</div>
-        <div class="row">
-          <div class="rowLeft">
-            <div class="rowTitle" id="todayLessonTitle">Бүгін ашатын сабақ: —</div>
-            <div class="rowSub">Белгілеп отырсаң — мотивация болады ✅</div>
-          </div>
-          <div class="badge neutral" id="todayBadge">0/3</div>
+        <div style="margin-bottom:12px">
+          <label for="topicInput" style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px">Бүгін қай тақырыпты оқитыныңды жаз</label>
+          <textarea id="topicInput" rows="3" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." style="width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(255,255,255,.85);font-size:13px;resize:vertical;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;line-height:1.5;"></textarea>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+          <div class="badge neutral" id="todayBadge">0/4</div>
         </div>
 
         <div class="checklist" id="todayChecklist"></div>
 
-        <div class="muted" style="margin-top:10px">
-          * Бұл чекбокстар <b>күні бойынша</b> сақталады.
+        <div class="muted" style="margin-top:10px;font-size:11px">
+          * Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.
         </div>
       </div>
 
@@ -642,12 +642,6 @@
         <div class="cardTitle">🏆 Жетістіктер</div>
         <div class="list compactList" id="achievements"></div>
 
-        <!-- ✅ Excellent tier GO басқанда ашылатын inline selector -->
-        <div class="goalBox" id="goalBox">
-          <label>Excellent tier мақсатын таңда:</label>
-          <select id="goalSelect"></select>
-          <div class="muted" id="goalInfo"></div>
-        </div>
       </div>
 
       <!-- Notifications -->
@@ -665,22 +659,17 @@
       <!-- Profile / Support -->
       <div class="card" style="grid-column: span 12;">
         <div class="cardTitle">👤 Профиль және қолдау</div>
-        <div class="row">
-          <div class="rowLeft">
-            <div class="rowTitle" id="profileLine">—</div>
-            <div class="rowSub" id="profileSub">Пакет + байланыс</div>
-          </div>
-          <div class="badge" id="netBadge">LOCAL</div>
-        </div>
 
         <div class="supportRow">
           <a class="primary" href="#" id="openCourseFromProfile">📚 Курсқа өту</a>
           <a href="#" id="copyStudentIdBtn">🧾 Student ID көшіру</a>
           <a href="https://t.me/" target="_blank" rel="noopener">💬 Telegram</a>
-          <a href="https://wa.me/" target="_blank" rel="noopener">🟢 WhatsApp</a>
+          <a href="https://wa.me/77055894347" target="_blank" rel="noopener">🟢 WhatsApp</a>
+          <a href="#" id="instagramBtn" target="_blank" rel="noopener">📸 Instagram</a>
         </div>
 
-        <div class="muted" style="margin-top:10px">
+        <div id="copySuccessMsg" style="display:none;margin-top:8px;font-size:12px;color:var(--good);font-weight:800">
+          Student ID көшірілді ✅
         </div>
       </div>
     </section>
@@ -689,6 +678,8 @@
 
 <script>
 (function(){
+
+const GOTAB_INSTAGRAM_URL = "PUT_INSTAGRAM_LINK_HERE";
 
   // =========================================================
   // 0) ADMIN PREVIEW
@@ -1025,8 +1016,8 @@ window.pingStreakServer = pingStreakServer;
   function setHelloText(){
     const helloEl = document.getElementById("hello");
     if(!helloEl) return;
-    if(isPreview){ helloEl.textContent = "Сәлем, оқушы 👋"; return; }
-    helloEl.textContent = isAdmin ? "Сәлем, Admin 👋" : "Сәлем, оқушы 👋";
+    if(isPreview){ helloEl.textContent = "Сәлем, оқушы! 👋"; return; }
+    helloEl.textContent = isAdmin ? "Сәлем, Admin 👋" : "Сәлем, оқушы! 👋";
   }
 
   function fillProfileUI(){
@@ -1201,11 +1192,34 @@ window.pingStreakServer = pingStreakServer;
           "✅ Today plan\n" +
           "✅ Analytics + Sparkline\n" +
           "✅ Upload status pipeline (server)\n" +
-          "✅ Achievements (goal)\n" +
+          "✅ Achievements\n" +
           "✅ Notifications\n\n" +
           (isPreview ? "Admin preview режимінде қарап тұрсың." : "")
         );
       });
+    }
+
+    const copyStudentIdBtn = document.getElementById("copyStudentIdBtn");
+    if(copyStudentIdBtn){
+      copyStudentIdBtn.addEventListener("click", (e)=>{
+        e.preventDefault();
+        const sid = effectiveStudentId || "";
+        if(!sid){ alert("Student ID жоқ"); return; }
+        navigator.clipboard.writeText(sid).then(()=>{
+          const msg = document.getElementById("copySuccessMsg");
+          if(msg){
+            msg.style.display = "block";
+            setTimeout(()=>{ msg.style.display = "none"; }, 3000);
+          }
+        }).catch(()=>{
+          alert("Student ID: " + sid);
+        });
+      });
+    }
+
+    const instagramBtn = document.getElementById("instagramBtn");
+    if(instagramBtn){
+      instagramBtn.href = GOTAB_INSTAGRAM_URL;
     }
   }
 
@@ -1308,7 +1322,7 @@ window.pingStreakServer = pingStreakServer;
     blockNumber: x.blockNumber
   }));
 
-  return { avg, progressValues, grades, totalBlocks, gradedCount: cnt };
+  return { avg, progressValues, grades, totalBlocks, gradedCount: cnt, serverProg };
 }
   function drawSparkline(values){
     const c = document.getElementById("spark");
@@ -1370,32 +1384,50 @@ window.pingStreakServer = pingStreakServer;
 
   const key = getPlanKey();
   const saved = JSON.parse(localStorage.getItem(key) || "null");
-  const plan = saved || {
-    lesson: nextLesson,
-    items: { watched:false, uploaded:false, reviewed:false }
-  };
+  const savedItems = saved?.items || {};
 
-  // егер сервердегі келесі сабақ өзгерсе — plan.lesson де жаңарсын
-  plan.lesson = nextLesson;
-  plan.items = plan.items || { watched:false, uploaded:false, reviewed:false };
+  const plan = {
+    lesson: nextLesson,
+    items: {
+      watched:  !!savedItems.watched,
+      uploaded: !!savedItems.uploaded,
+      tested:   !!savedItems.tested,
+      ai:       !!savedItems.ai,
+    }
+  };
 
   return plan;
 }
 
- function renderTodayPlan(progressValues){
+ function getTopicKey(){
+  return "studyTopics_" + (effectiveStudentId || "unknown");
+}
+
+function renderTodayPlan(progressValues){
   const plan = getPlan(progressValues);
 
-  const title = document.getElementById("todayLessonTitle");
-  if(title) title.textContent = "Бүгін ашатын сабақ: Сабақ " + plan.lesson;
+  const topicInput = document.getElementById("topicInput");
+  if(topicInput){
+    if(isPreview){
+      topicInput.disabled = true;
+      topicInput.placeholder = "Preview режім";
+    } else {
+      topicInput.value = localStorage.getItem(getTopicKey()) || "";
+      topicInput.oninput = () => {
+        localStorage.setItem(getTopicKey(), topicInput.value);
+      };
+    }
+  }
 
   const checklist = document.getElementById("todayChecklist");
   if(!checklist) return;
   checklist.innerHTML = "";
 
   const items = [
-    {k:"watched",  label:"Видеоны көрді"},
-    {k:"uploaded", label:"Тапсырманы жүктеді"},
-    {k:"reviewed", label:"Қайта қарап шықты"},
+    {k:"watched",  label:"Видео көру"},
+    {k:"uploaded", label:"Тапсырма жүктеу"},
+    {k:"tested",   label:"Тақырып аралық сынақтардан өту"},
+    {k:"ai",       label:"ЖИ қолдану"},
   ];
 
   items.forEach(it=>{
@@ -1403,7 +1435,7 @@ window.pingStreakServer = pingStreakServer;
     row.className = "checkItem";
     row.innerHTML = `
       <input type="checkbox" ${plan.items[it.k] ? "checked":""} />
-      <div style="font-weight:900">✅ ${escapeHtml(it.label)}</div>
+      <div style="font-weight:900">${escapeHtml(it.label)}</div>
     `;
     const cb = row.querySelector("input");
     if(isPreview) cb.disabled = true;
@@ -1419,13 +1451,13 @@ window.pingStreakServer = pingStreakServer;
   });
 
   renderTodayBadge(plan);
-} 
+}
   function renderTodayBadge(plan){
     const badge = document.getElementById("todayBadge");
     if(!badge) return;
     const done = Object.values(plan.items || {}).filter(Boolean).length;
-    badge.textContent = done + "/3";
-    badge.className = "badge " + (done===3 ? "" : (done===2 ? "warn" : "neutral"));
+    badge.textContent = done + "/4";
+    badge.className = "badge " + (done===4 ? "" : (done>=2 ? "warn" : "neutral"));
   }
 
   // =========================================================
@@ -1564,8 +1596,14 @@ window.pingStreakServer = pingStreakServer;
     return s;
   }
 
-  function renderAchievements(avg, serverStreak){
- console.log("renderAchievements() got serverStreak =", serverStreak, "avg =", avg);
+  function getMonthlyCompletedLessons(serverProg){
+    // placeholder: filters by grade > 0 as proxy for completion
+    // when per-date tracking is added, filter by current month here
+    if(!serverProg) return 0;
+    return Object.values(serverProg).filter(item => Number(item?.grade ?? 0) > 0).length;
+  }
+
+  function renderAchievements(avg, serverStreak, serverProg){
     const streak = Number(serverStreak || 0);
     const achBox = document.getElementById("achievements");
     if(!achBox) return;
@@ -1575,94 +1613,20 @@ window.pingStreakServer = pingStreakServer;
       achBox.appendChild(makeRow("Admin", "Achievements студентке арналған", "—", "neutral"));
       return;
     }
-window.renderAchievements = renderAchievements;
+
     const uploadKey = courseKey("uploadCount");
     const uploadCount = Number(localStorage.getItem(uploadKey) || "0");
 
     achBox.appendChild(makeRow("🔥 Күндік серия", `${streak} күн қатарынан кірдің`, streak>=3 ? "OK" : "START", streak>=3 ? "" : "warn"));
     achBox.appendChild(makeRow("📤 Тапсырма", `${uploadCount} рет тапсырма жібердің`, uploadCount>=5 ? "OK" : "KEEP", uploadCount>=5 ? "" : "warn"));
 
-    const goalKey = courseKey("goal");
-    function getGoal(){
-      const g = Number(localStorage.getItem(goalKey) || "85");
-      if(!Number.isFinite(g) || g < 0 || g > 100) return 85;
-      return g;
-    }
-    function setGoal(g){ localStorage.setItem(goalKey, String(g)); }
-
-    const goal = getGoal();
-    const done = avg >= goal;
-
-    const excellentRow = makeRow(
-      "⭐ Үздік деңгей",
-      done ? `Мақсат ${goal}+ орындалды ✅` : `Мақсат ${goal}+ • GO басып өзгерте аласың`,
-      done ? "OK" : "GO",
-      done ? "" : "neutral"
-    );
-
-    const goalBox = document.createElement("div");
-    goalBox.style.marginTop = "10px";
-    goalBox.style.display = "none";
-    goalBox.style.padding = "12px";
-    goalBox.style.borderRadius = "16px";
-    goalBox.style.background = "rgba(255,255,255,.65)";
-    goalBox.style.border = "1px solid rgba(124,58,237,.12)";
-    goalBox.innerHTML = `
-      <div class="rowTitle" style="margin-bottom:6px">Мақсат таңда</div>
-      <div class="muted" id="goalInfo"></div>
-      <div style="display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap">
-        <select id="goalSelect" style="padding:10px;border-radius:14px;border:1px solid rgba(124,58,237,.18);font-weight:900;cursor:pointer"></select>
-        <button id="goalSaveBtn" class="qbtn secondary" style="border-radius:14px;padding:10px 12px">💾 Сақтау</button>
-        <button id="goalCloseBtn" class="qbtn secondary" style="border-radius:14px;padding:10px 12px">✕ Жабу</button>
-      </div>
-      <div class="muted" style="margin-top:8px">* Preview режимде өзгертуге болмайды.</div>
-    `;
-
-    function fillGoalSelect(){
-      const sel = goalBox.querySelector("#goalSelect");
-      const info = goalBox.querySelector("#goalInfo");
-      sel.innerHTML = "";
-      for(let g=70; g<=100; g+=5){
-        const opt = document.createElement("option");
-        opt.value = String(g);
-        opt.textContent = g + "+";
-        sel.appendChild(opt);
-      }
-      sel.value = String(getGoal());
-      info.innerHTML = `Қазір avg: <b>${avg}</b>/100 • Мақсат: <b>${getGoal()}+</b>`;
-    }
-
-    function toggleGoalBox(){
-      goalBox.style.display = (goalBox.style.display === "none") ? "block" : "none";
-      fillGoalSelect();
-    }
-
-    const badge = excellentRow.querySelector(".badge");
-badge.style.cursor = isPreview ? "default" : "pointer";
-
-badge.addEventListener("click", ()=>{
-  if(isPreview){
-    alert("Preview режим: мақсат өзгертуге болмайды.");
-    return;
-  }
-  toggleGoalBox();
-});
-
-   goalBox.querySelector("#goalSaveBtn").addEventListener("click", ()=>{
-  if(isPreview) return alert("Preview режим: болмайды.");
-
-  const sel = goalBox.querySelector("#goalSelect");
-  const g = Number(sel.value || "85");
-  setGoal(g);
-
-  renderAchievements(avg, serverStreak);
-});
-    goalBox.querySelector("#goalCloseBtn").addEventListener("click", ()=>{
-      goalBox.style.display = "none";
-    });
-
-    achBox.appendChild(excellentRow);
-    achBox.appendChild(goalBox);
+    const monthlyCount = getMonthlyCompletedLessons(serverProg);
+    achBox.appendChild(makeRow(
+      "📅 Айлық оқу нәтижесі",
+      `Осы айда өткен сабақтар саны: ${monthlyCount}`,
+      monthlyCount > 0 ? String(monthlyCount) : "—",
+      monthlyCount > 0 ? "" : "neutral"
+    ));
   }
 
   // =========================================================
@@ -1747,15 +1711,12 @@ async function init(){
   fillProfileUI();
   wireButtons();
 
-// ✅ server-first KPI
-const { avg, progressValues, grades } = await renderKpiAndSpark();
+const { avg, progressValues, grades, serverProg } = await renderKpiAndSpark();
 
-// ✅ STREAK: server ping (preview емес кезде ғана жазылады)
 const streakResp = await pingStreakServer();
 const serverStreak = Number(streakResp?.streak ?? 0);
 
-// ✅ Achievements енді сервер streak-пен
-renderAchievements(avg, serverStreak);
+renderAchievements(avg, serverStreak, serverProg);
   renderTodayPlan(progressValues);
 
   const plan = getPlan(progressValues);
@@ -1770,8 +1731,6 @@ renderAchievements(avg, serverStreak);
 
   renderUploadStatusesServer(focus, progressValues);
 
-// ✅ Recent grades: SERVER-ден көрсетеміз
-const serverProg = await fetchServerProgress();
 renderFeedbackOnly(serverProg);
 await renderRecentGradesServer(serverProg, grades);
 
@@ -1779,7 +1738,6 @@ renderNotifications();
 renderProfileLine();
 };
 
-// ✅ DEBUG EXPORTS (console үшін)
 window.pingStreakServer = pingStreakServer;
 window.renderAchievements = renderAchievements;
 window.__dash = {
