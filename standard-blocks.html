@@ -303,7 +303,7 @@ async function renderBlocks(){
       }catch(e){ console.error(e); alert("Тапсырма ашылмады"); } }; block.appendChild(myBtn);
     }
     if(role==="admin"){
-      const studentBtn=document.createElement("button"); studentBtn.className="lbtn btn-admin"; studentBtn.innerHTML='<span class="ic">👁</span> Оқушы тапсырмасы';
+      const studentBtn=document.createElement("button"); studentBtn.className="lbtn btn-admin"; studentBtn.innerHTML='<span class="ic">📂</span> Оқушы тапсырмасы';
       studentBtn.onclick=async()=>{ try{ const fresh=await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`,{credentials:"include",cache:"no-store"}).then(r=>r.json()).catch(()=>null);
         const freshMaterials=normalizeLists(fresh); const listAll=Array.isArray(freshMaterials?.studentUploads)?freshMaterials.studentUploads:[];
         const list=isPreview?listAll.filter(x=>String(x.studentId||"")===String(effectiveStudentId||"")):listAll;
