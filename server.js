@@ -76,6 +76,12 @@ const loginLimiter = rateLimit({
   max: 20
 });
 
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { ok: false, error: "too_many_requests" }
+});
+
 app.use("/api/auth/login", loginLimiter);
 
 app.use("/api", (req, res, next) => {
@@ -1770,6 +1776,81 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
     return res.json({ ok: true, data });
   } catch (e) {
     console.error("add-video-link error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// ===================== AI PRACTICE =====================
+const ALLOWED_PROMPT_TYPES = ["extra_practice"];
+
+app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
+  try {
+    const { grade, subject, lessonId, todayTopics, promptType } = req.body || {};
+
+    if (!ALLOWED_PROMPT_TYPES.includes(promptType)) {
+      return res.status(400).json({ ok: false, error: "invalid_prompt_type" });
+    }
+
+    const g = String(grade || "").trim();
+    const s = String(subject || "").trim();
+    const l = String(lessonId || "").trim();
+    const topics = String(todayTopics || "").slice(0, 300).trim();
+
+    if (!g || !s) {
+      return res.status(400).json({ ok: false, error: "missing_fields" });
+    }
+
+    const OPENAI_KEY = process.env.OPENAI_API_KEY;
+    if (!OPENAI_KEY) {
+      return res.json({ ok: true, text: "ЖИ көмекшісі жақында іске қосылады." });
+    }
+
+    const topicLine = topics
+      ? `Оқушы бүгін осы тақырыптарды оқыды: "${topics}".`
+      : `Оқушы бүгінгі тақырыпты жазбаған. Хабарлама: тақырыпты дашбордта жазып, қайта басыңыз.`;
+
+    const systemPrompt = [
+      "Сен GoTAB онлайн платформасының математика мұғалімісің.",
+      "Қазақ тілінде жауап бер.",
+      "Тек есептер бер, жауаптарын берме.",
+      "Соңына қысқаша ескерту қос: «Шешіп көр, кейін тексеруге болады.»",
+      "Жауапты форматта бер: нөмірленген тізім, 3–5 есеп.",
+      "Есептер орташа қиын деңгейде болсын."
+    ].join(" ");
+
+    const userMsg = topics
+      ? `${g}-сынып, ${s} пәні, ${l ? l + "-сабақ, " : ""}${topicLine} Осыған байланысты 3-5 жаттығу есеп жаз.`
+      : topicLine;
+
+    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${OPENAI_KEY}`
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        max_tokens: 600,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMsg }
+        ]
+      })
+    });
+
+    if (!openaiRes.ok) {
+      const errText = await openaiRes.text().catch(() => "");
+      console.error("OpenAI error:", openaiRes.status, errText);
+      return res.status(502).json({ ok: false, error: "ai_unavailable" });
+    }
+
+    const json = await openaiRes.json().catch(() => null);
+    const text = json?.choices?.[0]?.message?.content?.trim() || "";
+    if (!text) return res.status(502).json({ ok: false, error: "empty_response" });
+
+    return res.json({ ok: true, text });
+  } catch (e) {
+    console.error("ai/practice error:", e);
     return res.status(500).json({ ok: false, error: "server_error" });
   }
 });

@@ -125,6 +125,14 @@ const i18n = {
     student: "Оқушы",
     adminUpload: "Материал жүктеу / тексеру",
     pkgPending: "Пакет әлі бекітілмеді",
+    // AI helper modal
+    aiModalTitle: "GoTAB ЖИ көмекшісі",
+    aiModalPromptBtn: "Бүгінгі өткен тақырыптар бойынша тағы есеп шығару",
+    aiModalLoading: "Есептер дайындалуда…",
+    aiModalError: "Қате болды. Қайта көріңіз.",
+    aiModalTryAgain: "Қайта сұрау",
+    aiModalClose: "Жабу",
+    aiModalNote: "Шешіп көр, кейін тексеруге болады.",
   },
   ru: {
     // index
@@ -252,6 +260,14 @@ const i18n = {
     student: "Ученик",
     adminUpload: "Загрузка / проверка материалов",
     pkgPending: "Пакет ещё не подтверждён",
+    // AI helper modal
+    aiModalTitle: "GoTAB ИИ Помощник",
+    aiModalPromptBtn: "Сгенерировать задачи по сегодняшним темам",
+    aiModalLoading: "Готовим задачи…",
+    aiModalError: "Произошла ошибка. Попробуйте ещё раз.",
+    aiModalTryAgain: "Попробовать снова",
+    aiModalClose: "Закрыть",
+    aiModalNote: "Реши сам, потом можно проверить.",
   }
 };
 

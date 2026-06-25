@@ -75,6 +75,19 @@ body{font-family:Arial,sans-serif;color:var(--text);background:linear-gradient(1
 .soon-desc{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
 .soon-close{padding:13px 36px;background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(47,107,255,.28);transition:transform .18s;}
 .soon-close:hover{transform:translateY(-1px);}
+.ai-box{background:rgba(255,255,255,0.98);border-radius:28px;padding:32px 28px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(90,120,255,.22);border:1px solid rgba(255,255,255,.9);max-height:85vh;overflow-y:auto;}
+.ai-header{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1.5px solid rgba(47,107,255,.1);}
+.ai-icon{font-size:28px;line-height:1;}.ai-title{font-size:17px;font-weight:900;color:var(--text);flex:1;}
+.ai-close-btn{width:34px;height:34px;border:none;border-radius:50%;background:rgba(0,0,0,.07);color:var(--text);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+.ai-close-btn:hover{background:rgba(0,0,0,.14);}
+.ai-prompt-btn{width:100%;padding:16px 20px;border:none;border-radius:18px;background:linear-gradient(135deg,#2F6BFF,#20C9FF,#1DE9B6);color:white;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(47,107,255,.28);transition:transform .18s,filter .18s;text-align:left;line-height:1.5;}
+.ai-prompt-btn:hover{transform:translateY(-2px);filter:brightness(1.06);}
+.ai-prompt-btn.secondary{background:rgba(47,107,255,.1);color:var(--brand1);box-shadow:none;margin-top:12px;text-align:center;}
+.ai-spinner{width:44px;height:44px;border:4px solid rgba(47,107,255,.15);border-top-color:var(--brand1);border-radius:50%;animation:spin .8s linear infinite;margin:24px auto 14px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ai-loading-text{text-align:center;color:var(--muted);font-size:14px;font-weight:600;padding-bottom:8px;}
+.ai-result-card{background:linear-gradient(135deg,rgba(47,107,255,.04),rgba(29,233,182,.04));border:1.5px solid rgba(47,107,255,.12);border-radius:18px;padding:18px 16px;font-size:14px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+.ai-error-msg{text-align:center;color:#ef4444;font-weight:700;font-size:14px;padding:16px;background:rgba(239,68,68,.06);border-radius:14px;margin-bottom:8px;}
 .lang-wrap{position:fixed;top:14px;right:14px;display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,0.92);border-radius:18px;border:1px solid rgba(90,120,255,0.14);box-shadow:0 4px 14px rgba(90,120,255,0.08);z-index:200;}
 .lang-wrap select{border:none;background:transparent;font-size:13px;font-weight:600;color:#14213D;cursor:pointer;outline:none;}
 @media(max-width:960px){.app{grid-template-columns:1fr;}.sidebar{position:static;min-height:auto;}.block-container{grid-template-columns:repeat(auto-fill,minmax(175px,1fr));}}
@@ -134,7 +147,13 @@ body{font-family:Arial,sans-serif;color:var(--text);background:linear-gradient(1
 
 <div id="viewerModal"><div id="viewerBox"><button id="viewerClose">×</button><div id="viewerContent"></div></div></div>
 <div id="quizModal"><div class="soon-box"><div class="soon-icon">📋</div><div class="soon-title" data-i18n="quizTitle">Сынақ</div><div class="soon-desc" data-i18n="quizDesc">Сынақ жақында қосылады.</div><button class="soon-close" id="quizClose" data-i18n="closeBtn">Жабу</button></div></div>
-<div id="aiModal"><div class="soon-box"><div class="soon-icon">✨</div><div class="soon-title" data-i18n="aiTitle">ЖИ Көмекшісі</div><div class="soon-desc" data-i18n="aiDesc">ЖИ көмекшісі жақында қосылады.</div><button class="soon-close" id="aiClose" data-i18n="closeBtn">Жабу</button></div></div>
+<div id="aiModal"><div class="ai-box">
+  <div class="ai-header"><span class="ai-icon">✨</span><span class="ai-title" data-i18n="aiModalTitle">GoTAB ЖИ көмекшісі</span><button class="ai-close-btn" id="aiClose">×</button></div>
+  <div id="aiIdle"><button class="ai-prompt-btn" id="aiPromptBtn" data-i18n="aiModalPromptBtn">Бүгінгі өткен тақырыптар бойынша тағы есеп шығару</button></div>
+  <div id="aiLoading" style="display:none"><div class="ai-spinner"></div><div class="ai-loading-text" data-i18n="aiModalLoading">Есептер дайындалуда…</div></div>
+  <div id="aiResult" style="display:none"><div class="ai-result-card" id="aiResultText"></div><button class="ai-prompt-btn secondary" id="aiTryAgain" data-i18n="aiModalTryAgain">Қайта сұрау</button></div>
+  <div id="aiError" style="display:none"><div class="ai-error-msg" data-i18n="aiModalError">Қате болды. Қайта көріңіз.</div><button class="ai-prompt-btn secondary" id="aiRetry" data-i18n="aiModalTryAgain">Қайта сұрау</button></div>
+</div></div>
 
 <script src="lang.js"></script>
 <script>
@@ -218,9 +237,27 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeViewer();clos
 
 window.openQuizModal=function(){ document.getElementById("quizModal").style.display="flex"; };
 window.closeQuizModal=function(){ document.getElementById("quizModal").style.display="none"; };
-window.openAiModal=function(){ document.getElementById("aiModal").style.display="flex"; };
+let _aiLesson=null;
+function _setAiState(s){["aiIdle","aiLoading","aiResult","aiError"].forEach(id=>document.getElementById(id).style.display="none");document.getElementById({idle:"aiIdle",loading:"aiLoading",result:"aiResult",error:"aiError"}[s]).style.display="";}
+window.openAiModal=function(n){ _aiLesson=n||null; _setAiState("idle"); document.getElementById("aiModal").style.display="flex"; };
 window.closeAiModal=function(){ document.getElementById("aiModal").style.display="none"; };
+async function _callAIPractice(){
+  _setAiState("loading");
+  try{
+    const topics=localStorage.getItem("studyTopics_"+effectiveStudentId)||"";
+    const r=await fetch("/api/ai/practice",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",
+      body:JSON.stringify({studentId:effectiveStudentId,grade:gradeSelect.value,subject:subjectSelect.value,
+        lessonId:_aiLesson?"Сабақ "+_aiLesson:"",todayTopics:topics,promptType:"extra_practice"})});
+    const j=await r.json().catch(()=>null);
+    if(!r.ok||!j?.ok){ _setAiState("error"); return; }
+    document.getElementById("aiResultText").textContent=j.text;
+    _setAiState("result");
+  }catch(e){ console.error(e); _setAiState("error"); }
+}
 document.getElementById("quizClose").onclick=()=>closeQuizModal();
+document.getElementById("aiPromptBtn").onclick=_callAIPractice;
+document.getElementById("aiTryAgain").onclick=()=>_setAiState("idle");
+document.getElementById("aiRetry").onclick=_callAIPractice;
 document.getElementById("aiClose").onclick=()=>closeAiModal();
 document.getElementById("quizModal").addEventListener("click",e=>{ if(e.target.id==="quizModal") closeQuizModal(); });
 document.getElementById("aiModal").addEventListener("click",e=>{ if(e.target.id==="aiModal") closeAiModal(); });
@@ -281,7 +318,7 @@ async function renderBlocks(){
     const dBtn=document.createElement("button"); dBtn.className="lbtn btn-doc"; dBtn.innerHTML=`<span class="ic">📄</span> ${t.btnDoc}`;
     dBtn.onclick=()=>{ const item=lastItem(materials?.docs); if(item?.url) openDoc(item.url); else alert(t.noDoc); }; block.appendChild(dBtn);
     const qBtn=document.createElement("button"); qBtn.className="lbtn btn-quiz"; qBtn.innerHTML=`<span class="ic">📋</span> ${t.btnQuiz}`; qBtn.onclick=()=>openQuizModal(); block.appendChild(qBtn);
-    const aiBtn=document.createElement("button"); aiBtn.className="lbtn btn-ai"; aiBtn.innerHTML=`<span class="ic">✨</span> ${t.btnAI}`; aiBtn.onclick=()=>openAiModal(); block.appendChild(aiBtn);
+    const aiBtn=document.createElement("button"); aiBtn.className="lbtn btn-ai"; aiBtn.innerHTML=`<span class="ic">✨</span> ${t.btnAI}`; aiBtn.onclick=()=>openAiModal(i); block.appendChild(aiBtn);
     if(role==="student"){
       const uBtn=document.createElement("button"); uBtn.className="lbtn btn-upload"; uBtn.innerHTML=`<span class="ic">📤</span> ${t.btnUpload}`;
       uBtn.onclick=async()=>{ const input=document.createElement("input"); input.type="file"; input.accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
