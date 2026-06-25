@@ -820,9 +820,8 @@ subjectSelect.addEventListener("change", async () => { await renderBlocks(); });
   }
 
   if(!allowedGrades.length){
-    alert("Бұл пакетке рұқсат жоқ");
-    window.location.href = "dashboard.html";
-    return;
+    if(isAdmin) allowedGrades = [5,6,7];
+    else{ alert("Бұл пакетке рұқсат жоқ"); window.location.href = "dashboard.html"; return; }
   }
 
   gradeSelect.innerHTML = allowedGrades.map(g => `<option value="${g}">${g} сынып</option>`).join("");

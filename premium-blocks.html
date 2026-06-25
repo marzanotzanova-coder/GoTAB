@@ -336,7 +336,7 @@ subjectSelect.addEventListener("change",async()=>{ await renderBlocks(); });
   if(isPreview){ const st=await fetchEffectiveStudentForPreview(); if(st){ studentGrade=Number(st.grade||10); effectivePackage=String(st.package||"pending").toLowerCase(); allowedGrades=Array.isArray(st.allowedGrades)?st.allowedGrades:[]; } }
   if(!isPreview) allowedGrades=getAllowedGradesByPackage(effectivePackage,studentGrade);
   if(!isAdmin&&effectivePackage!=="premium"){ window.location.href="dashboard.html"; return; }
-  if(!allowedGrades.length){ alert("Бұл пакетке рұқсат жоқ"); window.location.href="dashboard.html"; return; }
+  if(!allowedGrades.length){ if(isAdmin) allowedGrades=[5,6,7,8,9,10,11]; else{ alert("Бұл пакетке рұқсат жоқ"); window.location.href="dashboard.html"; return; } }
   gradeSelect.innerHTML=allowedGrades.map(g=>`<option value="${g}">${g} сынып</option>`).join("");
   fillSidebar(); wireNavButtons(); fillSubjectOptions(); await renderBlocks();
 })();
