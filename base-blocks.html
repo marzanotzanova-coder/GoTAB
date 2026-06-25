@@ -263,6 +263,8 @@ body{
 }
 .soon-close:hover{transform:translateY(-1px);}
 
+.lang-wrap{position:fixed;top:14px;right:14px;display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,0.92);border-radius:18px;border:1px solid rgba(90,120,255,0.14);box-shadow:0 4px 14px rgba(90,120,255,0.08);z-index:200;}
+.lang-wrap select{border:none;background:transparent;font-size:13px;font-weight:600;color:#14213D;cursor:pointer;outline:none;}
 /* ===== RESPONSIVE ===== */
 @media(max-width:960px){
   .app{grid-template-columns:1fr;}
@@ -278,6 +280,8 @@ body{
 </style>
 </head>
 <body>
+
+<div class="lang-wrap">🌐<select id="langSelect"><option value="kk">Қазақша</option><option value="ru">Русский</option></select></div>
 
 <div class="app">
 
@@ -323,8 +327,8 @@ body{
     <div class="adminBadge" id="adminBadge">🛡 Admin Panel</div>
 
     <div class="pageHeader">
-      <div class="breadcrumb"><span># База курс</span></div>
-      <div class="pageTitle">Менің курстарым — База</div>
+      <div class="breadcrumb"><span data-i18n="breadBase"># База курс</span></div>
+      <div class="pageTitle" data-i18n="courseBase">Менің курстарым — База</div>
       <div class="selectors">
         <select id="gradeSelect"></select>
         <select id="subjectSelect"></select>
@@ -348,9 +352,9 @@ body{
 <div id="quizModal">
   <div class="soon-box">
     <div class="soon-icon">📋</div>
-    <div class="soon-title">Сынақ</div>
-    <div class="soon-desc">Сынақ жақында қосылады.</div>
-    <button class="soon-close" id="quizClose">Жабу</button>
+    <div class="soon-title" data-i18n="quizTitle">Сынақ</div>
+    <div class="soon-desc" data-i18n="quizDesc">Сынақ жақында қосылады.</div>
+    <button class="soon-close" id="quizClose" data-i18n="closeBtn">Жабу</button>
   </div>
 </div>
 
@@ -358,9 +362,9 @@ body{
 <div id="aiModal">
   <div class="soon-box">
     <div class="soon-icon">✨</div>
-    <div class="soon-title">ЖИ Көмекшісі</div>
-    <div class="soon-desc">ЖИ көмекшісі жақында қосылады.</div>
-    <button class="soon-close" id="aiClose">Жабу</button>
+    <div class="soon-title" data-i18n="aiTitle">ЖИ Көмекшісі</div>
+    <div class="soon-desc" data-i18n="aiDesc">ЖИ көмекшісі жақында қосылады.</div>
+    <button class="soon-close" id="aiClose" data-i18n="closeBtn">Жабу</button>
   </div>
 </div>
 
@@ -588,6 +592,7 @@ function wireNavButtons(){
 async function renderBlocks(){
   const grade   = String(gradeSelect.value || "5");
   const subject = String(subjectSelect.value || "math");
+  const t = window.goI18n[window.goLang] || window.goI18n.kk;
 
   container.innerHTML = "";
 
@@ -620,42 +625,42 @@ async function renderBlocks(){
     /* --- Lesson title --- */
     const titleEl = document.createElement("div");
     titleEl.className = "lesson-title";
-    titleEl.textContent = `Сабақ ${i}`;
+    titleEl.textContent = `${t.lessonLabel} ${i}`;
     block.appendChild(titleEl);
 
     /* 1. Video */
     const vBtn = document.createElement("button");
     vBtn.className = "lbtn btn-video";
-    vBtn.innerHTML = '<span class="ic">▶</span> Видеоны көру';
+    vBtn.innerHTML = `<span class="ic">▶</span> ${t.btnVideo}`;
     vBtn.onclick = () => {
       const item = lastItem(materials?.videos);
       if(item?.url) openVideo(item.url);
-      else alert("Видео жоқ");
+      else alert(t.noVideo);
     };
     block.appendChild(vBtn);
 
     /* 2. Task / PDF */
     const dBtn = document.createElement("button");
     dBtn.className = "lbtn btn-doc";
-    dBtn.innerHTML = '<span class="ic">📄</span> Тапсырманы ашу';
+    dBtn.innerHTML = `<span class="ic">📄</span> ${t.btnDoc}`;
     dBtn.onclick = () => {
       const item = lastItem(materials?.docs);
       if(item?.url) openDoc(item.url);
-      else alert("Тапсырма жоқ");
+      else alert(t.noDoc);
     };
     block.appendChild(dBtn);
 
     /* 3. Quiz (new) */
     const qBtn = document.createElement("button");
     qBtn.className = "lbtn btn-quiz";
-    qBtn.innerHTML = '<span class="ic">📋</span> Сынақты ашу';
+    qBtn.innerHTML = `<span class="ic">📋</span> ${t.btnQuiz}`;
     qBtn.onclick = () => openQuizModal();
     block.appendChild(qBtn);
 
     /* 4. AI (new) */
     const aiBtn = document.createElement("button");
     aiBtn.className = "lbtn btn-ai";
-    aiBtn.innerHTML = '<span class="ic">✨</span> ЖИ қолдану';
+    aiBtn.innerHTML = `<span class="ic">✨</span> ${t.btnAI}`;
     aiBtn.onclick = () => openAiModal();
     block.appendChild(aiBtn);
 
@@ -664,7 +669,7 @@ async function renderBlocks(){
       /* 5. Upload */
       const uBtn = document.createElement("button");
       uBtn.className = "lbtn btn-upload";
-      uBtn.innerHTML = '<span class="ic">📤</span> Тапсырма жүктеу';
+      uBtn.innerHTML = `<span class="ic">📤</span> ${t.btnUpload}`;
       uBtn.onclick = async () => {
         const input = document.createElement("input");
         input.type = "file";
@@ -680,10 +685,10 @@ async function renderBlocks(){
             fd.append("file", file);
             const r = await fetch("/api/student/upload", { method:"POST", body:fd, credentials:"include", cache:"no-store" });
             const j = await r.json().catch(()=>null);
-            if(!r.ok || !j?.ok){ alert("Қате: " + (j?.message || j?.error || "Жүктелмеді")); return; }
-            alert("✅ Тапсырма жүктелді!");
+            if(!r.ok || !j?.ok){ alert(t.uploadErr + (j?.message || j?.error || t.uploadFail)); return; }
+            alert(t.uploadSuccess);
             await renderBlocks();
-          }catch(err){ console.error(err); alert("Қате: " + (err?.message || "Upload error")); }
+          }catch(err){ console.error(err); alert(t.uploadErr + (err?.message || "Upload error")); }
         };
         input.click();
       };
@@ -692,7 +697,7 @@ async function renderBlocks(){
       /* 6. My task */
       const myBtn = document.createElement("button");
       myBtn.className = "lbtn btn-mine";
-      myBtn.innerHTML = '<span class="ic">📁</span> Менің тапсырмам';
+      myBtn.innerHTML = `<span class="ic">📁</span> ${t.btnMine}`;
       myBtn.onclick = async () => {
         try{
           const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
@@ -702,13 +707,13 @@ async function renderBlocks(){
           const mine = uploads
             .filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
             .sort((a,b) => (Date.parse(a?.createdAt||"")||0) - (Date.parse(b?.createdAt||"")||0));
-          if(!mine.length){ alert("Сен бұл сабаққа әлі тапсырма жүктемедің"); return; }
+          if(!mine.length){ alert(t.noUpload); return; }
           const last = mine[mine.length - 1];
           const name = String(last.name || "").toLowerCase();
           if(name.endsWith(".mp4")||name.endsWith(".webm")||name.endsWith(".mov")) openVideo(last.url);
           else if(name.endsWith(".mp3")||name.endsWith(".wav")) openAudio(last.url);
           else openDoc(last.url);
-        }catch(e){ console.error(e); alert("Тапсырма ашылмады"); }
+        }catch(e){ console.error(e); alert(t.taskOpenFail); }
       };
       block.appendChild(myBtn);
     }
@@ -717,7 +722,7 @@ async function renderBlocks(){
     if(role === "admin"){
       const studentBtn = document.createElement("button");
       studentBtn.className = "lbtn btn-admin";
-      studentBtn.innerHTML = '<span class="ic">📂</span> Оқушы тапсырмасы';
+      studentBtn.innerHTML = `<span class="ic">📂</span> ${t.btnStudentTask}`;
       studentBtn.onclick = async () => {
         try{
           const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
@@ -728,7 +733,7 @@ async function renderBlocks(){
           const list = isPreview
             ? listAll.filter(x => String(x.studentId||"") === String(effectiveStudentId||""))
             : listAll;
-          if(!list.length){ alert(isPreview ? "Бұл оқушыдан бұл сабаққа тапсырма жоқ" : "Бұл сабаққа тапсырма жоқ"); return; }
+          if(!list.length){ alert(isPreview ? t.noStudentTaskPreview : t.noStudentTask); return; }
           const sorted = list.slice().sort((a,b) => {
             const ta = Date.parse(a?.createdAt||"")||0, tb = Date.parse(b?.createdAt||"")||0;
             if(ta !== tb) return ta - tb;
@@ -763,7 +768,7 @@ async function renderBlocks(){
     if(role === "admin"){
       const sel = document.createElement("select");
       sel.className = "progress-select";
-      sel.innerHTML = "<option value=''>Баға қою</option>";
+      sel.innerHTML = `<option value="">${t.btnGrade}</option>`;
       for(let p = 1; p <= 100; p++) sel.innerHTML += `<option value="${p}">${p}</option>`;
       sel.value = progress[i] || "";
       sel.onchange = async () => {
@@ -822,7 +827,8 @@ subjectSelect.addEventListener("change", async () => { await renderBlocks(); });
     else{ alert("Бұл пакетке рұқсат жоқ"); window.location.href = "dashboard.html"; return; }
   }
 
-  gradeSelect.innerHTML = allowedGrades.map(g => `<option value="${g}">${g} сынып</option>`).join("");
+  const _tInit = window.goI18n[window.goLang] || window.goI18n.kk;
+  gradeSelect.innerHTML = allowedGrades.map(g => `<option value="${g}">${g} ${_tInit.gradeUnit}</option>`).join("");
 
   fillSidebar();
   wireNavButtons();
