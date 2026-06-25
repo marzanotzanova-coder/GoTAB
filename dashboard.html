@@ -362,16 +362,47 @@
       .kpiVal{font-size: 18px;}
       .avatar{width: 42px; height: 42px; border-radius: 14px;}
     }
+    .lang-wrap {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      border: 1px solid rgba(90,120,255,0.14);
+      box-shadow: 0 4px 14px rgba(90,120,255,0.08);
+      z-index: 100;
+    }
+    .lang-wrap select {
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: #14213D;
+      cursor: pointer;
+      outline: none;
+    }
   </style>
 </head>
 <body>
+
+<div class="lang-wrap">
+  🌐
+  <select id="langSelect">
+    <option value="kk">Қазақша</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
 
 <div class="app">
   <aside class="sidebar">
     <div class="brand">
       <div class="brandTitle">
-        <div class="name"><img src="images/logo.png" alt="GoTAB" style="height:72px;width:auto;mix-blend-mode:multiply;"></div>
-        <div class="sub">Student Dashboard</div>
+        <div class="name"><img src="images/logo.png" alt="GoTAB" style="height:120px;width:auto;mix-blend-mode:multiply;"></div>
+        <div class="sub" data-i18n="dashSub">Студент Кабинеті</div>
       </div>
     </div>
 
@@ -390,17 +421,17 @@
         <div class="pill" id="pillPkg">Пакет: —</div>
         <div class="pill" id="pillRole">Role: —</div>
       </div>
-      <div class="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
+      <div class="avatarHint" data-i18n="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
       <input type="file" id="avatarFile" accept="image/*" style="display:none;">
     </div>
 
     <div class="nav">
       <!-- ✅ ТЕК 1 БАТЫРМА -->
-      <button id="goCourseBtn">📚 Курсқа өту</button>
+      <button id="goCourseBtn" data-i18n="btnCourse">📚 Курсқа өту</button>
 
       <button class="mutebtn" id="goAdminBtn" style="display:none;">🛠 Admin панель</button>
-      <button class="mutebtn" id="refreshBtn">🔄 Жаңарту</button>
-      <button class="danger" id="logoutBtn">🚪 Шығу</button>
+      <button class="mutebtn" id="refreshBtn" data-i18n="btnRefresh">🔄 Жаңарту</button>
+      <button class="danger" id="logoutBtn" data-i18n="btnLogout">🚪 Шығу</button>
     </div>
 
     <div style="margin-top:10px" class="muted" id="hintText"></div>
@@ -414,8 +445,8 @@
     <section class="topbar">
       <div class="topText">
         <div class="hello" id="hello">Сәлем 👋</div>
-        <h1 class="headline">Бұл сенің жеке кабинетің.</h1>
-        <div class="desc">
+        <h1 class="headline" data-i18n="headline">Бұл сенің жеке кабинетің.</h1>
+        <div class="desc" data-i18n="headlineDesc">
           Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.
         </div>
       </div>
@@ -429,10 +460,10 @@
     <section class="grid">
       <!-- Today plan -->
       <div class="card" style="grid-column: span 7;">
-        <div class="cardTitle">🗓 Бүгінгі жоспар</div>
+        <div class="cardTitle" data-i18n="todayPlan">🗓 Бүгінгі жоспар</div>
         <div style="margin-bottom:12px">
-          <label for="topicInput" style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px">Бүгін қай тақырыпты оқитыныңды жаз</label>
-          <textarea id="topicInput" rows="3" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." style="width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(255,255,255,.85);font-size:13px;resize:vertical;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;line-height:1.5;"></textarea>
+          <label for="topicInput" style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" data-i18n="todayLabel">Бүгін қай тақырыпты оқитыныңды жаз</label>
+          <textarea id="topicInput" rows="3" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." data-i18n-placeholder="todayPh" style="width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(255,255,255,.85);font-size:13px;resize:vertical;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;line-height:1.5;"></textarea>
         </div>
         <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
           <div class="badge neutral" id="todayBadge">0/4</div>
@@ -440,27 +471,27 @@
 
         <div class="checklist" id="todayChecklist"></div>
 
-        <div class="muted" style="margin-top:10px;font-size:11px">
+        <div class="muted" style="margin-top:10px;font-size:11px" data-i18n="todayNote">
           * Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.
         </div>
       </div>
 
       <!-- Analytics -->
       <div class="card" style="grid-column: span 5;">
-        <div class="cardTitle">📈 Аналитика</div>
+        <div class="cardTitle" data-i18n="analytics">📈 Аналитика</div>
 
         <div class="kpi">
           <div class="kpiBox">
             <div class="kpiVal" id="kpiAvg">0</div>
-            <div class="kpiLab">Орташа баға</div>
+            <div class="kpiLab" data-i18n="kpiAvgLab">Орташа баға</div>
           </div>
           <div class="kpiBox">
             <div class="kpiVal" id="kpiDone">0/30</div>
-            <div class="kpiLab">Бағаланған сабақ</div>
+            <div class="kpiLab" data-i18n="kpiDoneLab">Бағаланған сабақ</div>
           </div>
           <div class="kpiBox">
             <div class="kpiVal" id="kpiGoal">0%</div>
-            <div class="kpiLab">Жалпы progress</div>
+            <div class="kpiLab" data-i18n="kpiGoalLab">Жалпы прогресс</div>
           </div>
         </div>
 
@@ -470,7 +501,7 @@
 
         <div class="sparkWrap">
           <div style="flex:1">
-            <div class="rowTitle" style="margin-bottom:4px">Соңғы 10 баға</div>
+            <div class="rowTitle" style="margin-bottom:4px" data-i18n="last10">Соңғы 10 баға</div>
             <div class="muted" id="sparkHint">Мини-график (sparkline)</div>
           </div>
           <canvas id="spark" width="170" height="54"></canvas>
@@ -480,42 +511,42 @@
 
       <!-- Recent grades + feedback -->
       <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle">🏅 Соңғы бағалар</div>
+        <div class="cardTitle" data-i18n="recentGrades">🏅 Соңғы бағалар</div>
         <div class="list" id="recentGrades"></div>
       </div>
 
       <!-- Achievements -->
       <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle">🏆 Жетістіктер</div>
+        <div class="cardTitle" data-i18n="achievements">🏆 Жетістіктер</div>
         <div class="list compactList" id="achievements"></div>
 
       </div>
 
       <!-- Notifications -->
       <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle">🔔 Хабарламалар</div>
-        <div class="muted">Жаңа баға/файл/мақсат — осында шығады.</div>
+        <div class="cardTitle" data-i18n="notifications">🔔 Хабарламалар</div>
+        <div class="muted" data-i18n="notifNote">Жаңа баға/файл/мақсат — осында шығады.</div>
         <div class="list compactList" id="notifications"></div>
       </div>
 
       <div class="card" style="grid-column: span 6;">
-  <div class="cardTitle">💬 Мұғалім пікірі</div>
+  <div class="cardTitle" data-i18n="teacherFb">💬 Мұғалім пікірі</div>
   <div id="feedbackList" class="list"></div>
 </div>
 
       <!-- Profile / Support -->
       <div class="card supportCard" style="grid-column: span 12;">
-        <div class="cardTitle">👤 Профиль және қолдау</div>
+        <div class="cardTitle" data-i18n="profileSupport">👤 Профиль және қолдау</div>
 
         <div class="supportRow">
           <a class="primary" href="#" id="openCourseFromProfile">📚 Курсқа өту</a>
-          <a href="#" id="copyStudentIdBtn">🧾 Student ID көшіру</a>
+          <a href="#" id="copyStudentIdBtn" data-i18n="copyIdBtn">🧾 Student ID көшіру</a>
           <a href="https://t.me/" target="_blank" rel="noopener">💬 Telegram</a>
           <a href="https://wa.me/77055894347" target="_blank" rel="noopener">🟢 WhatsApp</a>
           <a href="#" id="instagramBtn" target="_blank" rel="noopener">📸 Instagram</a>
         </div>
 
-        <div id="copySuccessMsg" style="display:none;margin-top:8px;font-size:12px;color:var(--good);font-weight:800">
+        <div id="copySuccessMsg" style="display:none;margin-top:8px;font-size:12px;color:var(--good);font-weight:800" data-i18n="copiedMsg">
           Student ID көшірілді ✅
         </div>
       </div>
@@ -523,6 +554,7 @@
   </main>
 </div>
 
+<script src="lang.js"></script>
 <script>
 (function(){
 
@@ -611,7 +643,9 @@ function renderFeedbackOnly(serverProg){
     .filter(item => String(item?.feedbackText || "").trim());
 
   if(entries.length === 0){
-    box.innerHTML = `<div class="muted">Әзірге мұғалім пікірі жоқ</div>`;
+    const _L = localStorage.getItem("lang") || "kk";
+    const _t = (window.goI18n || {})[_L] || {};
+    box.innerHTML = `<div class="muted">${_t.noFeedback || "Әзірге мұғалім пікірі жоқ"}</div>`;
     return;
   }
 
@@ -863,8 +897,10 @@ window.pingStreakServer = pingStreakServer;
   function setHelloText(){
     const helloEl = document.getElementById("hello");
     if(!helloEl) return;
-    if(isPreview){ helloEl.textContent = "Сәлем, оқушы! 👋"; return; }
-    helloEl.textContent = isAdmin ? "Сәлем, Admin 👋" : "Сәлем, оқушы! 👋";
+    const L = localStorage.getItem("lang") || "kk";
+    const t = (window.goI18n || {})[L] || {};
+    if(isPreview){ helloEl.textContent = t.greetingStudent || "Сәлем, оқушы! 👋"; return; }
+    helloEl.textContent = isAdmin ? (t.greetingAdmin || "Сәлем, Admin 👋") : (t.greetingStudent || "Сәлем, оқушы! 👋");
   }
 
   function fillProfileUI(){

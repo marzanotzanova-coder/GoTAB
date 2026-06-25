@@ -237,16 +237,11 @@
   <div class="gotab-logo">
     <img src="images/logo.png" alt="GoTAB" style="height:160px;width:auto;mix-blend-mode:multiply;">
   </div>
-  <div class="subtitle">
-    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
-    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
-    <span class="s-mint">Өсу</span>
-  </div>
 
   <div class="form-card">
     <div class="input-wrap">
       <span class="icon">📱</span>
-      <input type="text" id="phone" placeholder="Телефон нөмірі">
+      <input type="text" id="phone" placeholder="Телефон нөмірі" data-i18n-placeholder="phonePh">
     </div>
     <div class="input-wrap">
       <span class="icon">✉️</span>
@@ -254,12 +249,12 @@
     </div>
     <div class="input-wrap">
       <span class="icon">🔒</span>
-      <input type="password" id="password" placeholder="Құпиясөз">
+      <input type="password" id="password" placeholder="Құпиясөз" data-i18n-placeholder="passwordPh">
       <button class="eye-btn" id="togglePass" type="button">👁</button>
     </div>
 
-    <button class="btn-main" id="loginBtn">Вход</button>
-    <button class="btn-back" id="backBtn">← Артқа</button>
+    <button class="btn-main" id="loginBtn" data-i18n="loginBtn">Кіру</button>
+    <button class="btn-back" id="backBtn" data-i18n="btnBack">← Артқа</button>
     <div class="error-msg" id="errorMsg"></div>
   </div>
 </div>
@@ -268,20 +263,10 @@
   <img src="images/mountain.png" alt="" style="width:440px;max-width:90vw;mix-blend-mode:screen;">
 </div>
 
+<script src="lang.js"></script>
 <script>
 (function(){
   const langSelect = document.getElementById("langSelect");
-  langSelect.value = localStorage.getItem("lang") || "kk";
-  langSelect.addEventListener("change", () => { localStorage.setItem("lang", langSelect.value); applyLang(); });
-
-  function applyLang(){
-    const lang = langSelect.value;
-    document.getElementById("phone").placeholder = lang === "ru" ? "Номер телефона" : "Телефон нөмірі";
-    document.getElementById("email").placeholder = "Email";
-    document.getElementById("password").placeholder = lang === "ru" ? "Пароль" : "Құпиясөз";
-    document.getElementById("backBtn").textContent = lang === "ru" ? "← Назад" : "← Артқа";
-  }
-  applyLang();
 
   document.getElementById("togglePass").addEventListener("click", () => {
     const p = document.getElementById("password");

@@ -1,28 +1,175 @@
-const texts = {
+const i18n = {
   kk: {
-    title: "Оқу • Бағалау • Өсу",
-    courses: "Менің курстарым"
+    // index
+    btnLogin: "Кіру",
+    btnRegister: "Тіркелу",
+    // login / register
+    phonePh: "Телефон нөмірі",
+    emailPh: "Email",
+    passwordPh: "Құпиясөз",
+    loginBtn: "Кіру",
+    btnBack: "← Артқа",
+    firstNamePh: "Аты",
+    lastNamePh: "Тегі",
+    passwordRegPh: "Оқу платформасына арналған құпиясөз",
+    password2Ph: "Құпиясөзді қайталаңыз",
+    submitBtn: "Тіркелу",
+    // dashboard static
+    dashSub: "Студент Кабинеті",
+    btnCourse: "📚 Курсқа өту",
+    btnRefresh: "🔄 Жаңарту",
+    btnLogout: "🚪 Шығу",
+    headline: "Бұл сенің жеке кабинетің.",
+    headlineDesc: "Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.",
+    todayPlan: "🗓 Бүгінгі жоспар",
+    todayLabel: "Бүгін қай тақырыпты оқитыныңды жаз",
+    todayPh: "Мысалы: Рационал сандар, теңдеулер, үшбұрыштар...",
+    todayNote: "* Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.",
+    analytics: "📈 Аналитика",
+    kpiAvgLab: "Орташа баға",
+    kpiDoneLab: "Бағаланған сабақ",
+    kpiGoalLab: "Жалпы прогресс",
+    last10: "Соңғы 10 баға",
+    recentGrades: "🏅 Соңғы бағалар",
+    achievements: "🏆 Жетістіктер",
+    notifications: "🔔 Хабарламалар",
+    notifNote: "Жаңа баға/файл/мақсат — осында шығады.",
+    teacherFb: "💬 Мұғалім пікірі",
+    profileSupport: "👤 Профиль және қолдау",
+    copyIdBtn: "🧾 Student ID көшіру",
+    copiedMsg: "Student ID көшірілді ✅",
+    avatarHint: "* Аватарды бас → өз фотоңды таңда",
+    // dashboard dynamic
+    greetingAdmin: "Сәлем, Admin 👋",
+    greetingStudent: "Сәлем, оқушы! 👋",
+    noFeedback: "Әзірге мұғалім пікірі жоқ",
+    pkgPrefix: "Пакет: ",
+    // admin
+    adminSub: "Admin панель",
+    studentsTitle: "👥 Оқушылар тізімі",
+    reloadTitle: "Жаңарту",
+    reloadSub: "Оқушыларды қайта жүктеу",
+    uploadTitle: "📦 Материал жүктеу",
+    courseLabel: "Курс",
+    courseSub: "База / Стандарт / Премиум",
+    videosLabel: "Видеолар",
+    videosFmt: "mp4 / mov / webm",
+    audiosLabel: "Аудиолар",
+    audiosFmt: "mp3 / wav / etc",
+    docsLabel: "Документтер",
+    docsFmt: "pdf / doc / docx",
+    fbTitle: "💬 Мұғалім пікірі",
+    fbSub: "Оқушыға көрінетін комментарий",
+    fbPh: "Мысалы: Тапсырма жақсы, бірақ дәлелдеуді толық жаз.",
+    saveTitle: "Сақтау",
+    saveSub: "Блок нөмірін сұрайды (1-100)",
+    saveBtn: "✅ Жүктеу",
+    saveNote: "Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.",
+    notAdmin: "Admin емес!",
+    // my-courses
+    courses: "Менің курстарым",
   },
   ru: {
-    title: "Обучение • Оценка • Рост",
-    courses: "Мои курсы"
+    // index
+    btnLogin: "Вход",
+    btnRegister: "Регистрация",
+    // login / register
+    phonePh: "Номер телефона",
+    emailPh: "Email",
+    passwordPh: "Пароль",
+    loginBtn: "Вход",
+    btnBack: "← Назад",
+    firstNamePh: "Имя",
+    lastNamePh: "Фамилия",
+    passwordRegPh: "Придумайте пароль для платформы",
+    password2Ph: "Повторите пароль",
+    submitBtn: "Зарегистрироваться",
+    // dashboard static
+    dashSub: "Личный кабинет",
+    btnCourse: "📚 Перейти к курсу",
+    btnRefresh: "🔄 Обновить",
+    btnLogout: "🚪 Выйти",
+    headline: "Это твой личный кабинет.",
+    headlineDesc: "С нами достигай больших вершин через знания.",
+    todayPlan: "🗓 План на сегодня",
+    todayLabel: "Напиши тему, которую изучаешь сегодня",
+    todayPh: "Например: Рациональные числа, уравнения, треугольники...",
+    todayNote: "* Ставь галочку только после полного выполнения задания.",
+    analytics: "📈 Аналитика",
+    kpiAvgLab: "Средняя оценка",
+    kpiDoneLab: "Оценённых уроков",
+    kpiGoalLab: "Общий прогресс",
+    last10: "Последние 10 оценок",
+    recentGrades: "🏅 Последние оценки",
+    achievements: "🏆 Достижения",
+    notifications: "🔔 Уведомления",
+    notifNote: "Новая оценка/файл/цель — появится здесь.",
+    teacherFb: "💬 Отзыв учителя",
+    profileSupport: "👤 Профиль и поддержка",
+    copyIdBtn: "🧾 Скопировать Student ID",
+    copiedMsg: "Student ID скопирован ✅",
+    avatarHint: "* Нажми на аватар → выбери свою фотографию",
+    // dashboard dynamic
+    greetingAdmin: "Привет, Admin 👋",
+    greetingStudent: "Привет! 👋",
+    noFeedback: "Пока нет отзыва от учителя",
+    pkgPrefix: "Пакет: ",
+    // admin
+    adminSub: "Панель администратора",
+    studentsTitle: "👥 Список учеников",
+    reloadTitle: "Обновить",
+    reloadSub: "Перезагрузить список учеников",
+    uploadTitle: "📦 Загрузка материалов",
+    courseLabel: "Курс",
+    courseSub: "База / Стандарт / Премиум",
+    videosLabel: "Видео",
+    videosFmt: "mp4 / mov / webm",
+    audiosLabel: "Аудио",
+    audiosFmt: "mp3 / wav / etc",
+    docsLabel: "Документы",
+    docsFmt: "pdf / doc / docx",
+    fbTitle: "💬 Отзыв учителя",
+    fbSub: "Комментарий, видимый ученику",
+    fbPh: "Например: Задание хорошее, но пропиши доказательство полностью.",
+    saveTitle: "Сохранить",
+    saveSub: "Запрашивает номер блока (1-100)",
+    saveBtn: "✅ Загрузить",
+    saveNote: "Совет: после загрузки перейди на страницу урока и проверь.",
+    notAdmin: "Не администратор!",
+    // my-courses
+    courses: "Мои курсы",
   }
 };
 
-const lang = localStorage.getItem("lang") || "kk";
-localStorage.setItem("lang", lang);
+function applyLang(lang) {
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const key = el.getAttribute("data-i18n");
+    if (i18n[lang]?.[key] !== undefined) el.textContent = i18n[lang][key];
+  });
+  document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+    const key = el.getAttribute("data-i18n-placeholder");
+    if (i18n[lang]?.[key] !== undefined) el.placeholder = i18n[lang][key];
+  });
+}
 
-const select = document.getElementById("langSelect");
-if (select) {
-  select.value = lang;
-  select.onchange = e => {
+const _lang = localStorage.getItem("lang") || "kk";
+localStorage.setItem("lang", _lang);
+
+window.goLang = _lang;
+window.goI18n = i18n;
+
+const _sel = document.getElementById("langSelect");
+if (_sel) {
+  _sel.value = _lang;
+  _sel.onchange = e => {
     localStorage.setItem("lang", e.target.value);
     location.reload();
   };
 }
 
-const title = document.getElementById("titleText");
-if (title) title.innerText = texts[lang].title;
+applyLang(_lang);
 
-const courses = document.getElementById("coursesTitle");
-if (courses) courses.innerText = texts[lang].courses;
+// Backward compat for my-courses.html
+const texts = { kk: { courses: i18n.kk.courses }, ru: { courses: i18n.ru.courses } };
+const _coursesEl = document.getElementById("coursesTitle");
+if (_coursesEl) _coursesEl.innerText = i18n[_lang].courses;

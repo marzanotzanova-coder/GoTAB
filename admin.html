@@ -166,27 +166,58 @@
     @media (max-width: 980px){
       .app{grid-template-columns: 1fr; padding:12px; gap:12px;}
     }
+    .lang-wrap {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(255,255,255,0.92);
+      border-radius: 18px;
+      border: 1px solid rgba(90,120,255,0.14);
+      box-shadow: 0 4px 14px rgba(90,120,255,0.08);
+      z-index: 100;
+    }
+    .lang-wrap select {
+      border: none;
+      background: transparent;
+      font-size: 13px;
+      font-weight: 600;
+      color: #14213D;
+      cursor: pointer;
+      outline: none;
+    }
   </style>
 </head>
 <body>
+
+<div class="lang-wrap">
+  🌐
+  <select id="langSelect">
+    <option value="kk">Қазақша</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
 
 <div class="app">
   <!-- LEFT: students -->
   <aside class="card">
     <div class="brand">
       <div class="brandTitle">
-        <div class="name"><img src="images/logo.png" alt="GoTAB" style="height:72px;width:auto;mix-blend-mode:multiply;"></div>
-        <div class="sub">Admin панель • Оқушылар</div>
+        <div class="name"><img src="images/logo.png" alt="GoTAB" style="height:120px;width:auto;mix-blend-mode:multiply;"></div>
+        <div class="sub" data-i18n="adminSub">Admin панель</div>
       </div>
     </div>
 
-    <div class="sectionTitle">👥 Оқушылар тізімі</div>
+    <div class="sectionTitle" data-i18n="studentsTitle">👥 Оқушылар тізімі</div>
     <div class="muted">Серверден келеді: <code>/api/admin/students</code></div>
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Жаңарту</div>
-        <div class="rowSub">Оқушыларды қайта жүктеу</div>
+        <div class="rowTitle" data-i18n="reloadTitle">Жаңарту</div>
+        <div class="rowSub" data-i18n="reloadSub">Оқушыларды қайта жүктеу</div>
       </div>
       <button class="btn ghost" id="reloadStudents">🔄</button>
     </div>
@@ -196,13 +227,13 @@
 
   <!-- RIGHT: uploads -->
   <main class="card">
-    <div class="sectionTitle">📦 Материал жүктеу</div>
+    <div class="sectionTitle" data-i18n="uploadTitle">📦 Материал жүктеу</div>
     <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Курс</div>
-        <div class="rowSub">База / Стандарт / Премиум</div>
+        <div class="rowTitle" data-i18n="courseLabel">Курс</div>
+        <div class="rowSub" data-i18n="courseSub">База / Стандарт / Премиум</div>
       </div>
     </div>
     <select id="course-select">
@@ -229,8 +260,8 @@
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Видеолар</div>
-        <div class="rowSub">mp4 / mov / webm</div>
+        <div class="rowTitle" data-i18n="videosLabel">Видеолар</div>
+        <div class="rowSub" data-i18n="videosFmt">mp4 / mov / webm</div>
       </div>
     </div>
     <input type="file" id="video-upload" multiple accept="video/*">
@@ -243,29 +274,30 @@
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Аудиолар</div>
-        <div class="rowSub">mp3 / wav / etc</div>
+        <div class="rowTitle" data-i18n="audiosLabel">Аудиолар</div>
+        <div class="rowSub" data-i18n="audiosFmt">mp3 / wav / etc</div>
       </div>
     </div>
     <input type="file" id="audio-upload" multiple accept="audio/*">
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Документтер</div>
-        <div class="rowSub">pdf / doc / docx</div>
+        <div class="rowTitle" data-i18n="docsLabel">Документтер</div>
+        <div class="rowSub" data-i18n="docsFmt">pdf / doc / docx</div>
       </div>
     </div>
     <input type="file" id="doc-upload" multiple accept=".pdf,.doc,.docx,.txt">
 
     <div class="row">
   <div class="rowLeft">
-    <div class="rowTitle">💬 Мұғалім пікірі</div>
-    <div class="rowSub">Оқушыға көрінетін комментарий</div>
+    <div class="rowTitle" data-i18n="fbTitle">💬 Мұғалім пікірі</div>
+    <div class="rowSub" data-i18n="fbSub">Оқушыға көрінетін комментарий</div>
   </div>
 </div>
 
 <textarea id="feedbackText"
   placeholder="Мысалы: Тапсырма жақсы, бірақ дәлелдеуді толық жаз."
+  data-i18n-placeholder="fbPh"
   style="
     width:100%;
     min-height:80px;
@@ -280,24 +312,26 @@
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle">Сақтау</div>
-        <div class="rowSub">Блок нөмірін сұрайды (1-100)</div>
+        <div class="rowTitle" data-i18n="saveTitle">Сақтау</div>
+        <div class="rowSub" data-i18n="saveSub">Блок нөмірін сұрайды (1-100)</div>
       </div>
-      <button class="btn primary" id="save-btn">✅ Жүктеу</button>
+      <button class="btn primary" id="save-btn" data-i18n="saveBtn">✅ Жүктеу</button>
     </div>
 
-    <div class="muted" style="margin-top:10px">
+    <div class="muted" style="margin-top:10px" data-i18n="saveNote">
       Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.
     </div>
   </main>
 </div>
 
+<script src="lang.js"></script>
 <script>
 
  (async ()=>{
   const me = await fetch("/api/auth/me",{credentials:"include",cache:"no-store"}).then(r=>r.json()).catch(()=>null);
   if(!me?.user || me.user.role!=="admin"){
-    alert("Admin емес!");
+    const _L = localStorage.getItem("lang") || "kk";
+    alert((window.goI18n||{})[_L]?.notAdmin || "Admin емес!");
     location.href="index.html";
   }
 })(); 

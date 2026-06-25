@@ -174,23 +174,16 @@
   <div class="gotab-logo">
     <img src="images/logo.png" alt="GoTAB" style="height:180px;width:auto;mix-blend-mode:multiply;">
   </div>
-  <div class="subtitle">
-    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
-    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
-    <span class="s-mint">Өсу</span>
-  </div>
-  <button class="btn-main" id="loginBtn">Вход</button>
-  <button class="btn-outline" id="registerBtn">Регистрация</button>
+  <button class="btn-main" id="loginBtn" data-i18n="btnLogin">Кіру</button>
+  <button class="btn-outline" id="registerBtn" data-i18n="btnRegister">Тіркелу</button>
 </div>
 
 <div class="mountain-area">
   <img src="images/mountain.png" alt="" style="width:480px;max-width:90vw;mix-blend-mode:screen;">
 </div>
 
+<script src="lang.js"></script>
 <script>
-const langSelect = document.getElementById("langSelect");
-langSelect.value = localStorage.getItem("lang") || "kk";
-langSelect.addEventListener("change", () => { localStorage.setItem("lang", langSelect.value); });
 document.getElementById("loginBtn").addEventListener("click", () => { window.location.href = "login.html"; });
 document.getElementById("registerBtn").addEventListener("click", () => { window.location.href = "register.html"; });
 </script>

@@ -3,239 +3,407 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>База курс</title>
+<title>База курс — GoTAB</title>
 <style>
+:root{
+  --text:#14213D; --muted:#6B7280;
+  --brand1:#2F6BFF; --brand2:#20C9FF; --mint:#1DE9B6;
+  --good:#22c55e; --bad:#ef4444;
+  --shadow:0 10px 40px rgba(90,120,255,0.08);
+  --radius:24px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 body{
   font-family:Arial,sans-serif;
-  background:linear-gradient(180deg,#e5dbff,#f0ebff);
-  margin:0;
-  padding:20px;
+  color:var(--text);
+  background:linear-gradient(135deg,#fafcff 0%,#f6f3ff 35%,#eefcff 70%,#f8fffc 100%);
+  min-height:100vh;
 }
 
-h1{
-  text-align:center;
-  color:#7f3ff0;
-  margin-bottom:18px;
-}
-
-.selectors{
-  display:flex;
-  gap:12px;
-  justify-content:flex-start;
-  align-items:center;
-  flex-wrap:wrap;
-  max-width:1200px;
-  margin:0 auto 18px auto;
-}
-
-.selectors select{
-  padding:8px 12px;
-  border-radius:10px;
-  border:1px solid #d6c7ff;
-  background:#f3edff;
-  color:#4b2bbd;
-  font-size:13px;
-  outline:none;
-  cursor:pointer;
-}
-.block-container{
-  max-width: 1200px;
-  margin: 0 auto;
+/* ===== LAYOUT ===== */
+.app{
+  max-width:1400px;
+  margin:0 auto;
+  padding:18px;
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap:15px;
+  grid-template-columns:280px 1fr;
+  gap:16px;
   align-items:start;
 }
 
-.material-block{
-  background:#fff;
-  width:100%;
-  border-radius:20px;
-  padding:12px;
-  text-align:center;
-  box-shadow:0 10px 25px rgba(0,0,0,.15);
+/* ===== SIDEBAR ===== */
+.sidebar{
+  position:sticky;
+  top:14px;
+  background:rgba(255,255,255,0.92);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:20px;
+  border:1px solid rgba(255,255,255,0.8);
+  display:flex;
+  flex-direction:column;
+  min-height:calc(100vh - 36px);
 }
-.material-block p{
-  margin:4px 0 10px 0;
+.brand{margin-bottom:16px;}
+.brandTitle .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+.profile{
+  background:linear-gradient(135deg,rgba(47,107,255,.08),rgba(29,233,182,.06));
+  border-radius:18px;
+  padding:14px;
+  border:1px solid rgba(47,107,255,.12);
+  margin-bottom:14px;
+}
+.profileTop{display:flex;align-items:center;gap:12px;}
+.avatar{
+  width:46px;height:46px;border-radius:16px;
+  background:linear-gradient(135deg,#2F6BFF,#20C9FF);
+  display:flex;align-items:center;justify-content:center;
+  color:white;font-weight:900;font-size:18px;
+  box-shadow:0 8px 20px rgba(47,107,255,.22);
+  flex-shrink:0;overflow:hidden;
+}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block;}
+.pname{font-weight:900;color:var(--text);}
+.pmeta{font-size:12px;color:var(--muted);margin-top:2px;}
+.pillRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.pill{
+  font-size:12px;padding:5px 10px;border-radius:999px;
+  background:rgba(255,255,255,.85);
+  border:1px solid rgba(47,107,255,.18);
+  color:#2F6BFF;font-weight:800;
+}
+.avatarHint{font-size:11px;color:var(--muted);margin-top:8px;}
+
+.nav{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
+.navBtn{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 16px;
+  border:1.5px solid rgba(47,107,255,.1);
+  border-radius:16px;
+  font-size:14px;font-weight:700;
+  cursor:pointer;text-align:left;
+  transition:all 0.18s;
+  background:rgba(255,255,255,.85);
+  color:var(--text);
+}
+.navBtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(47,107,255,.12);}
+.navBtn.active{
+  background:linear-gradient(90deg,#2F6BFF 0%,#20C9FF 60%,#1DE9B6 100%);
+  color:white;border-color:transparent;
+  box-shadow:0 8px 22px rgba(47,107,255,.28);
+}
+.navBtn.danger{color:#ef4444;border-color:rgba(239,68,68,.2);}
+.navBtn.danger:hover{background:rgba(239,68,68,.05);}
+
+.sidebarMountain{margin-top:auto;padding-top:14px;text-align:center;}
+
+/* ===== CONTENT ===== */
+.content{display:flex;flex-direction:column;gap:16px;}
+
+.adminBadge{
+  display:none;
+  background:linear-gradient(90deg,#2F6BFF,#20C9FF);
+  color:white;
+  padding:8px 20px;
+  border-radius:999px;
+  font-size:13px;font-weight:800;
+  width:fit-content;
+  box-shadow:0 4px 14px rgba(47,107,255,.28);
+  align-items:center;gap:8px;
 }
 
-button{
-  width:100%;
-  padding:6px;
-  margin:4px 0;
-  border:none;
-  border-radius:10px;
-  cursor:pointer;
-  font-size:13px;
+.pageHeader{
+  background:rgba(255,255,255,0.92);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:22px 26px;
+  border:1px solid rgba(255,255,255,.8);
 }
-.video-btn{
-  background:#5b21ef;
-  color:white;
+.breadcrumb{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:10px;}
+.breadcrumb span{
+  background:rgba(47,107,255,.08);
+  padding:4px 12px;border-radius:8px;
+  color:var(--brand1);
 }
-.pdf-btn{
-  background:#22c55e;
-  color:white;
+.pageTitle{
+  font-size:28px;font-weight:900;margin:0 0 18px 0;
+  background:linear-gradient(135deg,#2F6BFF,#20C9FF);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
 }
-.upload-btn{
-  background:#f97316;
-  color:white;
+.selectors{display:flex;gap:12px;flex-wrap:wrap;}
+.selectors select{
+  padding:10px 14px;
+  border-radius:14px;
+  border:1.5px solid rgba(47,107,255,.16);
+  background:rgba(255,255,255,.9);
+  color:var(--text);
+  font-size:14px;font-weight:600;
+  outline:none;cursor:pointer;
+  transition:border-color .2s;
+  min-width:140px;
 }
+.selectors select:focus{border-color:var(--brand1);}
+
+/* ===== BLOCK GRID ===== */
+.block-container{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(195px,1fr));
+  gap:14px;
+  align-items:start;
+}
+
+/* ===== LESSON CARD ===== */
+.material-block{
+  background:rgba(255,255,255,0.93);
+  border-radius:20px;
+  padding:14px 12px;
+  box-shadow:0 8px 24px rgba(90,120,255,.08);
+  border:1px solid rgba(255,255,255,.85);
+  transition:transform .18s,box-shadow .18s;
+}
+.material-block:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(90,120,255,.14);}
+.material-block.locked{opacity:.5;}
+.material-block.locked .lbtn,
+.material-block.locked .progress-select{pointer-events:none;opacity:.5;}
+.material-block.locked .toggle-lock-btn{pointer-events:auto;opacity:1;}
+
+.lesson-title{
+  font-weight:800;font-size:13px;color:var(--text);
+  margin-bottom:10px;text-align:center;
+  padding-bottom:8px;
+  border-bottom:1.5px solid rgba(47,107,255,.08);
+}
+
+/* ===== LESSON BUTTONS ===== */
+.lbtn{
+  display:flex;align-items:center;gap:7px;
+  width:100%;padding:8px 10px;
+  margin-bottom:6px;
+  border:none;border-radius:10px;
+  font-size:12px;font-weight:700;
+  cursor:pointer;color:white;text-align:left;
+  transition:transform .15s,filter .15s,box-shadow .15s;
+  line-height:1.2;
+}
+.lbtn:last-child{margin-bottom:0;}
+.lbtn:hover{transform:translateY(-1px);filter:brightness(1.08);box-shadow:0 4px 14px rgba(0,0,0,.2);}
+.lbtn .ic{font-size:12px;flex-shrink:0;line-height:1;}
+
+.btn-video {background:linear-gradient(135deg,#4f1fe8,#2F6BFF);}
+.btn-doc   {background:linear-gradient(135deg,#15803d,#22c55e);}
+.btn-quiz  {background:linear-gradient(135deg,#0369a1,#20C9FF);}
+.btn-ai    {background:linear-gradient(135deg,#7c3aed,#4f46e5);}
+.btn-upload{background:linear-gradient(135deg,#c2410c,#f97316);}
+.btn-mine  {background:linear-gradient(135deg,#0d9488,#1DE9B6);}
+.btn-admin {background:linear-gradient(135deg,#b45309,#f59e0b);}
+
+/* ===== PROGRESS ===== */
 .progress-badge{
-  margin-top:6px;
-  font-weight:bold;
-  color:#7c3aed;
+  text-align:center;font-weight:800;font-size:12px;
+  color:var(--brand1);margin-top:8px;padding:4px 0;
 }
 .progress-select{
-  width:100%;
-  margin-top:6px;
-  padding:4px;
-  border-radius:8px;
-  border:1px solid #ccc;
-  cursor:pointer;
-}
-#viewerModal{
-  display:none;
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.7);
-  z-index:9999;
-  justify-content:center;
-  align-items:center;
-  padding:12px;
-  box-sizing:border-box;
+  display:block;margin:6px auto 0;
+  width:100%;padding:5px 8px;
+  font-size:12px;border-radius:8px;
+  border:1px solid rgba(47,107,255,.18);
+  cursor:pointer;background:rgba(255,255,255,.9);
+  color:var(--text);
 }
 
+/* ===== MODALS ===== */
+#viewerModal,#quizModal,#aiModal{
+  display:none;
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.65);
+  z-index:9999;
+  justify-content:center;align-items:center;
+  padding:16px;box-sizing:border-box;
+}
 #viewerBox{
   background:#fff;
-  width:min(1000px, 100%);
-  height:min(90vh, 100%);
-  border-radius:18px;
-  position:relative;
-  overflow:hidden;
-  box-sizing:border-box;
+  width:min(1000px,100%);
+  height:min(90vh,100%);
+  border-radius:20px;
+  position:relative;overflow:hidden;
 }
-
-#viewerContent{
-  width:100%;
-  height:100%;
-  overflow:auto;
-  -webkit-overflow-scrolling:touch;
-  background:#fff;
-}
-
-.video-frame{
-  width:100%;
-  height:100%;
-  position:relative;
-}
-
-.video-frame iframe,
-.video-frame video{
-  width:100%;
-  height:100%;
-  border:none;
-  display:block;
-}
-
+#viewerContent{width:100%;height:100%;overflow:auto;background:#fff;}
+.video-frame{width:100%;height:100%;position:relative;}
+.video-frame iframe,.video-frame video{width:100%;height:100%;border:none;display:block;}
 #viewerClose{
-  position:absolute;
-  top:10px;
-  right:10px;
-  width:42px;
-  height:42px;
-  border:none;
-  border-radius:50%;
-  background:rgba(0,0,0,.72);
-  color:#fff;
-  font-size:26px;
-  font-weight:700;
-  cursor:pointer;
-  z-index:10001;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  position:absolute;top:12px;right:12px;
+  width:40px;height:40px;
+  border:none;border-radius:50%;
+  background:rgba(0,0,0,.72);color:#fff;
+  font-size:22px;font-weight:700;cursor:pointer;z-index:10001;
+  display:flex;align-items:center;justify-content:center;
 }
 
-@media (max-width: 768px){
-  #viewerModal{
-    padding:0;
-    align-items:flex-end;
-  }
-
-  #viewerBox{
-    width:100%;
-    height:92vh;
-    border-radius:18px 18px 0 0;
-  }
-
-  #viewerClose{
-    top:8px;
-    right:8px;
-    width:40px;
-    height:40px;
-    font-size:24px;
-  }
+.soon-box{
+  background:rgba(255,255,255,0.97);
+  border-radius:24px;
+  padding:44px 40px;
+  max-width:400px;width:100%;
+  text-align:center;
+  box-shadow:0 24px 64px rgba(90,120,255,.18);
+  border:1px solid rgba(255,255,255,.9);
 }
+.soon-icon{font-size:56px;margin-bottom:14px;line-height:1;}
+.soon-title{font-size:22px;font-weight:900;color:var(--text);margin-bottom:8px;}
+.soon-desc{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
+.soon-close{
+  padding:13px 36px;
+  background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);
+  color:white;border:none;border-radius:14px;
+  font-size:15px;font-weight:700;cursor:pointer;
+  box-shadow:0 8px 22px rgba(47,107,255,.28);
+  transition:transform .18s;
+}
+.soon-close:hover{transform:translateY(-1px);}
 
+/* ===== RESPONSIVE ===== */
+@media(max-width:960px){
+  .app{grid-template-columns:1fr;}
+  .sidebar{position:static;min-height:auto;}
+  .block-container{grid-template-columns:repeat(auto-fill,minmax(175px,1fr));}
+}
+@media(max-width:600px){
+  .pageTitle{font-size:20px;}
+  .block-container{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+  #viewerModal{padding:0;align-items:flex-end;}
+  #viewerBox{width:100%;height:92vh;border-radius:20px 20px 0 0;}
+}
 </style>
 </head>
 <body>
 
-<h1>Менің курстарым — База</h1>
+<div class="app">
 
-<div class="selectors">
-  <select id="gradeSelect"></select>
-  <select id="subjectSelect"></select>
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brandTitle">
+        <div><img src="images/logo.png" alt="GoTAB" style="height:120px;width:auto;mix-blend-mode:multiply;"></div>
+        <div class="sub" data-i18n="dashSub">Студент Кабинеті</div>
+      </div>
+    </div>
+
+    <div class="profile">
+      <div class="profileTop">
+        <div class="avatar" id="sideAvatar">G</div>
+        <div>
+          <div class="pname" id="sideName">—</div>
+          <div class="pmeta" id="sideMeta">ID: —</div>
+        </div>
+      </div>
+      <div class="pillRow">
+        <div class="pill" id="sidePkg">Пакет: —</div>
+        <div class="pill" id="sideRole">Role: —</div>
+      </div>
+      <div class="avatarHint" data-i18n="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
+    </div>
+
+    <div class="nav">
+      <button class="navBtn active" id="navCourse" data-i18n="btnCourse">📚 Курсқа өту</button>
+      <button class="navBtn" id="navAdmin" style="display:none">🛠 Admin панель</button>
+      <button class="navBtn" id="navRefresh" data-i18n="btnRefresh">🔄 Жаңарту</button>
+      <button class="navBtn danger" id="navLogout" data-i18n="btnLogout">🚪 Шығу</button>
+    </div>
+
+    <div class="sidebarMountain">
+      <img src="images/mountain.png" alt="" style="width:100%;max-width:200px;mix-blend-mode:screen;">
+    </div>
+  </aside>
+
+  <!-- ============ MAIN CONTENT ============ -->
+  <main class="content">
+
+    <div class="adminBadge" id="adminBadge">🛡 Admin Panel</div>
+
+    <div class="pageHeader">
+      <div class="breadcrumb"><span># База курс</span></div>
+      <div class="pageTitle">Менің курстарым — База</div>
+      <div class="selectors">
+        <select id="gradeSelect"></select>
+        <select id="subjectSelect"></select>
+      </div>
+    </div>
+
+    <div class="block-container" id="block-container"></div>
+
+  </main>
 </div>
 
-<div class="block-container" id="block-container"></div>
-
+<!-- ===== Viewer modal (unchanged logic) ===== -->
 <div id="viewerModal">
   <div id="viewerBox">
-   <button id="viewerClose">×</button>
+    <button id="viewerClose">×</button>
     <div id="viewerContent"></div>
   </div>
 </div>
 
+<!-- ===== Quiz modal ===== -->
+<div id="quizModal">
+  <div class="soon-box">
+    <div class="soon-icon">📋</div>
+    <div class="soon-title">Сынақ</div>
+    <div class="soon-desc">Сынақ жақында қосылады.</div>
+    <button class="soon-close" id="quizClose">Жабу</button>
+  </div>
+</div>
+
+<!-- ===== AI modal ===== -->
+<div id="aiModal">
+  <div class="soon-box">
+    <div class="soon-icon">✨</div>
+    <div class="soon-title">ЖИ Көмекшісі</div>
+    <div class="soon-desc">ЖИ көмекшісі жақында қосылады.</div>
+    <button class="soon-close" id="aiClose">Жабу</button>
+  </div>
+</div>
+
+<script src="lang.js"></script>
 <script>
+
+/* =========================================================
+   UNCHANGED HELPER FUNCTIONS (preserved exactly)
+   ========================================================= */
 
 function toEmbedUrl(url){
   if(!url) return "";
-
   if(url.includes("youtu.be/")){
     const id = url.split("youtu.be/")[1].split("?")[0];
     return "https://www.youtube.com/embed/" + id;
   }
-
   if(url.includes("watch?v=")){
     const id = url.split("watch?v=")[1].split("&")[0];
     return "https://www.youtube.com/embed/" + id;
   }
-
   return url;
 }
 
-const gradeSelect = document.getElementById("gradeSelect");
+const gradeSelect   = document.getElementById("gradeSelect");
 const subjectSelect = document.getElementById("subjectSelect");
-const container = document.getElementById("block-container");
+const container     = document.getElementById("block-container");
 
 const params = new URLSearchParams(window.location.search);
 const previewStudentId = params.get("previewStudentId");
 
-let sessionUser = null;
-let role = "student";
-let isAdmin = false;
-let isPreview = false;
+let sessionUser      = null;
+let role             = "student";
+let isAdmin          = false;
+let isPreview        = false;
 let effectiveStudentId = "";
-let effectivePackage = "pending";
+let effectivePackage   = "pending";
 
 const COURSE_API = "base";
-const COURSE_LS = "baza";
+const COURSE_LS  = "baza";
 
 function getAllowedGradesByPackage(pkg, grade){
   const p = String(pkg || "").toLowerCase().trim();
   const g = Number(grade);
-
   if(p === "base" || p === "baza"){
     if(g === 5) return [5];
     if(g === 6) return [5,6];
@@ -248,27 +416,17 @@ function getAllowedGradesByPackage(pkg, grade){
 function getBlockCount(grade, subject){
   const g = Number(grade);
   const s = String(subject || "").toLowerCase().trim();
-
-  if(g === 5 || g === 6){
-    return s === "math" ? 50 : 0;
-  }
-
-  if(g === 7){
-    if(s === "algebra" || s === "geometry") return 25;
-    return 0;
-  }
-
+  if(g === 5 || g === 6){ return s === "math" ? 50 : 0; }
+  if(g === 7){ if(s === "algebra" || s === "geometry") return 25; return 0; }
   return 0;
 }
 
 function fillSubjectOptions(){
   const g = Number(gradeSelect.value || 5);
-
   subjectSelect.innerHTML = "";
-
   if(g === 5 || g === 6){
     subjectSelect.innerHTML = `<option value="math">Математика</option>`;
-  }else if(g === 7){
+  } else if(g === 7){
     subjectSelect.innerHTML = `
       <option value="algebra">Алгебра</option>
       <option value="geometry">Геометрия</option>
@@ -279,9 +437,8 @@ function fillSubjectOptions(){
 function normalizeLists(data){
   const safe = data || { videos:[], docs:[], audios:[], studentUploads:[] };
   const byUrl = (a,b) => (a?.url || "").localeCompare(b?.url || "");
-
   safe.videos = Array.isArray(safe.videos) ? safe.videos.slice().sort(byUrl) : [];
-  safe.docs = Array.isArray(safe.docs) ? safe.docs.slice().sort(byUrl) : [];
+  safe.docs   = Array.isArray(safe.docs)   ? safe.docs.slice().sort(byUrl)   : [];
   safe.audios = Array.isArray(safe.audios) ? safe.audios.slice().sort(byUrl) : [];
   safe.studentUploads = Array.isArray(safe.studentUploads) ? safe.studentUploads.slice().sort(byUrl) : [];
   return safe;
@@ -292,36 +449,28 @@ function lastItem(list){
   return list[list.length - 1] || null;
 }
 
+/* ===== Viewer functions (unchanged) ===== */
 window.openVideo = function(url){
   const modal = document.getElementById("viewerModal");
-  const box = document.getElementById("viewerContent");
-
+  const box   = document.getElementById("viewerContent");
   modal.style.display = "flex";
   box.innerHTML = "";
-
-  // YouTube болса
   if(url.includes("youtube") || url.includes("youtu.be")){
     const wrap = document.createElement("div");
     wrap.className = "video-frame";
-
     const iframe = document.createElement("iframe");
     iframe.src = toEmbedUrl(url);
     iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
     iframe.allowFullscreen = true;
-
     wrap.appendChild(iframe);
     box.appendChild(wrap);
     return;
   }
-
-  // кәдімгі видео
   const wrap = document.createElement("div");
   wrap.className = "video-frame";
-
   const v = document.createElement("video");
   v.controls = true;
   v.src = url;
-
   wrap.appendChild(v);
   box.appendChild(wrap);
 };
@@ -338,23 +487,11 @@ window.openAudio = function(url){
 window.openDoc = function(url){
   const isMobile = window.innerWidth <= 768;
   const isPdf = String(url).toLowerCase().includes(".pdf");
-
-  if (isMobile && isPdf) {
-    window.open(url, "_blank");
-    return;
-  }
-
-  const finalUrl = isPdf
-    ? `${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitH`
-    : url;
-
+  if(isMobile && isPdf){ window.open(url, "_blank"); return; }
+  const finalUrl = isPdf ? `${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitH` : url;
   document.getElementById("viewerContent").innerHTML = `
-    <iframe
-      src="${finalUrl}"
-      style="width:100%;height:100%;border:none;background:#fff;display:block;"
-    ></iframe>
+    <iframe src="${finalUrl}" style="width:100%;height:100%;border:none;background:#fff;display:block;"></iframe>
   `;
-
   document.getElementById("viewerModal").style.display = "flex";
 };
 
@@ -363,319 +500,279 @@ window.closeViewer = function(){
   document.getElementById("viewerContent").innerHTML = "";
 };
 
-window.closeViewer = function(){
-  document.getElementById("viewerModal").style.display = "none";
-  document.getElementById("viewerContent").innerHTML = "";
-};
+document.getElementById("viewerClose").onclick = () => closeViewer();
+document.getElementById("viewerModal").addEventListener("click", e => { if(e.target.id === "viewerModal") closeViewer(); });
+document.addEventListener("keydown", e => { if(e.key === "Escape"){ closeViewer(); closeQuizModal(); closeAiModal(); } });
 
-document.getElementById("viewerClose").onclick = function(){
-  closeViewer();
-};
+/* ===== Quiz / AI modals ===== */
+window.openQuizModal = function(){ document.getElementById("quizModal").style.display = "flex"; };
+window.closeQuizModal = function(){ document.getElementById("quizModal").style.display = "none"; };
+window.openAiModal = function(){ document.getElementById("aiModal").style.display = "flex"; };
+window.closeAiModal = function(){ document.getElementById("aiModal").style.display = "none"; };
 
-document.getElementById("viewerModal").addEventListener("click", function(e){
-  if(e.target.id === "viewerModal"){
-    closeViewer();
-  }
-});
+document.getElementById("quizClose").onclick  = () => closeQuizModal();
+document.getElementById("aiClose").onclick    = () => closeAiModal();
+document.getElementById("quizModal").addEventListener("click", e => { if(e.target.id === "quizModal") closeQuizModal(); });
+document.getElementById("aiModal").addEventListener("click",   e => { if(e.target.id === "aiModal")   closeAiModal(); });
 
-document.addEventListener("keydown", function(e){
-  if(e.key === "Escape"){
-    closeViewer();
-  }
-});
-
+/* ===== API helpers (unchanged) ===== */
 async function fetchEffectiveStudentForPreview(){
   if(!isPreview) return null;
-}
-async function fetchEffectiveStudentForPreview(){
-  if(!isPreview) return null;
-
   try{
     const r = await fetch("/api/admin/student/" + encodeURIComponent(effectiveStudentId), {
-      credentials:"include",
-      cache:"no-store"
+      credentials:"include", cache:"no-store"
     });
     const j = await r.json().catch(()=>null);
     if(r.ok && j?.ok && j.student) return j.student;
-  }catch(e){
-    console.error(e);
-  }
-
+  }catch(e){ console.error(e); }
   return null;
 }
 
 async function serverGetProgress(grade, subject){
   if(!effectiveStudentId) return {};
-
- const r = await fetch(
-  `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&course=base&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}`,
-  { credentials:"include", cache:"no-store" }
-);
-
+  const r = await fetch(
+    `/api/progress/get?studentId=${encodeURIComponent(effectiveStudentId)}&course=base&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}`,
+    { credentials:"include", cache:"no-store" }
+  );
   const j = await r.json().catch(()=>null);
   return (j && j.ok && j.data) ? j.data : {};
 }
 
 async function serverSetGrade(grade, subject, blockNumber, gradeValue, feedbackText=""){
   if(!effectiveStudentId) return { ok:false, error:"no_studentId" };
-
   const r = await fetch("/api/progress/set", {
     method:"POST",
     headers:{ "Content-Type":"application/json" },
     credentials:"include",
-    body: JSON.stringify({
-      studentId: effectiveStudentId,
-      grade,
-      subject,
-      blockNumber,
-      gradeValue,
-      status:"graded",
-      course: "base",
-      feedbackText
-    })
+    body: JSON.stringify({ studentId:effectiveStudentId, grade, subject, blockNumber, gradeValue, status:"graded", course:"base", feedbackText })
   });
-
   return await r.json().catch(()=>({ ok:false, error:"bad_json" }));
 }
 
+/* ===== Sidebar fill ===== */
+function fillSidebar(){
+  const name = sessionUser?.fullName || sessionUser?.name || "";
+  const email = sessionUser?.email || "";
+  const phone = sessionUser?.phone || "";
+
+  document.getElementById("sideName").textContent = name || "—";
+  document.getElementById("sideMeta").textContent = "ID: " + (effectiveStudentId || "—");
+  document.getElementById("sidePkg").textContent  = "Пакет: " + (effectivePackage || "—");
+  document.getElementById("sideRole").textContent = "Role: " + (role || "—");
+
+  const serverAvatar = String(sessionUser?.avatar || "").trim();
+  const avatarEl = document.getElementById("sideAvatar");
+  if(serverAvatar){
+    avatarEl.innerHTML = `<img src="${serverAvatar}?t=${Date.now()}" alt="">`;
+  } else {
+    const letter = (name || email || phone || "G").trim().slice(0,1).toUpperCase();
+    avatarEl.textContent = letter || "G";
+  }
+
+  if(isAdmin){
+    document.getElementById("adminBadge").style.display = "flex";
+    document.getElementById("navAdmin").style.display   = "flex";
+  }
+}
+
+/* ===== Nav buttons ===== */
+function wireNavButtons(){
+  document.getElementById("navCourse").onclick  = () => {};
+  document.getElementById("navAdmin").onclick   = () => { window.location.href = "admin.html"; };
+  document.getElementById("navRefresh").onclick = () => renderBlocks();
+  document.getElementById("navLogout").onclick  = async () => {
+    await fetch("/api/auth/logout", { method:"POST", credentials:"include" }).catch(()=>{});
+    window.location.href = "index.html";
+  };
+}
+
+/* ===== renderBlocks (redesigned cards, logic unchanged) ===== */
 async function renderBlocks(){
-  const grade = String(gradeSelect.value || "5");
+  const grade   = String(gradeSelect.value || "5");
   const subject = String(subjectSelect.value || "math");
 
   container.innerHTML = "";
 
   const totalBlocks = getBlockCount(grade, subject);
-  const progress = {};
-  const cards = [];
+  const progress    = {};
 
   const serverProg = await serverGetProgress(grade, subject);
-  for (const [block, item] of Object.entries(serverProg)) {
+  for(const [block, item] of Object.entries(serverProg)){
     const g = Number(item?.grade ?? 0);
-    if (Number.isFinite(g) && g > 0) {
-      progress[String(block)] = g;
-    }
+    if(Number.isFinite(g) && g > 0) progress[String(block)] = g;
   }
 
   const materialRequests = [];
-  for (let i = 1; i <= totalBlocks; i++) {
+  for(let i = 1; i <= totalBlocks; i++){
     materialRequests.push(
       fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-        credentials: "include",
-        cache: "no-store"
-      })
-      .then(r => r.json())
-      .catch(() => null)
+        credentials:"include", cache:"no-store"
+      }).then(r => r.json()).catch(() => null)
     );
   }
-
   const materialResults = await Promise.all(materialRequests);
 
-  for (let i = 1; i <= totalBlocks; i++) {
+  const cards = [];
+  for(let i = 1; i <= totalBlocks; i++){
     const materials = normalizeLists(materialResults[i - 1]);
 
     const block = document.createElement("div");
     block.className = "material-block";
-    block.innerHTML = `<p>Сабақ ${i}</p>`;
 
+    /* --- Lesson title --- */
+    const titleEl = document.createElement("div");
+    titleEl.className = "lesson-title";
+    titleEl.textContent = `Сабақ ${i}`;
+    block.appendChild(titleEl);
+
+    /* 1. Video */
     const vBtn = document.createElement("button");
-    vBtn.className = "video-btn";
-    vBtn.textContent = "Видеоны көру";
+    vBtn.className = "lbtn btn-video";
+    vBtn.innerHTML = '<span class="ic">▶</span> Видеоны көру';
     vBtn.onclick = () => {
       const item = lastItem(materials?.videos);
-      if (item?.url) openVideo(item.url);
+      if(item?.url) openVideo(item.url);
       else alert("Видео жоқ");
     };
     block.appendChild(vBtn);
 
+    /* 2. Task / PDF */
     const dBtn = document.createElement("button");
-    dBtn.className = "pdf-btn";
-    dBtn.textContent = "Тапсырманы ашу";
+    dBtn.className = "lbtn btn-doc";
+    dBtn.innerHTML = '<span class="ic">📄</span> Тапсырманы ашу';
     dBtn.onclick = () => {
       const item = lastItem(materials?.docs);
-      if (item?.url) openDoc(item.url);
+      if(item?.url) openDoc(item.url);
       else alert("Тапсырма жоқ");
     };
     block.appendChild(dBtn);
 
-   if (role === "student") {
-  const uBtn = document.createElement("button");
-  uBtn.className = "upload-btn";
-  uBtn.textContent = "Тапсырма жүктеу";
+    /* 3. Quiz (new) */
+    const qBtn = document.createElement("button");
+    qBtn.className = "lbtn btn-quiz";
+    qBtn.innerHTML = '<span class="ic">📋</span> Сынақты ашу';
+    qBtn.onclick = () => openQuizModal();
+    block.appendChild(qBtn);
 
-  uBtn.onclick = async () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
+    /* 4. AI (new) */
+    const aiBtn = document.createElement("button");
+    aiBtn.className = "lbtn btn-ai";
+    aiBtn.innerHTML = '<span class="ic">✨</span> ЖИ қолдану';
+    aiBtn.onclick = () => openAiModal();
+    block.appendChild(aiBtn);
 
-    input.onchange = async () => {
-      const file = input.files && input.files[0];
-      if (!file) return;
+    /* 5+6. Student buttons */
+    if(role === "student"){
+      /* 5. Upload */
+      const uBtn = document.createElement("button");
+      uBtn.className = "lbtn btn-upload";
+      uBtn.innerHTML = '<span class="ic">📤</span> Тапсырма жүктеу';
+      uBtn.onclick = async () => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = ".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg,.mp4,.mov,.webm,.mp3,.wav";
+        input.onchange = async () => {
+          const file = input.files && input.files[0];
+          if(!file) return;
+          try{
+            const fd = new FormData();
+            fd.append("grade", String(grade));
+            fd.append("subject", String(subject));
+            fd.append("blockNumber", String(i));
+            fd.append("file", file);
+            const r = await fetch("/api/student/upload", { method:"POST", body:fd, credentials:"include", cache:"no-store" });
+            const j = await r.json().catch(()=>null);
+            if(!r.ok || !j?.ok){ alert("Қате: " + (j?.message || j?.error || "Жүктелмеді")); return; }
+            alert("✅ Тапсырма жүктелді!");
+            await renderBlocks();
+          }catch(err){ console.error(err); alert("Қате: " + (err?.message || "Upload error")); }
+        };
+        input.click();
+      };
+      block.appendChild(uBtn);
 
-      try {
-        const fd = new FormData();
-        fd.append("grade", String(grade));
-        fd.append("subject", String(subject));
-        fd.append("blockNumber", String(i));
-        fd.append("file", file);
-
-        const r = await fetch("/api/student/upload", {
-          method: "POST",
-          body: fd,
-          credentials: "include",
-          cache: "no-store"
-        });
-
-        const j = await r.json().catch(() => null);
-
-        if (!r.ok || !j?.ok) {
-          alert("Қате: " + (j?.message || j?.error || "Жүктелмеді"));
-          return;
-        }
-
-        alert("✅ Тапсырма жүктелді!");
-        await renderBlocks();
-      } catch (err) {
-        console.error(err);
-        alert("Қате: " + (err?.message || "Upload error"));
-      }
-    };
-
-    input.click();
-  };
-  block.appendChild(uBtn);
-
-  const myBtn = document.createElement("button");
-  myBtn.className = "pdf-btn";
-  myBtn.textContent = "Менің тапсырмам";
-  myBtn.onclick = async () => {
-    try {
-      const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-        credentials: "include",
-        cache: "no-store"
-      }).then(r => r.json()).catch(() => null);
-
-      const uploads = Array.isArray(fresh?.studentUploads) ? fresh.studentUploads : [];
-      const mine = uploads
-        .filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
-        .sort((a, b) => {
-          const ta = Date.parse(a?.createdAt || "") || 0;
-          const tb = Date.parse(b?.createdAt || "") || 0;
-          return ta - tb;
-        });
-
-      if (!mine.length) {
-        alert("Сен бұл сабаққа әлі тапсырма жүктемедің");
-        return;
-      }
-
-      const last = mine[mine.length - 1];
-      const name = String(last.name || "").toLowerCase();
-
-      if (name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov")) {
-        openVideo(last.url);
-      } else if (name.endsWith(".mp3") || name.endsWith(".wav")) {
-        openAudio(last.url);
-      } else {
-        openDoc(last.url);
-      }
-    } catch (e) {
-      console.error(e);
-      alert("Тапсырма ашылмады");
-    }
-  };
-  block.appendChild(myBtn);
-}
-
-    if (role === "admin") {
-      const studentBtn = document.createElement("button");
-      studentBtn.className = "upload-btn";
-      studentBtn.textContent = "Оқушы тапсырмасы";
-
-      studentBtn.onclick = async () => {
-        try {
+      /* 6. My task */
+      const myBtn = document.createElement("button");
+      myBtn.className = "lbtn btn-mine";
+      myBtn.innerHTML = '<span class="ic">📁</span> Менің тапсырмам';
+      myBtn.onclick = async () => {
+        try{
           const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
-            credentials: "include",
-            cache: "no-store"
-          }).then(r => r.json()).catch(() => null);
+            credentials:"include", cache:"no-store"
+          }).then(r => r.json()).catch(()=>null);
+          const uploads = Array.isArray(fresh?.studentUploads) ? fresh.studentUploads : [];
+          const mine = uploads
+            .filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
+            .sort((a,b) => (Date.parse(a?.createdAt||"")||0) - (Date.parse(b?.createdAt||"")||0));
+          if(!mine.length){ alert("Сен бұл сабаққа әлі тапсырма жүктемедің"); return; }
+          const last = mine[mine.length - 1];
+          const name = String(last.name || "").toLowerCase();
+          if(name.endsWith(".mp4")||name.endsWith(".webm")||name.endsWith(".mov")) openVideo(last.url);
+          else if(name.endsWith(".mp3")||name.endsWith(".wav")) openAudio(last.url);
+          else openDoc(last.url);
+        }catch(e){ console.error(e); alert("Тапсырма ашылмады"); }
+      };
+      block.appendChild(myBtn);
+    }
 
+    /* Admin: student task button */
+    if(role === "admin"){
+      const studentBtn = document.createElement("button");
+      studentBtn.className = "lbtn btn-admin";
+      studentBtn.innerHTML = '<span class="ic">👁</span> Оқушы тапсырмасы';
+      studentBtn.onclick = async () => {
+        try{
+          const fresh = await fetch(`/api/materials?grade=${grade}&subject=${subject}&blockNumber=${i}`, {
+            credentials:"include", cache:"no-store"
+          }).then(r => r.json()).catch(()=>null);
           const freshMaterials = normalizeLists(fresh);
           const listAll = Array.isArray(freshMaterials?.studentUploads) ? freshMaterials.studentUploads : [];
           const list = isPreview
-            ? listAll.filter(x => String(x.studentId || "") === String(effectiveStudentId || ""))
+            ? listAll.filter(x => String(x.studentId||"") === String(effectiveStudentId||""))
             : listAll;
-
-          if (!list.length) {
-            alert(isPreview ? "Бұл оқушыдан бұл сабаққа тапсырма жоқ" : "Бұл сабаққа тапсырма жоқ");
-            return;
-          }
-
-          const sorted = list.slice().sort((a, b) => {
-            const ta = Date.parse(a?.createdAt || "") || 0;
-            const tb = Date.parse(b?.createdAt || "") || 0;
-            if (ta !== tb) return ta - tb;
-            return String(a?.url || "").localeCompare(String(b?.url || ""));
+          if(!list.length){ alert(isPreview ? "Бұл оқушыдан бұл сабаққа тапсырма жоқ" : "Бұл сабаққа тапсырма жоқ"); return; }
+          const sorted = list.slice().sort((a,b) => {
+            const ta = Date.parse(a?.createdAt||"")||0, tb = Date.parse(b?.createdAt||"")||0;
+            if(ta !== tb) return ta - tb;
+            return String(a?.url||"").localeCompare(String(b?.url||""));
           });
-
           const last = sorted[sorted.length - 1];
-
-          const lines = sorted.map((it, idx) => {
+          const lines = sorted.map((it,idx) => {
             const n = idx + 1;
-            const name = it?.name || "(file)";
             const when = it?.createdAt ? new Date(it.createdAt).toLocaleString() : "";
-            return `${n}) ${name}${when ? " • " + when : ""}`;
+            return `${n}) ${it?.name || "(file)"}${when ? " • " + when : ""}`;
           });
-
-          const msg =
-            `Сабақ ${i} • ${sorted.length} файл\n` +
-            `Enter = соңғысын ашу\n\n` +
-            lines.join("\n") +
-            `\n\nНөмір енгіз (1-${sorted.length}):`;
-
+          const msg = `Сабақ ${i} • ${sorted.length} файл\nEnter = соңғысын ашу\n\n` + lines.join("\n") + `\n\nНөмір енгіз (1-${sorted.length}):`;
           const ans = prompt(msg, "");
-          const chosen =
-            (ans === null) ? null :
-            (String(ans).trim() === "") ? last :
-            sorted[Math.min(sorted.length - 1, Math.max(0, Number(ans) - 1))];
-
-          if (!chosen) return;
-
-          const name = String(chosen.name || "").toLowerCase();
-          if (name.endsWith(".mp4") || name.endsWith(".webm") || name.endsWith(".mov")) openVideo(chosen.url);
-          else if (name.endsWith(".mp3") || name.endsWith(".wav")) openAudio(chosen.url);
+          const chosen = (ans === null) ? null : (String(ans).trim() === "") ? last : sorted[Math.min(sorted.length-1, Math.max(0, Number(ans)-1))];
+          if(!chosen) return;
+          const name = String(chosen.name||"").toLowerCase();
+          if(name.endsWith(".mp4")||name.endsWith(".webm")||name.endsWith(".mov")) openVideo(chosen.url);
+          else if(name.endsWith(".mp3")||name.endsWith(".wav")) openAudio(chosen.url);
           else openDoc(chosen.url);
-        } catch (e) {
-          console.error(e);
-          alert("materials fetch error");
-        }
+        }catch(e){ console.error(e); alert("materials fetch error"); }
       };
-
       block.appendChild(studentBtn);
     }
 
+    /* Progress badge */
     const badge = document.createElement("div");
     badge.className = "progress-badge";
     badge.textContent = progress[i] ? (progress[i] + "/100") : "—";
     block.appendChild(badge);
 
-    if (role === "admin") {
+    /* Admin grade selector */
+    if(role === "admin"){
       const sel = document.createElement("select");
       sel.className = "progress-select";
       sel.innerHTML = "<option value=''>Баға қою</option>";
-
-      for (let p = 1; p <= 100; p++) {
-        sel.innerHTML += `<option value="${p}">${p}</option>`;
-      }
-
+      for(let p = 1; p <= 100; p++) sel.innerHTML += `<option value="${p}">${p}</option>`;
       sel.value = progress[i] || "";
       sel.onchange = async () => {
         badge.textContent = sel.value ? (sel.value + "/100") : "—";
-
         const resp = await serverSetGrade(grade, subject, i, Number(sel.value), "");
-        if (!resp || !resp.ok) {
-          alert("Server grade save error");
-        }
+        if(!resp || !resp.ok) alert("Server grade save error");
       };
-
       block.appendChild(sel);
     }
 
@@ -685,53 +782,37 @@ async function renderBlocks(){
   cards.forEach(card => container.appendChild(card));
 }
 
-gradeSelect.addEventListener("change", async ()=>{
-  fillSubjectOptions();
-  await renderBlocks();
-});
+gradeSelect.addEventListener("change",   async () => { fillSubjectOptions(); await renderBlocks(); });
+subjectSelect.addEventListener("change", async () => { await renderBlocks(); });
 
-subjectSelect.addEventListener("change", async ()=>{
-  await renderBlocks();
-});
-
-(async ()=>{
-  const me = await fetch("/api/auth/me", {
-    credentials:"include",
-    cache:"no-store"
-  }).then(r=>r.json()).catch(()=>null);
+/* ===== Init ===== */
+(async () => {
+  const me = await fetch("/api/auth/me", { credentials:"include", cache:"no-store" })
+    .then(r => r.json()).catch(()=>null);
 
   sessionUser = me?.user || null;
+  if(!sessionUser){ window.location.href = "index.html"; return; }
 
-  if(!sessionUser){
-    window.location.href = "index.html";
-    return;
-  }
-
-  role = String(sessionUser.role || "student");
-  isAdmin = role === "admin";
+  role      = String(sessionUser.role || "student");
+  isAdmin   = role === "admin";
   isPreview = isAdmin && !!previewStudentId;
 
-  effectiveStudentId = isPreview
-    ? String(previewStudentId)
-    : String(sessionUser.studentId || "");
+  effectiveStudentId = isPreview ? String(previewStudentId) : String(sessionUser.studentId || "");
+  effectivePackage   = String(sessionUser.package || "pending").toLowerCase();
 
-  effectivePackage = String(sessionUser.package || "pending").toLowerCase();
-
-  let studentGrade = Number(sessionUser.grade || 5);
+  let studentGrade  = Number(sessionUser.grade || 5);
   let allowedGrades = [];
 
   if(isPreview){
     const st = await fetchEffectiveStudentForPreview();
     if(st){
-      studentGrade = Number(st.grade || 5);
+      studentGrade     = Number(st.grade || 5);
       effectivePackage = String(st.package || "pending").toLowerCase();
-      allowedGrades = Array.isArray(st.allowedGrades) ? st.allowedGrades : [];
+      allowedGrades    = Array.isArray(st.allowedGrades) ? st.allowedGrades : [];
     }
   }
 
-  if(!isPreview){
-    allowedGrades = getAllowedGradesByPackage(effectivePackage, studentGrade);
-  }
+  if(!isPreview) allowedGrades = getAllowedGradesByPackage(effectivePackage, studentGrade);
 
   if(!isAdmin && effectivePackage !== "base" && effectivePackage !== "baza"){
     window.location.href = "dashboard.html";
@@ -744,14 +825,14 @@ subjectSelect.addEventListener("change", async ()=>{
     return;
   }
 
-  gradeSelect.innerHTML = allowedGrades
-    .map(g => `<option value="${g}">${g} сынып</option>`)
-    .join("");
+  gradeSelect.innerHTML = allowedGrades.map(g => `<option value="${g}">${g} сынып</option>`).join("");
 
+  fillSidebar();
+  wireNavButtons();
   fillSubjectOptions();
   await renderBlocks();
 })();
-</script>
 
+</script>
 </body>
 </html>

@@ -190,6 +190,30 @@
   .cloud-left { left: 3%; }
   .cloud-right { right: 3%; }
 
+  .lang-wrap {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 20px;
+    border: 1px solid rgba(90,120,255,0.14);
+    box-shadow: 0 4px 16px rgba(90,120,255,0.07);
+    z-index: 10;
+  }
+  .lang-wrap select {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    color: #14213D;
+    cursor: pointer;
+    outline: none;
+  }
+
   @media (max-width: 480px) {
     .logo-go, .logo-tab { font-size: 40px; }
     .center { margin-top: 30px; }
@@ -197,6 +221,14 @@
 </style>
 </head>
 <body>
+
+<div class="lang-wrap">
+  🌐
+  <select id="langSelect">
+    <option value="kk">Қазақша</option>
+    <option value="ru">Русский</option>
+  </select>
+</div>
 
 <i class="sp" style="top:5%;left:7%;font-size:14px">✦</i>
 <i class="sp" style="top:11%;right:10%;font-size:9px;color:#20C9FF">✦</i>
@@ -207,24 +239,19 @@
   <div class="gotab-logo">
     <img src="images/logo.png" alt="GoTAB" style="height:140px;width:auto;mix-blend-mode:multiply;">
   </div>
-  <div class="subtitle">
-    <span class="s-blue">Оқу</span> &nbsp;•&nbsp;
-    <span class="s-cyan">Бағалау</span> &nbsp;•&nbsp;
-    <span class="s-mint">Өсу</span>
-  </div>
 
   <div class="form-card">
     <div class="input-wrap">
       <span class="icon">👤</span>
-      <input type="text" id="firstName" placeholder="Аты">
+      <input type="text" id="firstName" placeholder="Аты" data-i18n-placeholder="firstNamePh">
     </div>
     <div class="input-wrap">
       <span class="icon">👤</span>
-      <input type="text" id="lastName" placeholder="Тегі">
+      <input type="text" id="lastName" placeholder="Тегі" data-i18n-placeholder="lastNamePh">
     </div>
     <div class="input-wrap">
       <span class="icon">📱</span>
-      <input type="text" id="phone" placeholder="Телефон нөмірі">
+      <input type="text" id="phone" placeholder="Телефон нөмірі" data-i18n-placeholder="phonePh">
     </div>
     <div class="input-wrap">
       <span class="icon">✉️</span>
@@ -232,19 +259,19 @@
     </div>
     <div class="input-wrap has-eye">
       <span class="icon">🔒</span>
-      <input type="password" id="password" placeholder="Оқу платформасына арналған құпиясөз">
+      <input type="password" id="password" placeholder="Оқу платформасына арналған құпиясөз" data-i18n-placeholder="passwordRegPh">
       <button class="eye-btn" id="togglePass1" type="button">👁</button>
     </div>
     <div class="input-wrap has-eye">
       <span class="icon">🔒</span>
-      <input type="password" id="password2" placeholder="Құпиясөзді қайталаңыз">
+      <input type="password" id="password2" placeholder="Құпиясөзді қайталаңыз" data-i18n-placeholder="password2Ph">
       <button class="eye-btn" id="togglePass2" type="button">👁</button>
     </div>
 
     <div id="errorBox" class="error"></div>
 
-    <button class="btn-main" id="submitBtn">Тіркелу</button>
-    <button class="btn-back" id="backBtn">← Артқа</button>
+    <button class="btn-main" id="submitBtn" data-i18n="submitBtn">Тіркелу</button>
+    <button class="btn-back" id="backBtn" data-i18n="btnBack">← Артқа</button>
   </div>
 </div>
 
@@ -252,19 +279,10 @@
   <img src="images/mountain.png" alt="" style="width:440px;max-width:90vw;mix-blend-mode:screen;">
 </div>
 
+<script src="lang.js"></script>
 <script>
 (function(){
   const lang = localStorage.getItem("lang") || "kk";
-
-  if(lang === "ru"){
-    document.getElementById("firstName").placeholder = "Имя";
-    document.getElementById("lastName").placeholder = "Фамилия";
-    document.getElementById("phone").placeholder = "Номер телефона";
-    document.getElementById("password").placeholder = "Придумайте пароль для платформы";
-    document.getElementById("password2").placeholder = "Повторите пароль";
-    document.getElementById("submitBtn").textContent = "Зарегистрироваться";
-    document.getElementById("backBtn").textContent = "← Назад";
-  }
 
   const firstNameInput = document.getElementById("firstName");
   const lastNameInput  = document.getElementById("lastName");
