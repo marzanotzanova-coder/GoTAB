@@ -59,6 +59,13 @@
 
     .muted{color:var(--muted); font-size:12px}
     .sectionTitle{font-weight:900; margin:0 0 12px 0; font-size:14px; color:var(--text);}
+    .courseCards{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+    .courseCard{flex:1;min-width:80px;padding:12px 10px;border-radius:16px;border:none;cursor:pointer;font-size:13px;font-weight:800;color:#fff;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center;gap:6px;transition:transform .16s,box-shadow .16s;box-shadow:0 6px 18px rgba(0,0,0,.12);}
+    .courseCard:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(0,0,0,.18);}
+    .courseCard .cc-icon{font-size:22px;line-height:1;}
+    .courseCard-base{background:linear-gradient(135deg,#2F6BFF,#20C9FF);}
+    .courseCard-std{background:linear-gradient(135deg,#7c3aed,#20C9FF);}
+    .courseCard-prem{background:linear-gradient(135deg,#c2410c,#f59e0b);}
 
     .row{
       display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -228,6 +235,11 @@
   <!-- RIGHT: uploads -->
   <main class="card">
     <div class="sectionTitle">Курстар</div>
+    <div class="courseCards">
+      <a href="base-blocks.html" class="courseCard courseCard-base"><span class="cc-icon">📗</span>База</a>
+      <a href="standard-blocks.html" class="courseCard courseCard-std"><span class="cc-icon">📘</span>Стандарт</a>
+      <a href="premium-blocks.html" class="courseCard courseCard-prem"><span class="cc-icon">📙</span>Премиум</a>
+    </div>
     <div class="sectionTitle" data-i18n="uploadTitle">📦 Материал жүктеу</div>
     <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
 
