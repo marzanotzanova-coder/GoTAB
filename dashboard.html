@@ -539,7 +539,7 @@
         <div class="cardTitle" data-i18n="profileSupport">👤 Профиль және қолдау</div>
 
         <div class="supportRow">
-          <a class="primary" href="#" id="openCourseFromProfile">📚 Курсқа өту</a>
+          <a class="primary" href="#" id="openCourseFromProfile" data-i18n="btnCourse">📚 Курсқа өту</a>
           <a href="#" id="copyStudentIdBtn" data-i18n="copyIdBtn">🧾 Student ID көшіру</a>
           <a href="https://t.me/" target="_blank" rel="noopener">💬 Telegram</a>
           <a href="https://wa.me/77055894347" target="_blank" rel="noopener">🟢 WhatsApp</a>
@@ -912,7 +912,7 @@ window.pingStreakServer = pingStreakServer;
 
     if(pnameEl){
       if(isPreview) pnameEl.textContent = effectiveName;
-      else pnameEl.textContent = isAdmin ? "Admin" : (effectiveName || "Оқушы");
+      else pnameEl.textContent = isAdmin ? "Admin" : (effectiveName || (window.goI18n[window.goLang]||window.goI18n.kk).student);
     }
 
     if(pmetaEl){
@@ -1306,11 +1306,12 @@ function renderTodayPlan(progressValues){
   if(!checklist) return;
   checklist.innerHTML = "";
 
+  const _tCl = window.goI18n[window.goLang] || window.goI18n.kk;
   const items = [
-    {k:"watched",  label:"Видео көру"},
-    {k:"uploaded", label:"Тапсырма жүктеу"},
-    {k:"tested",   label:"Тақырып аралық сынақтардан өту"},
-    {k:"ai",       label:"ЖИ қолдану"},
+    {k:"watched",  label:_tCl.checkVideo},
+    {k:"uploaded", label:_tCl.checkUpload},
+    {k:"tested",   label:_tCl.checkTest},
+    {k:"ai",       label:_tCl.checkAI},
   ];
 
   items.forEach(it=>{
@@ -1350,13 +1351,13 @@ function renderTodayPlan(progressValues){
     const grade = Number(p?.grade ?? 0);
     const st = String(p?.status || "").toLowerCase();
     const fb = String(p?.feedbackText || "");
-
-    if(fb.trim()) return { label:"💬 Фидбек бар", kind:"" };
-    if(grade > 0 || st === "graded") return { label:"🏅 Баға қойылды", kind:"" };
-    if(st === "reviewing") return { label:"🕒 Тексерілуде", kind:"warn" };
-    if(st === "checked")   return { label:"✅ Тексерілді", kind:"" };
-    if(st === "uploaded")  return { label:"📤 Жүктелді", kind:"warn" };
-    return { label:"❌ Жүктелмеген", kind:"neutral" };
+    const _t = window.goI18n[window.goLang] || window.goI18n.kk;
+    if(fb.trim()) return { label:_t.statusFeedback, kind:"" };
+    if(grade > 0 || st === "graded") return { label:_t.statusGraded, kind:"" };
+    if(st === "reviewing") return { label:_t.statusReviewing, kind:"warn" };
+    if(st === "checked")   return { label:_t.statusChecked, kind:"" };
+    if(st === "uploaded")  return { label:_t.statusUploaded, kind:"warn" };
+    return { label:_t.statusNotUploaded, kind:"neutral" };
   }
 
   async function fetchServerProgress(){
@@ -1405,7 +1406,8 @@ function renderTodayPlan(progressValues){
       const {label, kind} = statusLabelFromProgress(p);
 
       const sub2 = " ";
-      box.appendChild(makeRow("Сабақ " + lesson, sub2.trim() || " ", label, kind));
+      const _tUs = window.goI18n[window.goLang] || window.goI18n.kk;
+      box.appendChild(makeRow(_tUs.lessonLabel + " " + lesson, sub2.trim() || " ", label, kind));
     });
   }
 
@@ -1428,10 +1430,11 @@ function renderTodayPlan(progressValues){
       return (b.blockNumber || 0) - (a.blockNumber || 0);
     });
 
+  const _tGr = window.goI18n[window.goLang] || window.goI18n.kk;
   if(rows.length === 0){
     box.appendChild(makeRow(
-      "Әзірге баға жоқ",
-      "Admin баға қойған кезде көрінеді.",
+      _tGr.noGradesYet,
+      _tGr.noGradesYetSub,
       "WAIT",
       "warn"
     ));
@@ -1443,7 +1446,7 @@ function renderTodayPlan(progressValues){
     const g = Number(r.grade || 0);
 
     const title =
-      `${r.schoolGrade} сынып • ${r.subject} • Сабақ ${r.blockNumber}`;
+      `${r.schoolGrade} ${_tGr.gradeUnit} • ${r.subject} • ${_tGr.lessonLabel} ${r.blockNumber}`;
 
     const badge = g + "/100";
 
@@ -1454,7 +1457,7 @@ function renderTodayPlan(progressValues){
 
     box.appendChild(makeRow(
       title,
-      "Баға қойылды",
+      _tGr.statusGraded,
       badge,
       kind
     ));
@@ -1500,13 +1503,14 @@ function renderTodayPlan(progressValues){
     const uploadKey = courseKey("uploadCount");
     const uploadCount = Number(localStorage.getItem(uploadKey) || "0");
 
-    achBox.appendChild(makeRow("🔥 Күндік серия", `${streak} күн қатарынан кірдің`, streak>=3 ? "OK" : "START", streak>=3 ? "" : "warn"));
-    achBox.appendChild(makeRow("📤 Тапсырма", `${uploadCount} рет тапсырма жібердің`, uploadCount>=5 ? "OK" : "KEEP", uploadCount>=5 ? "" : "warn"));
+    const _tAch = window.goI18n[window.goLang] || window.goI18n.kk;
+    achBox.appendChild(makeRow(_tAch.achStreak, `${streak} ${_tAch.achStreakDesc}`, streak>=3 ? "OK" : "START", streak>=3 ? "" : "warn"));
+    achBox.appendChild(makeRow(_tAch.achTask, `${uploadCount} ${_tAch.achTaskDesc}`, uploadCount>=5 ? "OK" : "KEEP", uploadCount>=5 ? "" : "warn"));
 
     const monthlyCount = getMonthlyCompletedLessons(serverProg);
     achBox.appendChild(makeRow(
-      "📅 Үздік деңгей",
-      `Осы айда өткен сабақтар саны: ${monthlyCount}`,
+      _tAch.achBest,
+      `${_tAch.achBestDesc}: ${monthlyCount}`,
       monthlyCount > 0 ? String(monthlyCount) : "—",
       monthlyCount > 0 ? "" : "neutral"
     ));
@@ -1530,8 +1534,9 @@ function renderTodayPlan(progressValues){
       const data = await res.json().catch(()=>null);
       const list = (data && data.ok && Array.isArray(data.list)) ? data.list : [];
 
+      const _tN = window.goI18n[window.goLang] || window.goI18n.kk;
       if(list.length === 0){
-        box.appendChild(makeRow("Әзірге notification жоқ", "Баға/файл болғанда осында шығады.", "OK", "neutral"));
+        box.appendChild(makeRow(_tN.noNotif, _tN.noNotifSub, "OK", "neutral"));
         return;
       }
 
@@ -1546,7 +1551,8 @@ function renderTodayPlan(progressValues){
       });
     }catch(e){
       console.error(e);
-      box.appendChild(makeRow("Notifications алынбады", "сервер байланыспады", "WARN", "warn"));
+      const _tNe = window.goI18n[window.goLang] || window.goI18n.kk;
+      box.appendChild(makeRow(_tNe.notifFailed, _tNe.serverError, "WARN", "warn"));
     }
   }
 
@@ -1557,21 +1563,22 @@ function renderTodayPlan(progressValues){
     const profileLine = document.getElementById("profileLine");
     const profileSub  = document.getElementById("profileSub");
 
+    const _tPl = window.goI18n[window.goLang] || window.goI18n.kk;
     if(profileLine){
-      if(isPreview) profileLine.textContent = `Оқушы • ${effectiveName} • ${pkgLabel()}`;
+      if(isPreview) profileLine.textContent = `${_tPl.student} • ${effectiveName} • ${pkgLabel()}`;
       else if(isAdmin) profileLine.textContent = "Admin • " + (email || "admin@gotab.kz");
-      else profileLine.textContent = `Оқушы • ${(effectiveEmail || effectivePhone || "")} • ${pkgLabel()}`;
+      else profileLine.textContent = `${_tPl.student} • ${(effectiveEmail || effectivePhone || "")} • ${pkgLabel()}`;
     }
 
     if(profileSub){
   if(isPreview) {
     profileSub.textContent = "Preview • ID: " + (effectiveStudentId || "—");
   } else if(isAdmin) {
-    profileSub.textContent = "Материал жүктеу / тексеру";
+    profileSub.textContent = _tPl.adminUpload;
   } else if(String(effectivePackage || "").toLowerCase() === "pending") {
-    profileSub.textContent = "Пакет әлі бекітілмеді • ID: " + (effectiveStudentId || "—");
+    profileSub.textContent = _tPl.pkgPending + " • ID: " + (effectiveStudentId || "—");
   } else {
-    profileSub.textContent = "Пакет: " + pkgLabel() + " • ID: " + (effectiveStudentId || "—");
+    profileSub.textContent = _tPl.pkgPrefix + pkgLabel() + " • ID: " + (effectiveStudentId || "—");
   }
 }
 
