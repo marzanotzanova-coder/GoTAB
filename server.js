@@ -1800,8 +1800,8 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       return res.status(400).json({ ok: false, error: "missing_fields" });
     }
 
-    const OPENAI_KEY = process.env.OPENAI_API_KEY;
-    if (!OPENAI_KEY) {
+    const GEMINI_KEY = process.env.OPENAI_API_KEY;
+    if (!GEMINI_KEY) {
       return res.json({ ok: true, text: "ЖИ көмекшісі жақында іске қосылады." });
     }
 
@@ -1822,30 +1822,27 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       ? `${g}-сынып, ${s} пәні, ${l ? l + "-сабақ, " : ""}${topicLine} Осыған байланысты 3-5 жаттығу есеп жаз.`
       : topicLine;
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_KEY}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        max_tokens: 600,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userMsg }
-        ]
-      })
-    });
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text: userMsg }] }],
+          generationConfig: { maxOutputTokens: 600 }
+        })
+      }
+    );
 
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
-      console.error("OpenAI error:", openaiRes.status, errText);
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text().catch(() => "");
+      console.error("Gemini error:", geminiRes.status, errText);
       return res.status(502).json({ ok: false, error: "ai_unavailable" });
     }
 
-    const json = await openaiRes.json().catch(() => null);
-    const text = json?.choices?.[0]?.message?.content?.trim() || "";
+    const json = await geminiRes.json().catch(() => null);
+    const text = json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
     if (!text) return res.status(502).json({ ok: false, error: "empty_response" });
 
     return res.json({ ok: true, text });
