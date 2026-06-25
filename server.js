@@ -1825,7 +1825,7 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
 
     const genAI = new GoogleGenerativeAI(GEMINI_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.0-flash",
       systemInstruction: systemPrompt
     });
     const result = await model.generateContent(userMsg);
