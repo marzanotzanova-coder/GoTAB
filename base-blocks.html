@@ -384,7 +384,7 @@ body{
       <button class="ai-prompt-btn secondary" id="aiTryAgain" data-i18n="aiModalTryAgain">Қайта сұрау</button>
     </div>
     <div id="aiError" style="display:none">
-      <div class="ai-error-msg" data-i18n="aiModalError">Қате болды. Қайта көріңіз.</div>
+      <div class="ai-error-msg" id="aiErrorText" data-i18n="aiModalError">Қате болды. Қайта көріңіз.</div>
       <button class="ai-prompt-btn secondary" id="aiRetry" data-i18n="aiModalTryAgain">Қайта сұрау</button>
     </div>
   </div>
@@ -554,7 +554,12 @@ async function _callAIPractice(){
       body:JSON.stringify({studentId:effectiveStudentId,grade:gradeSelect.value,subject:subjectSelect.value,
         lessonId:_aiLesson?"Сабақ "+_aiLesson:"",todayTopics:topics,promptType:"extra_practice"})});
     const j = await r.json().catch(()=>null);
-    if(!r.ok||!j?.ok){ _setAiState("error"); return; }
+    if(!r.ok||!j?.ok){
+      const _tAi = window.goI18n[window.goLang] || window.goI18n.kk;
+      const errEl = document.getElementById("aiErrorText");
+      if(errEl) errEl.textContent = (j?.error === "quota_exceeded") ? _tAi.aiQuotaError : _tAi.aiModalError;
+      _setAiState("error"); return;
+    }
     document.getElementById("aiResultText").textContent = j.text;
     _setAiState("result");
   }catch(e){ console.error(e); _setAiState("error"); }

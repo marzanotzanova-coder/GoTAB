@@ -1835,6 +1835,9 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     return res.json({ ok: true, text });
   } catch (e) {
     console.error("ai/practice error:", e);
+    if (e?.status === 429 || String(e?.message || "").includes("429")) {
+      return res.status(429).json({ ok: false, error: "quota_exceeded" });
+    }
     return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
