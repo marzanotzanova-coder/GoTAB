@@ -1800,7 +1800,7 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       return res.status(400).json({ ok: false, error: "missing_fields" });
     }
 
-    const GEMINI_KEY = process.env.OPENAI_API_KEY;
+    const GEMINI_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_KEY) {
       return res.json({ ok: true, text: "ЖИ көмекшісі жақында іске қосылады." });
     }
