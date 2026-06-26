@@ -55,6 +55,7 @@ const uploadAvatar = multer({ storage: avatarStorage });
 
 console.log("RUNNING FILE =", __filename);
 console.log("CWD =", process.cwd());
+console.log("GEMINI_API_KEY exists:", !!process.env.GEMINI_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1825,7 +1826,7 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
 
     const genAI = new GoogleGenerativeAI(GEMINI_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-2.0-flash",
       systemInstruction: systemPrompt
     });
     const result = await model.generateContent(userMsg);
@@ -1838,7 +1839,25 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     if (e?.status === 429 || String(e?.message || "").includes("429")) {
       return res.status(429).json({ ok: false, error: "quota_exceeded" });
     }
-    return res.status(500).json({ ok: false, error: "server_error" });
+    return res.status(500).json({ ok: false, error: e.message, details: e.toString() });
+  }
+});
+
+// ===================== AI TEST =====================
+app.get("/api/ai/test", async (req, res) => {
+  try {
+    const GEMINI_KEY = process.env.GEMINI_API_KEY;
+    if (!GEMINI_KEY) {
+      return res.status(500).json({ ok: false, error: "GEMINI_API_KEY is not set" });
+    }
+    const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const result = await model.generateContent("Say hello in Kazakh");
+    const text = result.response.text().trim();
+    return res.json({ ok: true, text });
+  } catch (e) {
+    console.error("ai/test error:", e);
+    return res.status(500).json({ ok: false, error: e.message, details: e.toString() });
   }
 });
 
