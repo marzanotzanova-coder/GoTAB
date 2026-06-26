@@ -1955,6 +1955,9 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
 
 
 // ===================== START =====================
+// Discover the best available OpenAI model before serving any requests
+aiService.resolveModel().catch(e => console.error("[startup] model discovery error:", e.message));
+
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
   console.log("👉 Index     : http://localhost:" + PORT + "/index.html");
