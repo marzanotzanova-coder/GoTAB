@@ -1786,17 +1786,59 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 const aiService = require("./services/aiService");
 const aiUsage  = require("./services/aiUsageService");
 
+// Quick diagnostic endpoint — hit /api/ai/debug to see all env checks and a live Gemini ping
+app.get("/api/ai/debug", async (req, res) => {
+  const report = {
+    GEMINI_API_KEY:        !!process.env.GEMINI_API_KEY,
+    SUPABASE_URL:          !!process.env.SUPABASE_URL,
+    SUPABASE_KEY:          !!process.env.SUPABASE_KEY,
+    SUPABASE_SERVICE_KEY:  !!process.env.SUPABASE_SERVICE_KEY,
+    keyUsedForAiUsage:     process.env.SUPABASE_SERVICE_KEY ? "service_role" : "anon"
+  };
+
+  // Test ai_daily_usage table access
+  try {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+    const r = await fetch(`${url}/rest/v1/ai_daily_usage?select=id&limit=1`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` }
+    });
+    const body = await r.text();
+    report.supabaseAiTable = { status: r.status, ok: r.ok, body: body.slice(0, 200) };
+  } catch (e) {
+    report.supabaseAiTable = { error: e.message };
+  }
+
+  // Test Gemini
+  if (process.env.GEMINI_API_KEY) {
+    try {
+      const { GoogleGenerativeAI } = require("@google/generative-ai");
+      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const result = await model.generateContent("Say hello in Kazakh in one word");
+      report.geminiTest = { ok: true, text: result.response.text().trim().slice(0, 100) };
+    } catch (e) {
+      report.geminiTest = { ok: false, error: e.message, status: e?.status };
+    }
+  } else {
+    report.geminiTest = { ok: false, error: "GEMINI_API_KEY not set" };
+  }
+
+  return res.json(report);
+});
+
 app.get("/api/ai/usage", requireAuth, async (req, res) => {
   try {
     const studentId = String(req.session?.user?.studentId || "");
     const lessonId  = String(req.query.lessonId || "").trim();
+    console.log(`[ai/usage] studentId=${studentId} lessonId=${lessonId}`);
     if (!studentId || !lessonId) {
       return res.status(400).json({ ok: false, error: "bad_input" });
     }
     const usage = await aiUsage.getUsage(studentId, lessonId);
     return res.json({ ok: true, ...usage, limit: aiUsage.DAILY_LIMIT });
   } catch (e) {
-    console.error("ai/usage error:", e);
+    console.error("[ai/usage] error:", e.message);
     return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
@@ -1806,7 +1848,10 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     const { grade, subject, lessonId, todayTopics, promptType, lessonKey } = req.body || {};
     const studentId = String(req.session?.user?.studentId || "");
 
+    console.log(`[ai/practice] START | studentId=${studentId} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType} lessonKey=${lessonKey}`);
+
     if (!aiService.ALLOWED_PROMPT_TYPES.includes(promptType)) {
+      console.log(`[ai/practice] invalid promptType: ${promptType}`);
       return res.status(400).json({ ok: false, error: "invalid_prompt_type" });
     }
 
@@ -1816,11 +1861,20 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     const lk = String(lessonKey   || `${g}_${s}_${l}`).trim();
     const topics = String(todayTopics || "").slice(0, 300).trim();
 
-    if (!g || !s || !studentId) {
+    if (!g || !s) {
+      console.log(`[ai/practice] missing grade/subject | g=${g} s=${s}`);
       return res.status(400).json({ ok: false, error: "missing_fields" });
     }
 
+    if (!studentId) {
+      console.log("[ai/practice] no studentId in session (admin?)");
+      return res.status(400).json({ ok: false, error: "missing_student_id" });
+    }
+
+    console.log(`[ai/practice] checking usage | studentId=${studentId} lk=${lk}`);
     const usage = await aiUsage.getUsage(studentId, lk);
+    console.log(`[ai/practice] usage | count=${usage.count} remaining=${usage.remaining}`);
+
     if (usage.remaining <= 0) {
       return res.status(429).json({
         ok: false,
@@ -1831,8 +1885,13 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       });
     }
 
+    console.log(`[ai/practice] calling Gemini | promptType=${promptType}`);
     const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
+    console.log(`[ai/practice] Gemini done | textLength=${result.text.length}`);
+
+    console.log(`[ai/practice] incrementing usage`);
     const newUsage = await aiUsage.incrementUsage(studentId, lk);
+    console.log(`[ai/practice] usage after increment | count=${newUsage.count} remaining=${newUsage.remaining}`);
 
     return res.json({
       ok: true,
@@ -1843,31 +1902,14 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       limit: aiUsage.DAILY_LIMIT
     });
   } catch (e) {
-    console.error("ai/practice error:", e);
+    console.error("[ai/practice] CAUGHT ERROR:", e.message, "| status:", e?.status, "| stack:", e?.stack?.split("\n")[1]);
     if (e?.status === 429 || String(e?.message || "").includes("429")) {
       return res.status(429).json({ ok: false, error: "quota_exceeded" });
     }
-    return res.status(500).json({ ok: false, error: e.message, details: e.toString() });
+    return res.status(500).json({ ok: false, error: e.message || "server_error", details: e.toString() });
   }
 });
 
-// ===================== AI TEST =====================
-app.get("/api/ai/test", async (req, res) => {
-  try {
-    const GEMINI_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_KEY) {
-      return res.status(500).json({ ok: false, error: "GEMINI_API_KEY is not set" });
-    }
-    const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent("Say hello in Kazakh");
-    const text = result.response.text().trim();
-    return res.json({ ok: true, text });
-  } catch (e) {
-    console.error("ai/test error:", e);
-    return res.status(500).json({ ok: false, error: e.message, details: e.toString() });
-  }
-});
 
 // ===================== START =====================
 app.listen(PORT, () => {

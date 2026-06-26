@@ -1,5 +1,7 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
+const MODEL_NAME = "gemini-2.0-flash";
+
 const PROMPT_CONFIGS = {
   extra_practice: {
     titleKz: "📘 Жаттығу есептері",
@@ -23,7 +25,9 @@ const ALLOWED_PROMPT_TYPES = Object.keys(PROMPT_CONFIGS);
 
 async function generateProblems({ grade, subject, lessonId, todayTopics, promptType }) {
   const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  if (!GEMINI_KEY) throw new Error("GEMINI_API_KEY is not configured");
+  console.log(`[aiService] generateProblems | GEMINI_API_KEY exists=${!!GEMINI_KEY} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType}`);
+
+  if (!GEMINI_KEY) throw new Error("GEMINI_API_KEY is not configured on this server");
 
   const config = PROMPT_CONFIGS[promptType];
   if (!config) throw new Error("Invalid prompt type: " + promptType);
@@ -50,11 +54,33 @@ async function generateProblems({ grade, subject, lessonId, todayTopics, promptT
     "Дәл 5 есеп бер. Жауабын берме."
   ].filter(Boolean).join(" ");
 
+  console.log(`[aiService] calling Gemini model=${MODEL_NAME} msgLength=${userMsg.length}`);
+
   const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash", systemInstruction });
-  const result = await model.generateContent(userMsg);
-  const text = result.response.text().trim();
-  if (!text) throw new Error("Gemini returned empty response");
+  const model = genAI.getGenerativeModel({ model: MODEL_NAME, systemInstruction });
+
+  let result;
+  try {
+    result = await model.generateContent(userMsg);
+  } catch (e) {
+    console.error("[aiService] Gemini generateContent threw:", e.message, e?.status, e?.statusText);
+    throw e;
+  }
+
+  let text;
+  try {
+    text = result.response.text().trim();
+  } catch (e) {
+    // response.text() throws when the response was blocked by safety filters
+    console.error("[aiService] response.text() threw (likely safety filter):", e.message);
+    const candidate = result?.response?.candidates?.[0];
+    console.error("[aiService] finishReason:", candidate?.finishReason, "safetyRatings:", JSON.stringify(candidate?.safetyRatings));
+    throw new Error("Gemini blocked the response (safety filter). finishReason: " + (candidate?.finishReason || "unknown"));
+  }
+
+  console.log(`[aiService] Gemini response received | textLength=${text.length}`);
+
+  if (!text) throw new Error("Gemini returned an empty response");
 
   return { text, title: config.titleKz };
 }
