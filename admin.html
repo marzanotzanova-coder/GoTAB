@@ -1014,7 +1014,9 @@ async function saveQuiz() {
       loadQuizList();
     } else {
       stat.className = "quiz-status err";
-      stat.textContent = "Қате: " + ((j?.errors || [j?.error]).filter(Boolean).join(" | ") || "server_error");
+      const mainMsg  = (j?.errors || [j?.error]).filter(Boolean).join(" | ") || "server_error";
+      const dbDetail = j?.supabase ? ` [${j.supabase.code}: ${j.supabase.message}${j.supabase.hint ? " — " + j.supabase.hint : ""}]` : "";
+      stat.textContent = "Қате: " + mainMsg + dbDetail;
     }
   } catch(e) {
     stat.className = "quiz-status err"; stat.textContent = "Желі қатесі.";

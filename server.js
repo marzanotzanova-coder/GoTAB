@@ -1963,6 +1963,102 @@ function quizDb() {
   return { url, key };
 }
 
+const _QUIZ_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS quizzes (
+  id            bigint primary key generated always as identity,
+  package       text    not null,
+  grade         int     not null,
+  subject       text    not null,
+  lesson_number int     not null,
+  raw_text      text    not null,
+  parsed_questions jsonb not null,
+  updated_at    timestamptz default now(),
+  unique(package, grade, subject, lesson_number)
+);`;
+
+const _ATTEMPTS_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS quiz_attempts (
+  id             bigint primary key generated always as identity,
+  quiz_id        bigint references quizzes(id) on delete set null,
+  student_id     text    not null,
+  student_name   text,
+  package        text,
+  grade          int,
+  subject        text,
+  lesson_number  int,
+  correct_count  int,
+  wrong_count    int,
+  total_count    int,
+  percentage     int,
+  topic_breakdown  jsonb,
+  wrong_questions  jsonb,
+  ai_diagnosis   text,
+  answers        jsonb,
+  created_at     timestamptz default now()
+);`;
+
+async function ensureQuizTables() {
+  const { url, key } = quizDb();
+  if (!url || !key) {
+    console.error("[quiz-setup] SUPABASE_URL or key not set — skipping table check.");
+    return;
+  }
+
+  // Check if quizzes table exists via REST
+  let tableExists = false;
+  try {
+    const probe = await fetch(`${url}/rest/v1/quizzes?limit=0`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    const probeBody = await probe.json().catch(() => null);
+    if (probe.ok) {
+      tableExists = true;
+      console.log("[quiz-setup] quizzes table: EXISTS");
+    } else {
+      console.error("[quiz-setup] quizzes table probe failed:");
+      console.error("  status :", probe.status);
+      console.error("  message:", probeBody?.message);
+      console.error("  code   :", probeBody?.code);
+      console.error("  hint   :", probeBody?.hint);
+    }
+  } catch (e) {
+    console.error("[quiz-setup] probe fetch error:", e.message);
+  }
+
+  if (tableExists) return;
+
+  // Attempt auto-create via DATABASE_URL (direct Postgres connection)
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    console.log("[quiz-setup] Attempting auto-create via DATABASE_URL ...");
+    let pgClient;
+    try {
+      const { Client } = require("pg");
+      pgClient = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+      await pgClient.connect();
+      await pgClient.query(_QUIZ_TABLE_SQL);
+      console.log("[quiz-setup] quizzes table created OK");
+      await pgClient.query(_ATTEMPTS_TABLE_SQL);
+      console.log("[quiz-setup] quiz_attempts table created OK");
+      await pgClient.end();
+      console.log("[quiz-setup] Auto-create DONE. Tables are ready.");
+      return;
+    } catch (pgErr) {
+      console.error("[quiz-setup] pg auto-create failed:", pgErr.message);
+      if (pgClient) await pgClient.end().catch(() => {});
+    }
+  } else {
+    console.warn("[quiz-setup] DATABASE_URL not set — cannot auto-create tables.");
+  }
+
+  // Fallback: print SQL for manual execution
+  console.error("=".repeat(60));
+  console.error("[quiz-setup] ACTION REQUIRED: run this SQL in Supabase SQL Editor:");
+  console.error(_QUIZ_TABLE_SQL);
+  console.error(_ATTEMPTS_TABLE_SQL);
+  console.error("=".repeat(60));
+}
+
 async function generateQuizDiagnosis({ grade, subject, lessonNumber, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown }) {
   const weakTopics   = Object.entries(topicBreakdown).filter(([,d]) => d.percentage < 50).map(([t]) => t);
   const strongTopics = Object.entries(topicBreakdown).filter(([,d]) => d.percentage >= 80).map(([t]) => t);
@@ -2037,30 +2133,80 @@ async function generateQuizDiagnosis({ grade, subject, lessonNumber, totalCount,
 
 // Admin: save / update quiz
 app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
+  const TABLE = "quizzes";
+  console.log("[quiz/save] ── incoming request ──");
+  console.log("[quiz/save] body:", JSON.stringify(req.body || {}));
+
   try {
     const { package: pkg, grade, subject, lessonNumber, rawText } = req.body || {};
+
     if (!pkg || !grade || !subject || !lessonNumber || !rawText) {
+      console.warn("[quiz/save] validation failed: missing fields", { pkg: !!pkg, grade: !!grade, subject: !!subject, lessonNumber: !!lessonNumber, rawText: !!rawText });
       return res.status(400).json({ ok: false, error: "Барлық өрістерді толтырыңыз." });
     }
+
     const ln = Number(lessonNumber);
-    if (!Number.isFinite(ln) || ln < 1) return res.status(400).json({ ok: false, error: "Сабақ нөмірі дұрыс емес." });
+    if (!Number.isFinite(ln) || ln < 1) {
+      console.warn("[quiz/save] validation failed: bad lessonNumber:", lessonNumber);
+      return res.status(400).json({ ok: false, error: "Сабақ нөмірі дұрыс емес." });
+    }
 
     const parsed = quizParser.parseQuiz(rawText);
+    console.log("[quiz/save] parse result: ok=%s questions=%d errors=%j", parsed.ok, parsed.questions?.length, parsed.errors);
     if (!parsed.ok) return res.status(400).json({ ok: false, errors: parsed.errors });
 
     const { url, key } = quizDb();
-    const r = await fetch(`${url}/rest/v1/quizzes`, {
-      method: "POST",
-      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
-      body: JSON.stringify([{ package: pkg, grade: String(grade), subject: String(subject), lesson_number: ln, raw_text: rawText, parsed_questions: parsed.questions, updated_at: new Date().toISOString() }]),
+    console.log("[quiz/save] supabase url:", url ? url.slice(0, 50) + "..." : "MISSING");
+    console.log("[quiz/save] key present:", !!key, "| table:", TABLE);
+
+    const payload = [{
+      package:          pkg,
+      grade:            Number(grade),
+      subject:          String(subject),
+      lesson_number:    ln,
+      raw_text:         rawText,
+      parsed_questions: parsed.questions,
+      updated_at:       new Date().toISOString(),
+    }];
+    console.log("[quiz/save] insert payload (sans raw_text):", JSON.stringify({
+      ...payload[0], raw_text: `[${rawText.length} chars]`, parsed_questions: `[${parsed.questions.length} questions]`,
+    }));
+
+    const r = await fetch(`${url}/rest/v1/${TABLE}`, {
+      method:  "POST",
+      headers: {
+        apikey:          key,
+        Authorization:   `Bearer ${key}`,
+        "Content-Type":  "application/json",
+        Prefer:          "resolution=merge-duplicates,return=representation",
+      },
+      body: JSON.stringify(payload),
     });
+
+    console.log("[quiz/save] supabase HTTP status:", r.status, r.statusText);
     const data = await r.json().catch(() => null);
-    if (!r.ok) { console.error("[quiz/save] supabase:", data); return res.status(500).json({ ok: false, error: "DB қатесі.", data }); }
-    console.log(`[quiz/save] pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} q=${parsed.questions.length}`);
+
+    if (!r.ok) {
+      console.error("[quiz/save] Supabase INSERT error:");
+      console.error("  message :", data?.message);
+      console.error("  details :", data?.details);
+      console.error("  hint    :", data?.hint);
+      console.error("  code    :", data?.code);
+      console.error("  full    :", JSON.stringify(data));
+      return res.status(500).json({
+        ok: false,
+        error: "DB қатесі.",
+        supabase: { message: data?.message, code: data?.code, hint: data?.hint, details: data?.details },
+      });
+    }
+
+    console.log(`[quiz/save] OK — pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} questions=${parsed.questions.length}`);
     return res.json({ ok: true, questionCount: parsed.questions.length, warnings: parsed.errors });
+
   } catch (e) {
-    console.error("[quiz/save] error:", e.message);
-    return res.status(500).json({ ok: false, error: "server_error" });
+    console.error("[quiz/save] server exception:", e.message);
+    console.error(e.stack);
+    return res.status(500).json({ ok: false, error: "server_error", message: e.message });
   }
 });
 
@@ -2252,6 +2398,9 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
 // ===================== START =====================
 // Discover the best available OpenAI model before serving any requests
 aiService.resolveModel().catch(e => console.error("[startup] model discovery error:", e.message));
+
+// Ensure quiz DB tables exist (auto-creates via DATABASE_URL if missing)
+ensureQuizTables().catch(e => console.error("[startup] ensureQuizTables error:", e.message));
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
