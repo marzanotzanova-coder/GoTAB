@@ -116,16 +116,30 @@ a{text-decoration:none;color:inherit;}
 .zoom-img img{width:100%;border-radius:22px;}
 
 /* PRICING */
-.price-card{background:#fff;border-radius:28px;padding:40px 32px;max-width:480px;margin:0 auto;
-  box-shadow:0 12px 48px rgba(47,107,255,.12);border:1px solid rgba(47,107,255,.1);text-align:center;}
-.price-em{font-size:52px;margin-bottom:16px;}
-.price-t{font-size:22px;font-weight:900;color:var(--text);margin-bottom:10px;}
-.price-s{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:28px;}
-.price-acts{display:flex;flex-direction:column;gap:10px;}
-.btn-wa{padding:16px 24px;border-radius:16px;border:none;cursor:pointer;background:#25D366;color:#fff;
-  font-weight:800;font-size:15px;box-shadow:0 8px 22px rgba(37,211,102,.3);transition:.2s;
-  display:flex;align-items:center;justify-content:center;gap:8px;}
-.btn-wa:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(37,211,102,.4);}
+/* PRICING CARDS */
+.pkg-grid{display:grid;grid-template-columns:1fr;gap:16px;max-width:680px;margin:0 auto;}
+@media(min-width:540px){.pkg-grid{grid-template-columns:repeat(3,1fr);}}
+.pkg-card{border-radius:24px;padding:28px 20px;text-align:center;position:relative;overflow:hidden;
+  background:#fff;border:1.5px solid rgba(47,107,255,.1);
+  box-shadow:0 6px 24px rgba(47,107,255,.08);transition:.2s;}
+.pkg-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(47,107,255,.14);}
+.pkg-badge{position:absolute;top:14px;right:14px;padding:3px 10px;border-radius:10px;
+  font-size:10px;font-weight:800;background:var(--grad);color:#fff;}
+.pkg-icon{font-size:34px;margin-bottom:12px;}
+.pkg-name{font-size:17px;font-weight:900;color:var(--text);margin-bottom:6px;}
+.pkg-feats{font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:20px;}
+.btn-wa{padding:13px 20px;border-radius:14px;border:none;cursor:pointer;background:#25D366;color:#fff;
+  font-weight:800;font-size:13px;box-shadow:0 6px 18px rgba(37,211,102,.28);transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:7px;width:100%;}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(37,211,102,.36);}
+/* Locked card overlay */
+.pkg-lock{position:absolute;inset:0;border-radius:24px;
+  background:rgba(248,250,255,.88);backdrop-filter:blur(3px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;}
+.pkg-lock-icon{font-size:28px;}
+.pkg-lock-txt{font-size:13px;font-weight:800;color:var(--blue);}
+.pkg-lock-sub{font-size:11px;color:var(--muted);}
+.pkg-card.locked{border-color:rgba(47,107,255,.06);box-shadow:none;}
 .btn-ig{padding:14px 24px;border-radius:16px;border:none;cursor:pointer;color:#fff;
   background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
   font-weight:700;font-size:14px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
@@ -321,20 +335,46 @@ a{text-decoration:none;color:inherit;}
   <div class="sec-in" style="text-align:center">
     <h2 class="sec-h" style="margin-bottom:8px"><span class="bl" data-t="p_h">Бағасын білгіңіз келе ме?</span></h2>
     <p class="sec-p" style="max-width:440px;margin:0 auto 36px" data-t="p_si">Икемді және қолжетімді тарифтер</p>
-    <div class="price-card reveal">
-      <div class="price-em">💬</div>
-      <div class="price-t" data-t="p_t">Бізге хабарласыңыз</div>
-      <p class="price-s" data-t="p_s">Баға оқушының сыныбына, оқу форматына және таңдалған пакетке байланысты. Нақты ақпарат алу үшін бізбен байланысыңыз.</p>
-      <div class="price-acts">
+    <div class="pkg-grid">
+
+      <!-- БАЗА — open -->
+      <div class="pkg-card reveal">
+        <div class="pkg-icon">📘</div>
+        <div class="pkg-name" data-t="pk1_n">База</div>
+        <div class="pkg-feats" data-t="pk1_f">Мектеп бағдарламасы бойынша негізгі видео сабақтар, конспектілер және PDF материалдар</div>
         <a href="WHATSAPP_LINK" class="btn-wa" target="_blank" rel="noopener">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-          <span data-t="p_wa">Бағасын WhatsApp арқылы білу</span>
-        </a>
-        <a href="INSTAGRAM_LINK" class="btn-ig" target="_blank" rel="noopener">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-          <span data-t="p_ig">Instagram-ға жазу</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          <span data-t="pk1_btn">Хабарласу</span>
         </a>
       </div>
+
+      <!-- СТАНДАРТ — locked -->
+      <div class="pkg-card locked reveal">
+        <div class="pkg-icon">⭐</div>
+        <div class="pkg-name" data-t="pk2_n">Стандарт</div>
+        <div class="pkg-feats" data-t="pk2_f">Видео сабақтар, тесттер және AI диагностика</div>
+        <div style="height:45px"></div>
+        <div class="pkg-lock">
+          <div class="pkg-lock-icon">🔒</div>
+          <div class="pkg-lock-txt" data-t="soon">Жақында ашылады</div>
+          <div class="pkg-lock-sub" data-t="soon_s">Баға жақында белгіленеді</div>
+        </div>
+      </div>
+
+      <!-- ПРЕМИУМ — locked -->
+      <div class="pkg-card locked reveal">
+        <div class="pkg-badge" data-t="pk3_badge">Ең толық</div>
+        <div class="pkg-icon">💎</div>
+        <div class="pkg-name" data-t="pk3_n">Премиум</div>
+        <div class="pkg-feats" data-t="pk3_f">Барлық мүмкіндік + Zoom сабақтар</div>
+        <div style="height:45px"></div>
+        <div class="pkg-lock">
+          <div class="pkg-lock-icon">🔒</div>
+          <div class="pkg-lock-txt" data-t="soon">Жақында ашылады</div>
+          <div class="pkg-lock-sub" data-t="soon_s">Баға жақында белгіленеді</div>
+        </div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -387,7 +427,7 @@ a{text-decoration:none;color:inherit;}
 
 <script>
 /* ── Contact link placeholders — replace these values ── */
-const WA_LINK  = "#";  // e.g. "https://wa.me/77001234567"
+const WA_LINK  = "https://wa.me/77055894347";
 const IG_LINK  = "#";  // e.g. "https://instagram.com/gotab.kz"
 
 document.querySelectorAll('a[href="WHATSAPP_LINK"]').forEach(a => a.href = WA_LINK);
@@ -426,9 +466,10 @@ kk:{
   z3t:"Шағын топтар",              z3d:"Тиімді жеке оқу форматы",
   z4t:"Ыңғайлы кесте",             z4d:"Уақытыңызға сай сабақ таңдайсың",
   p_h:"Бағасын білгіңіз келе ме?", p_si:"Икемді және қолжетімді тарифтер",
-  p_t:"Бізге хабарласыңыз",
-  p_s:"Баға оқушының сыныбына, оқу форматына және таңдалған пакетке байланысты. Нақты ақпарат алу үшін бізбен байланысыңыз.",
-  p_wa:"Бағасын WhatsApp арқылы білу", p_ig:"Instagram-ға жазу",
+  pk1_n:"База", pk1_f:"Мектеп бағдарламасы бойынша негізгі видео сабақтар, конспектілер және PDF материалдар", pk1_btn:"Хабарласу",
+  pk2_n:"Стандарт", pk2_f:"Видео сабақтар, тесттер және AI диагностика",
+  pk3_n:"Премиум", pk3_f:"Барлық мүмкіндік + Zoom сабақтар", pk3_badge:"Ең толық",
+  soon:"Жақында ашылады", soon_s:"Баға жақында белгіленеді",
   c_h:"Байланыс", c_s:"Сұрақтарыңыз болса — бізге жазыңыз",
   c1h:"Хабарлама жіберу", c2h:"Бізді бақылаңыз", c3h:"Платформаға кіру",
   fin_h1:"Білімге ", fin_h2:"бірге", fin_h3:"қадам басайық!",
@@ -467,10 +508,11 @@ ru:{
   z2t:"Вопрос-ответ",          z2d:"Получаешь ответы на любые вопросы",
   z3t:"Малые группы",          z3d:"Эффективный индивидуальный формат",
   z4t:"Удобное расписание",    z4d:"Выбираешь занятие в удобное время",
-  p_h:"Хотите узнать стоимость?", p_si:"Гибкие и доступные тарифы",
-  p_t:"Свяжитесь с нами",
-  p_s:"Стоимость зависит от класса ученика, формата обучения и выбранного пакета. Для получения точной информации свяжитесь с нами.",
-  p_wa:"Узнать стоимость в WhatsApp", p_ig:"Написать в Instagram",
+  p_h:"Тарифы", p_si:"Гибкие и доступные тарифы",
+  pk1_n:"Базовый", pk1_f:"Основные видеоуроки по школьной программе, конспекты и PDF материалы", pk1_btn:"Написать нам",
+  pk2_n:"Стандарт", pk2_f:"Видеоуроки, тесты и AI-диагностика",
+  pk3_n:"Премиум", pk3_f:"Все возможности + Zoom-уроки", pk3_badge:"Самый полный",
+  soon:"Скоро откроется", soon_s:"Цена будет объявлена",
   c_h:"Контакты", c_s:"Если есть вопросы — пишите нам",
   c1h:"Отправить сообщение", c2h:"Подписывайтесь на нас", c3h:"Войти на платформу",
   fin_h1:"Сделаем шаг к знаниям ", fin_h2:"вместе", fin_h3:"!",
