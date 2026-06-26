@@ -1,6 +1,6 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const OpenAI = require("openai");
 
-const MODEL_NAME = "gemini-2.0-flash";
+const MODEL_NAME = "gpt-5.5-mini";
 
 const PROMPT_CONFIGS = {
   extra_practice: {
@@ -24,15 +24,15 @@ const PROMPT_CONFIGS = {
 const ALLOWED_PROMPT_TYPES = Object.keys(PROMPT_CONFIGS);
 
 async function generateProblems({ grade, subject, lessonId, todayTopics, promptType }) {
-  const GEMINI_KEY = process.env.GEMINI_API_KEY;
-  console.log(`[aiService] generateProblems | GEMINI_API_KEY exists=${!!GEMINI_KEY} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType}`);
+  const OPENAI_KEY = process.env.OPENAI_API_KEY;
+  console.log(`[aiService] generateProblems | OPENAI_API_KEY exists=${!!OPENAI_KEY} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType}`);
 
-  if (!GEMINI_KEY) throw new Error("GEMINI_API_KEY is not configured on this server");
+  if (!OPENAI_KEY) throw new Error("OPENAI_API_KEY is not configured on this server");
 
   const config = PROMPT_CONFIGS[promptType];
   if (!config) throw new Error("Invalid prompt type: " + promptType);
 
-  const systemInstruction = [
+  const instructions = [
     "Сен GoTAB онлайн платформасының математика мұғалімісің.",
     "Тек қазақ тілінде жауап бер.",
     "Дәл 5 есеп жаз — не аз, не көп.",
@@ -54,39 +54,32 @@ async function generateProblems({ grade, subject, lessonId, todayTopics, promptT
     "Дәл 5 есеп бер. Жауабын берме."
   ].filter(Boolean).join(" ");
 
-  console.log(`[aiService] calling Gemini model=${MODEL_NAME} msgLength=${userMsg.length}`);
+  console.log(`[aiService] calling OpenAI model=${MODEL_NAME} msgLength=${userMsg.length}`);
 
-  const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-  const model = genAI.getGenerativeModel({ model: MODEL_NAME, systemInstruction });
+  const client = new OpenAI({ apiKey: OPENAI_KEY });
 
-  let result;
+  let response;
   try {
-    result = await model.generateContent(userMsg);
+    response = await client.responses.create({
+      model: MODEL_NAME,
+      instructions,
+      input: userMsg
+    });
   } catch (e) {
-    console.error("[aiService] Gemini generateContent threw:");
+    console.error("[aiService] OpenAI responses.create threw:");
     console.error("  message   :", e.message);
-    console.error("  status    :", e?.status ?? e?.response?.status ?? "n/a");
-    console.error("  statusText:", e?.statusText ?? e?.response?.statusText ?? "n/a");
-    console.error("  details   :", JSON.stringify(e?.errorDetails ?? e?.details ?? null));
+    console.error("  status    :", e?.status ?? "n/a");
+    console.error("  statusText:", e?.statusText ?? "n/a");
+    console.error("  error body:", JSON.stringify(e?.error ?? null));
     console.error("  stack     :", e.stack);
     try { console.error("  raw JSON  :", JSON.stringify(e)); } catch {}
     throw e;
   }
 
-  let text;
-  try {
-    text = result.response.text().trim();
-  } catch (e) {
-    // response.text() throws when the response was blocked by safety filters
-    console.error("[aiService] response.text() threw (likely safety filter):", e.message);
-    const candidate = result?.response?.candidates?.[0];
-    console.error("[aiService] finishReason:", candidate?.finishReason, "safetyRatings:", JSON.stringify(candidate?.safetyRatings));
-    throw new Error("Gemini blocked the response (safety filter). finishReason: " + (candidate?.finishReason || "unknown"));
-  }
+  const text = (response.output_text || "").trim();
+  console.log(`[aiService] OpenAI response received | textLength=${text.length}`);
 
-  console.log(`[aiService] Gemini response received | textLength=${text.length}`);
-
-  if (!text) throw new Error("Gemini returned an empty response");
+  if (!text) throw new Error("OpenAI returned an empty response");
 
   return { text, title: config.titleKz };
 }

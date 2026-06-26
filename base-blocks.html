@@ -624,9 +624,9 @@ async function _callAI(promptType){
         _aiUsageCount = AI_DAILY_LIMIT;
         _setAiState("idle");
       } else {
-        const isGeminiLimit = j?.error === "gemini_rate_limit" || j?.error === "quota_exceeded";
+        const isRateLimit = j?.error === "ai_rate_limit" || j?.error === "gemini_rate_limit" || j?.error === "quota_exceeded";
         document.getElementById("aiErrorText").textContent =
-          isGeminiLimit ? t.aiGeminiRateLimit : (j?.message || j?.details || j?.error || t.aiModalError);
+          isRateLimit ? t.aiGeminiRateLimit : (j?.message || j?.details || j?.error || t.aiModalError);
         _setAiState("error");
       }
       return;

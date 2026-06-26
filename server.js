@@ -10,7 +10,7 @@ const fs = require("fs");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const OpenAI = require("openai");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
@@ -55,7 +55,7 @@ const uploadAvatar = multer({ storage: avatarStorage });
 
 console.log("RUNNING FILE =", __filename);
 console.log("CWD =", process.cwd());
-console.log("GEMINI_API_KEY exists:", !!process.env.GEMINI_API_KEY);
+console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -1786,14 +1786,14 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 const aiService = require("./services/aiService");
 const aiUsage  = require("./services/aiUsageService");
 
-// Quick diagnostic endpoint — hit /api/ai/debug to see all env checks and a live Gemini ping
+// Quick diagnostic endpoint — hit /api/ai/debug to see all env checks and a live OpenAI ping
 app.get("/api/ai/debug", async (req, res) => {
   const report = {
-    GEMINI_API_KEY:        !!process.env.GEMINI_API_KEY,
-    SUPABASE_URL:          !!process.env.SUPABASE_URL,
-    SUPABASE_KEY:          !!process.env.SUPABASE_KEY,
-    SUPABASE_SERVICE_KEY:  !!process.env.SUPABASE_SERVICE_KEY,
-    keyUsedForAiUsage:     process.env.SUPABASE_SERVICE_KEY ? "service_role" : "anon"
+    OPENAI_API_KEY:       !!process.env.OPENAI_API_KEY,
+    SUPABASE_URL:         !!process.env.SUPABASE_URL,
+    SUPABASE_KEY:         !!process.env.SUPABASE_KEY,
+    SUPABASE_SERVICE_KEY: !!process.env.SUPABASE_SERVICE_KEY,
+    keyUsedForAiUsage:    process.env.SUPABASE_SERVICE_KEY ? "service_role" : "anon"
   };
 
   // Test ai_daily_usage table access
@@ -1809,19 +1809,20 @@ app.get("/api/ai/debug", async (req, res) => {
     report.supabaseAiTable = { error: e.message };
   }
 
-  // Test Gemini
-  if (process.env.GEMINI_API_KEY) {
+  // Test OpenAI
+  if (process.env.OPENAI_API_KEY) {
     try {
-      const { GoogleGenerativeAI } = require("@google/generative-ai");
-      const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-      const result = await model.generateContent("Say hello in Kazakh in one word");
-      report.geminiTest = { ok: true, text: result.response.text().trim().slice(0, 100) };
+      const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      const response = await client.responses.create({
+        model: "gpt-5.5-mini",
+        input: "Say hello in Kazakh in one word"
+      });
+      report.openaiTest = { ok: true, text: (response.output_text || "").trim().slice(0, 100) };
     } catch (e) {
-      report.geminiTest = { ok: false, error: e.message, status: e?.status };
+      report.openaiTest = { ok: false, error: e.message, status: e?.status };
     }
   } else {
-    report.geminiTest = { ok: false, error: "GEMINI_API_KEY not set" };
+    report.openaiTest = { ok: false, error: "OPENAI_API_KEY not set" };
   }
 
   return res.json(report);
@@ -1918,15 +1919,15 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     console.error("  toString  :", e.toString());
     console.error("  stack     :\n" + e.stack);
 
-    // Only treat HTTP 429 from Gemini as rate limit — no string guessing
+    // Only treat HTTP 429 from OpenAI as rate limit
     if (errCode === 429) {
-      console.error("[ai/practice] Gemini returned HTTP 429 — rate limit");
-      return res.status(429).json({ ok: false, error: "gemini_rate_limit" });
+      console.error("[ai/practice] OpenAI returned HTTP 429 — rate limit");
+      return res.status(429).json({ ok: false, error: "ai_rate_limit" });
     }
 
     return res.status(500).json({
       ok: false,
-      error: "gemini_error",
+      error: "ai_error",
       status: errCode,
       message: errMsg,
       details: e.toString()
