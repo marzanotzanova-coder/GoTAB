@@ -63,7 +63,13 @@ async function generateProblems({ grade, subject, lessonId, todayTopics, promptT
   try {
     result = await model.generateContent(userMsg);
   } catch (e) {
-    console.error("[aiService] Gemini generateContent threw:", e.message, e?.status, e?.statusText);
+    console.error("[aiService] Gemini generateContent threw:");
+    console.error("  message   :", e.message);
+    console.error("  status    :", e?.status ?? e?.response?.status ?? "n/a");
+    console.error("  statusText:", e?.statusText ?? e?.response?.statusText ?? "n/a");
+    console.error("  details   :", JSON.stringify(e?.errorDetails ?? e?.details ?? null));
+    console.error("  stack     :", e.stack);
+    try { console.error("  raw JSON  :", JSON.stringify(e)); } catch {}
     throw e;
   }
 

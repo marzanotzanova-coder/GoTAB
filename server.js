@@ -1908,16 +1908,29 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     });
   } catch (e) {
     const errMsg  = String(e?.message || "");
-    const errCode = Number(e?.status  || 0);
-    console.error(`[ai/practice] ERROR | status=${errCode} message="${errMsg}"`);
+    const errCode = Number(e?.status ?? e?.response?.status ?? 0);
 
-    // Gemini's own rate limit — separate from GoTAB's daily counter
-    if (errCode === 429 || errMsg.includes("Resource has been exhausted") || errMsg.startsWith("[429")) {
-      console.error("[ai/practice] Gemini API rate limit hit (not GoTAB daily limit)");
+    console.error("[ai/practice] ERROR DETAILS:");
+    console.error("  status    :", errCode);
+    console.error("  statusText:", e?.statusText ?? e?.response?.statusText ?? "n/a");
+    console.error("  message   :", errMsg);
+    console.error("  details   :", JSON.stringify(e?.errorDetails ?? e?.details ?? null));
+    console.error("  toString  :", e.toString());
+    console.error("  stack     :\n" + e.stack);
+
+    // Only treat HTTP 429 from Gemini as rate limit — no string guessing
+    if (errCode === 429) {
+      console.error("[ai/practice] Gemini returned HTTP 429 — rate limit");
       return res.status(429).json({ ok: false, error: "gemini_rate_limit" });
     }
 
-    return res.status(500).json({ ok: false, error: errMsg || "server_error", details: e.toString() });
+    return res.status(500).json({
+      ok: false,
+      error: "gemini_error",
+      status: errCode,
+      message: errMsg,
+      details: e.toString()
+    });
   }
 });
 

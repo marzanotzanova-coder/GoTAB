@@ -626,7 +626,7 @@ async function _callAI(promptType){
       } else {
         const isGeminiLimit = j?.error === "gemini_rate_limit" || j?.error === "quota_exceeded";
         document.getElementById("aiErrorText").textContent =
-          isGeminiLimit ? t.aiGeminiRateLimit : (j?.error || t.aiModalError);
+          isGeminiLimit ? t.aiGeminiRateLimit : (j?.message || j?.details || j?.error || t.aiModalError);
         _setAiState("error");
       }
       return;
