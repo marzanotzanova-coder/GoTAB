@@ -1871,11 +1871,14 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       return res.status(400).json({ ok: false, error: "missing_student_id" });
     }
 
-    console.log(`[ai/practice] checking usage | studentId=${studentId} lk=${lk}`);
+    // ── Step 1: read today's count ───────────────────────────────────────────
+    console.log(`[ai/practice] reading usage | studentId=${studentId} lk=${lk}`);
     const usage = await aiUsage.getUsage(studentId, lk);
-    console.log(`[ai/practice] usage | count=${usage.count} remaining=${usage.remaining}`);
+    console.log(`[ai/practice] usage read | count=${usage.count} limit=${aiUsage.DAILY_LIMIT} remaining=${usage.remaining}`);
 
-    if (usage.remaining <= 0) {
+    // ── Step 2: block only when count >= DAILY_LIMIT ──────────────────────────
+    if (usage.count >= aiUsage.DAILY_LIMIT) {
+      console.log(`[ai/practice] BLOCKED — GoTAB daily limit reached | count=${usage.count} >= limit=${aiUsage.DAILY_LIMIT}`);
       return res.status(429).json({
         ok: false,
         error: "daily_limit_reached",
@@ -1885,11 +1888,13 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       });
     }
 
-    console.log(`[ai/practice] calling Gemini | promptType=${promptType}`);
-    const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
-    console.log(`[ai/practice] Gemini done | textLength=${result.text.length}`);
+    console.log(`[ai/practice] ALLOWED — count=${usage.count} < limit=${aiUsage.DAILY_LIMIT} | calling Gemini now`);
 
-    console.log(`[ai/practice] incrementing usage`);
+    // ── Step 3: call Gemini ──────────────────────────────────────────────────
+    const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
+    console.log(`[ai/practice] Gemini success | textLength=${result.text.length}`);
+
+    // ── Step 4: only increment AFTER successful Gemini response ──────────────
     const newUsage = await aiUsage.incrementUsage(studentId, lk);
     console.log(`[ai/practice] usage after increment | count=${newUsage.count} remaining=${newUsage.remaining}`);
 
@@ -1902,11 +1907,17 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       limit: aiUsage.DAILY_LIMIT
     });
   } catch (e) {
-    console.error("[ai/practice] CAUGHT ERROR:", e.message, "| status:", e?.status, "| stack:", e?.stack?.split("\n")[1]);
-    if (e?.status === 429 || String(e?.message || "").includes("429")) {
-      return res.status(429).json({ ok: false, error: "quota_exceeded" });
+    const errMsg  = String(e?.message || "");
+    const errCode = Number(e?.status  || 0);
+    console.error(`[ai/practice] ERROR | status=${errCode} message="${errMsg}"`);
+
+    // Gemini's own rate limit — separate from GoTAB's daily counter
+    if (errCode === 429 || errMsg.includes("Resource has been exhausted") || errMsg.startsWith("[429")) {
+      console.error("[ai/practice] Gemini API rate limit hit (not GoTAB daily limit)");
+      return res.status(429).json({ ok: false, error: "gemini_rate_limit" });
     }
-    return res.status(500).json({ ok: false, error: e.message || "server_error", details: e.toString() });
+
+    return res.status(500).json({ ok: false, error: errMsg || "server_error", details: e.toString() });
   }
 });
 
