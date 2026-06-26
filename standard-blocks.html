@@ -93,6 +93,13 @@ body{
 .ai-loading-text{text-align:center;color:var(--muted);font-size:14px;font-weight:600;padding-bottom:8px;}
 .ai-result-card{background:linear-gradient(135deg,rgba(47,107,255,.04),rgba(29,233,182,.04));border:1.5px solid rgba(47,107,255,.12);border-radius:18px;padding:18px 16px;font-size:14px;line-height:1.9;color:var(--text);white-space:pre-wrap;word-break:break-word;}
 .ai-error-msg{text-align:center;color:#ef4444;font-weight:700;font-size:14px;padding:16px;background:rgba(239,68,68,.06);border-radius:14px;margin-bottom:8px;}
+.ai-usage-bar{font-size:12px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0 16px;letter-spacing:.02em;}
+.ai-actions{display:flex;flex-direction:column;gap:10px;}
+.ai-action-btn{width:100%;padding:14px 18px;border:1.5px solid rgba(47,107,255,.15);border-radius:16px;background:rgba(255,255,255,.9);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;text-align:left;line-height:1.4;transition:all .18s;}
+.ai-action-btn:hover:not(:disabled){background:linear-gradient(135deg,rgba(47,107,255,.08),rgba(29,233,182,.06));border-color:rgba(47,107,255,.3);transform:translateY(-1px);}
+.ai-action-btn:disabled{opacity:.4;cursor:not-allowed;}
+.ai-limit-msg{margin-top:14px;padding:14px 16px;background:rgba(239,68,68,.07);border-radius:14px;color:#ef4444;font-size:13px;font-weight:700;text-align:center;line-height:1.5;}
+.ai-result-title{font-size:15px;font-weight:900;color:var(--text);margin-bottom:12px;}
 .lang-wrap{position:fixed;top:14px;right:14px;display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,0.92);border-radius:18px;border:1px solid rgba(90,120,255,0.14);box-shadow:0 4px 14px rgba(90,120,255,0.08);z-index:200;}
 .lang-wrap select{border:none;background:transparent;font-size:13px;font-weight:600;color:#14213D;cursor:pointer;outline:none;}
 @media(max-width:960px){.app{grid-template-columns:1fr;}.sidebar{position:static;min-height:auto;}.block-container{grid-template-columns:repeat(auto-fill,minmax(175px,1fr));}}
@@ -153,11 +160,20 @@ body{
 <div id="viewerModal"><div id="viewerBox"><button id="viewerClose">×</button><div id="viewerContent"></div></div></div>
 <div id="quizModal"><div class="soon-box"><div class="soon-icon">📋</div><div class="soon-title" data-i18n="quizTitle">Сынақ</div><div class="soon-desc" data-i18n="quizDesc">Сынақ жақында қосылады.</div><button class="soon-close" id="quizClose" data-i18n="closeBtn">Жабу</button></div></div>
 <div id="aiModal"><div class="ai-box">
-  <div class="ai-header"><span class="ai-icon">✨</span><span class="ai-title" data-i18n="aiModalTitle">GoTAB ЖИ көмекшісі</span><button class="ai-close-btn" id="aiClose">×</button></div>
-  <div id="aiIdle"><button class="ai-prompt-btn" id="aiPromptBtn" data-i18n="aiModalPromptBtn">Бүгінгі өткен тақырыптар бойынша тағы есеп шығару</button></div>
+  <div class="ai-header"><span class="ai-icon">✨</span><span class="ai-title" data-i18n="aiModalTitle">GoTAB ЖИ қолдану</span><button class="ai-close-btn" id="aiClose">×</button></div>
+  <div class="ai-usage-bar" id="aiUsageBar"></div>
+  <div id="aiIdle">
+    <div class="ai-actions">
+      <button class="ai-action-btn" data-type="extra_practice" data-i18n="aiAction1">📘 Бүгінгі тақырып бойынша 5 жаттығу есеп</button>
+      <button class="ai-action-btn" data-type="hard_practice"  data-i18n="aiAction2">🔥 5 қиын есеп</button>
+      <button class="ai-action-btn" data-type="mixed_revision" data-i18n="aiAction3">🧠 Аралас қайталау есептері</button>
+      <button class="ai-action-btn" data-type="exam_style"     data-i18n="aiAction4">🎯 Емтихан форматындағы есептер</button>
+    </div>
+    <div class="ai-limit-msg" id="aiLimitMsg" style="display:none" data-i18n="aiDailyLimit">Бүгін осы сабақ бойынша лимитке жеттіңіз. Ертең қайта көріңіз.</div>
+  </div>
   <div id="aiLoading" style="display:none"><div class="ai-spinner"></div><div class="ai-loading-text" data-i18n="aiModalLoading">Есептер дайындалуда…</div></div>
-  <div id="aiResult" style="display:none"><div class="ai-result-card" id="aiResultText"></div><button class="ai-prompt-btn secondary" id="aiTryAgain" data-i18n="aiModalTryAgain">Қайта сұрау</button></div>
-  <div id="aiError" style="display:none"><div class="ai-error-msg" id="aiErrorText" data-i18n="aiModalError">Қате болды. Қайта көріңіз.</div><button class="ai-prompt-btn secondary" id="aiRetry" data-i18n="aiModalTryAgain">Қайта сұрау</button></div>
+  <div id="aiResult" style="display:none"><div class="ai-result-title" id="aiResultTitle"></div><div class="ai-result-card" id="aiResultText"></div><button class="ai-prompt-btn secondary" id="aiBack" data-i18n="aiBackBtn">← Артқа</button></div>
+  <div id="aiError" style="display:none"><div class="ai-error-msg" id="aiErrorText" data-i18n="aiModalError">Қате болды. Қайта көріңіз.</div><button class="ai-prompt-btn secondary" id="aiBack2" data-i18n="aiBackBtn">← Артқа</button></div>
 </div></div>
 
 <script src="lang.js"></script>
@@ -244,31 +260,54 @@ window.openQuizModal=function(){ document.getElementById("quizModal").style.disp
 window.closeQuizModal=function(){ document.getElementById("quizModal").style.display="none"; };
 document.getElementById("quizClose").onclick=()=>closeQuizModal();
 document.getElementById("quizModal").addEventListener("click",e=>{ if(e.target.id==="quizModal") closeQuizModal(); });
-let _aiLesson=null;
+const AI_DAILY_LIMIT=3,AI_CACHE_TTL=60000;
+let _aiLesson=null,_aiUsageCount=0,_aiLoading=false;
+const _aiCache={};
 function _setAiState(s){["aiIdle","aiLoading","aiResult","aiError"].forEach(id=>document.getElementById(id).style.display="none");document.getElementById({idle:"aiIdle",loading:"aiLoading",result:"aiResult",error:"aiError"}[s]).style.display="";}
-window.openAiModal=function(n){ _aiLesson=n||null; _setAiState("idle"); document.getElementById("aiModal").style.display="flex"; };
+function _renderUsageBar(){
+  const t=window.goI18n[window.goLang]||window.goI18n.kk;
+  const bar=document.getElementById("aiUsageBar"),lim=document.getElementById("aiLimitMsg");
+  const rem=Math.max(0,AI_DAILY_LIMIT-_aiUsageCount);
+  if(bar) bar.textContent=(t.aiUsageBar||"Бүгін: {used}/{limit} рет пайдаланылды").replace("{used}",_aiUsageCount).replace("{limit}",AI_DAILY_LIMIT);
+  if(lim) lim.style.display=rem<=0?"":"none";
+  document.querySelectorAll(".ai-action-btn").forEach(btn=>{ btn.disabled=rem<=0||_aiLoading; });
+}
+async function _loadAiUsage(){
+  if(!effectiveStudentId||_aiLesson===null) return;
+  const lk=`${gradeSelect.value}_${subjectSelect.value}_block${_aiLesson}`;
+  try{ const r=await fetch(`/api/ai/usage?studentId=${encodeURIComponent(effectiveStudentId)}&lessonId=${encodeURIComponent(lk)}`,{credentials:"include"}); const j=await r.json().catch(()=>null); _aiUsageCount=j?.count??0; }catch(e){ _aiUsageCount=0; }
+  _renderUsageBar();
+}
+window.openAiModal=function(n){ _aiLesson=n||null; _setAiState("idle"); document.getElementById("aiModal").style.display="flex"; _loadAiUsage(); };
 window.closeAiModal=function(){ document.getElementById("aiModal").style.display="none"; };
-async function _callAIPractice(){
-  _setAiState("loading");
+async function _callAI(promptType){
+  if(_aiLoading) return;
+  const lessonKey=`${gradeSelect.value}_${subjectSelect.value}_block${_aiLesson}`;
+  const cacheKey=`${lessonKey}_${promptType}`;
+  const cached=_aiCache[cacheKey];
+  if(cached&&Date.now()-cached.ts<AI_CACHE_TTL){ _showAiResult(cached); return; }
+  _aiLoading=true; _renderUsageBar(); _setAiState("loading");
   try{
     const topics=localStorage.getItem("studyTopics_"+effectiveStudentId)||"";
     const r=await fetch("/api/ai/practice",{method:"POST",headers:{"Content-Type":"application/json"},credentials:"include",
-      body:JSON.stringify({studentId:effectiveStudentId,grade:gradeSelect.value,subject:subjectSelect.value,
-        lessonId:_aiLesson?"Сабақ "+_aiLesson:"",todayTopics:topics,promptType:"extra_practice"})});
+      body:JSON.stringify({grade:gradeSelect.value,subject:subjectSelect.value,lessonId:_aiLesson?"Сабақ "+_aiLesson:"",todayTopics:topics,promptType,lessonKey})});
     const j=await r.json().catch(()=>null);
-    if(!r.ok||!j?.ok){
-      const _tAi=window.goI18n[window.goLang]||window.goI18n.kk;
-      const errEl=document.getElementById("aiErrorText");
-      if(errEl) errEl.textContent=(j?.error==="quota_exceeded")?_tAi.aiQuotaError:_tAi.aiModalError;
-      _setAiState("error"); return;
+    const t=window.goI18n[window.goLang]||window.goI18n.kk;
+    if(!j?.ok){
+      if(j?.error==="daily_limit_reached"){ _aiUsageCount=AI_DAILY_LIMIT; _setAiState("idle"); }
+      else{ document.getElementById("aiErrorText").textContent=j?.error==="quota_exceeded"?t.aiQuotaError:(j?.error||t.aiModalError); _setAiState("error"); }
+      return;
     }
-    document.getElementById("aiResultText").textContent=j.text;
-    _setAiState("result");
-  }catch(e){ console.error(e); _setAiState("error"); }
+    _aiUsageCount=j.count??_aiUsageCount;
+    const entry={text:j.text,title:j.title||"",ts:Date.now()};
+    _aiCache[cacheKey]=entry; _showAiResult(entry);
+  }catch(e){ console.error(e); const t=window.goI18n[window.goLang]||window.goI18n.kk; document.getElementById("aiErrorText").textContent=t.aiModalError||"Қате болды."; _setAiState("error"); }
+  finally{ _aiLoading=false; _renderUsageBar(); }
 }
-document.getElementById("aiPromptBtn").onclick=_callAIPractice;
-document.getElementById("aiTryAgain").onclick=()=>_setAiState("idle");
-document.getElementById("aiRetry").onclick=_callAIPractice;
+function _showAiResult(entry){ document.getElementById("aiResultTitle").textContent=entry.title||""; document.getElementById("aiResultText").textContent=entry.text||""; _setAiState("result"); }
+document.querySelectorAll(".ai-action-btn").forEach(btn=>{ btn.addEventListener("click",()=>_callAI(btn.dataset.type)); });
+document.getElementById("aiBack").onclick=()=>{ _setAiState("idle"); _renderUsageBar(); };
+document.getElementById("aiBack2").onclick=()=>{ _setAiState("idle"); _renderUsageBar(); };
 document.getElementById("aiClose").onclick=()=>closeAiModal();
 document.getElementById("aiModal").addEventListener("click",e=>{ if(e.target.id==="aiModal") closeAiModal(); });
 

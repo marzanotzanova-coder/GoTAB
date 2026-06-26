@@ -126,14 +126,17 @@ const i18n = {
     adminUpload: "Материал жүктеу / тексеру",
     pkgPending: "Пакет әлі бекітілмеді",
     // AI helper modal
-    aiModalTitle: "GoTAB ЖИ көмекшісі",
-    aiModalPromptBtn: "Бүгінгі өткен тақырыптар бойынша тағы есеп шығару",
+    aiModalTitle: "GoTAB ЖИ қолдану",
     aiModalLoading: "Есептер дайындалуда…",
     aiModalError: "Қате болды. Қайта көріңіз.",
-    aiModalTryAgain: "Қайта сұрау",
-    aiModalClose: "Жабу",
-    aiModalNote: "Шешіп көр, кейін тексеруге болады.",
+    aiBackBtn: "← Артқа",
     aiQuotaError: "Сұраныс лимиті асып кетті. Бірнеше минуттан кейін қайталаңыз.",
+    aiAction1: "📘 Бүгінгі тақырып бойынша 5 жаттығу есеп",
+    aiAction2: "🔥 5 қиын есеп",
+    aiAction3: "🧠 Аралас қайталау есептері",
+    aiAction4: "🎯 Емтихан форматындағы есептер",
+    aiUsageBar: "Бүгін: {used}/{limit} рет пайдаланылды",
+    aiDailyLimit: "Бүгін осы сабақ бойынша лимитке жеттіңіз. Ертең қайта көріңіз.",
   },
   ru: {
     // index
@@ -262,14 +265,17 @@ const i18n = {
     adminUpload: "Загрузка / проверка материалов",
     pkgPending: "Пакет ещё не подтверждён",
     // AI helper modal
-    aiModalTitle: "GoTAB ИИ Помощник",
-    aiModalPromptBtn: "Сгенерировать задачи по сегодняшним темам",
+    aiModalTitle: "GoTAB ИИ помощник",
     aiModalLoading: "Готовим задачи…",
     aiModalError: "Произошла ошибка. Попробуйте ещё раз.",
-    aiModalTryAgain: "Попробовать снова",
-    aiModalClose: "Закрыть",
-    aiModalNote: "Реши сам, потом можно проверить.",
+    aiBackBtn: "← Назад",
     aiQuotaError: "Превышен лимит запросов. Повторите через несколько минут.",
+    aiAction1: "📘 5 практических задач по теме",
+    aiAction2: "🔥 5 сложных задач",
+    aiAction3: "🧠 Смешанное повторение",
+    aiAction4: "🎯 Задачи в формате экзамена",
+    aiUsageBar: "Сегодня: {used}/{limit} использовано",
+    aiDailyLimit: "Сегодня лимит по этому уроку исчерпан. Возвращайтесь завтра.",
   }
 };
 

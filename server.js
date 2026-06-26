@@ -1783,57 +1783,65 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 });
 
 // ===================== AI PRACTICE =====================
-const ALLOWED_PROMPT_TYPES = ["extra_practice"];
+const aiService = require("./services/aiService");
+const aiUsage  = require("./services/aiUsageService");
+
+app.get("/api/ai/usage", requireAuth, async (req, res) => {
+  try {
+    const studentId = String(req.session?.user?.studentId || "");
+    const lessonId  = String(req.query.lessonId || "").trim();
+    if (!studentId || !lessonId) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+    const usage = await aiUsage.getUsage(studentId, lessonId);
+    return res.json({ ok: true, ...usage, limit: aiUsage.DAILY_LIMIT });
+  } catch (e) {
+    console.error("ai/usage error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
 
 app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
   try {
-    const { grade, subject, lessonId, todayTopics, promptType } = req.body || {};
+    const { grade, subject, lessonId, todayTopics, promptType, lessonKey } = req.body || {};
+    const studentId = String(req.session?.user?.studentId || "");
 
-    if (!ALLOWED_PROMPT_TYPES.includes(promptType)) {
+    if (!aiService.ALLOWED_PROMPT_TYPES.includes(promptType)) {
       return res.status(400).json({ ok: false, error: "invalid_prompt_type" });
     }
 
-    const g = String(grade || "").trim();
-    const s = String(subject || "").trim();
-    const l = String(lessonId || "").trim();
+    const g  = String(grade       || "").trim();
+    const s  = String(subject     || "").trim();
+    const l  = String(lessonId    || "").trim();
+    const lk = String(lessonKey   || `${g}_${s}_${l}`).trim();
     const topics = String(todayTopics || "").slice(0, 300).trim();
 
-    if (!g || !s) {
+    if (!g || !s || !studentId) {
       return res.status(400).json({ ok: false, error: "missing_fields" });
     }
 
-    const GEMINI_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_KEY) {
-      return res.status(500).json({ ok: false, error: "Gemini API key is not configured." });
+    const usage = await aiUsage.getUsage(studentId, lk);
+    if (usage.remaining <= 0) {
+      return res.status(429).json({
+        ok: false,
+        error: "daily_limit_reached",
+        count: usage.count,
+        remaining: 0,
+        limit: aiUsage.DAILY_LIMIT
+      });
     }
 
-    const topicLine = topics
-      ? `Оқушы бүгін осы тақырыптарды оқыды: "${topics}".`
-      : `Оқушы бүгінгі тақырыпты жазбаған. Хабарлама: тақырыпты дашбордта жазып, қайта басыңыз.`;
+    const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
+    const newUsage = await aiUsage.incrementUsage(studentId, lk);
 
-    const systemPrompt = [
-      "Сен GoTAB онлайн платформасының математика мұғалімісің.",
-      "Қазақ тілінде жауап бер.",
-      "Тек есептер бер, жауаптарын берме.",
-      "Соңына қысқаша ескерту қос: «Шешіп көр, кейін тексеруге болады.»",
-      "Жауапты форматта бер: нөмірленген тізім, 3–5 есеп.",
-      "Есептер орташа қиын деңгейде болсын."
-    ].join(" ");
-
-    const userMsg = topics
-      ? `${g}-сынып, ${s} пәні, ${l ? l + "-сабақ, " : ""}${topicLine} Осыған байланысты 3-5 жаттығу есеп жаз.`
-      : topicLine;
-
-    const genAI = new GoogleGenerativeAI(GEMINI_KEY);
-    const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
-      systemInstruction: systemPrompt
+    return res.json({
+      ok: true,
+      text: result.text,
+      title: result.title,
+      count: newUsage.count,
+      remaining: newUsage.remaining,
+      limit: aiUsage.DAILY_LIMIT
     });
-    const result = await model.generateContent(userMsg);
-    const text = result.response.text().trim();
-    if (!text) return res.status(502).json({ ok: false, error: "empty_response" });
-
-    return res.json({ ok: true, text });
   } catch (e) {
     console.error("ai/practice error:", e);
     if (e?.status === 429 || String(e?.message || "").includes("429")) {
