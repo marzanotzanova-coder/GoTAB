@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTAB — Математика оқу платформасы</title>
+<meta name="description" content="GoTAB — 5-11 сынып оқушыларына математика, алгебра, геометрия үйрету платформасы">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:#f8faff;color:#14213D;overflow-x:hidden;}
+img{max-width:100%;display:block;}
+a{text-decoration:none;color:inherit;}
+:root{
+  --navy:#0d1b3e;--navy2:#070f24;
+  --blue:#2F6BFF;--cyan:#20C9FF;--mint:#1DE9B6;
+  --light:#f8faff;--text:#14213D;--muted:#6B7280;
+  --grad:linear-gradient(135deg,#2F6BFF,#20C9FF,#1DE9B6);
+}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);
+  border-bottom:1px solid rgba(47,107,255,.1);padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;}
+.nav-left{display:flex;align-items:center;gap:10px;}
+.nav-left img{height:34px;width:auto;}
+.nav-sub{font-size:11px;font-weight:700;color:var(--muted);display:none;}
+@media(min-width:480px){.nav-sub{display:block;}}
+.lang-btns{display:flex;gap:4px;}
+.lang-btn{padding:6px 13px;border-radius:20px;border:1.5px solid rgba(47,107,255,.2);
+  font-size:12px;font-weight:700;cursor:pointer;background:transparent;color:var(--muted);transition:.18s;}
+.lang-btn.on{background:var(--blue);color:#fff;border-color:var(--blue);}
+
+/* HERO */
+.hero{background:var(--navy);overflow:hidden;position:relative;padding:52px 24px 0;}
+.hero::before{content:'';position:absolute;top:-100px;left:-100px;width:360px;height:360px;
+  background:radial-gradient(circle,rgba(47,107,255,.22) 0%,transparent 70%);pointer-events:none;}
+.hero::after{content:'';position:absolute;bottom:0;right:-60px;width:280px;height:280px;
+  background:radial-gradient(circle,rgba(29,233,182,.14) 0%,transparent 70%);pointer-events:none;}
+.hero-inner{max-width:800px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:20px;position:relative;z-index:1;}
+@media(min-width:640px){.hero-inner{flex-direction:row;align-items:flex-end;justify-content:space-between;}}
+.hero-text{text-align:center;}
+@media(min-width:640px){.hero-text{text-align:left;flex:1;padding-bottom:52px;}}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;}
+@media(min-width:640px){.hero-badges{justify-content:flex-start;}}
+.badge{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;
+  background:rgba(255,255,255,.1);color:rgba(255,255,255,.88);border:1px solid rgba(255,255,255,.18);}
+.hero-title{font-size:clamp(26px,7vw,42px);font-weight:900;color:#fff;line-height:1.15;margin-bottom:14px;}
+.hero-title .gr{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:14px;line-height:1.75;color:rgba(255,255,255,.68);margin-bottom:28px;max-width:400px;}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;}
+@media(min-width:640px){.hero-btns{justify-content:flex-start;}}
+.btn-g{padding:14px 28px;border-radius:16px;border:none;cursor:pointer;
+  background:var(--grad);color:#fff;font-weight:800;font-size:14px;
+  box-shadow:0 8px 24px rgba(47,107,255,.35);transition:.2s;display:inline-flex;align-items:center;gap:6px;}
+.btn-g:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(47,107,255,.42);}
+.btn-ol{padding:14px 28px;border-radius:16px;cursor:pointer;border:2px solid rgba(255,255,255,.3);
+  color:#fff;background:transparent;font-weight:700;font-size:14px;transition:.2s;}
+.btn-ol:hover{background:rgba(255,255,255,.1);}
+.hero-img{width:260px;flex-shrink:0;}
+@media(min-width:640px){.hero-img{width:310px;}}
+.hero-img img{width:100%;mix-blend-mode:screen;filter:drop-shadow(0 0 40px rgba(47,107,255,.4));}
+
+/* SECTIONS */
+.sec{padding:64px 24px;}
+.sec-in{max-width:800px;margin:0 auto;}
+.sec-h{font-size:clamp(22px,5vw,30px);font-weight:900;color:var(--text);margin-bottom:8px;}
+.sec-h .bl{color:var(--blue);}
+.sec-p{font-size:14px;color:var(--muted);margin-bottom:36px;line-height:1.65;}
+.bg-w{background:#fff;}
+.bg-l{background:var(--light);}
+.bg-d{background:var(--navy);}
+.bg-d .sec-h{color:#fff;}
+.bg-d .sec-p{color:rgba(255,255,255,.6);}
+
+/* FEATURES */
+.feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;}
+@media(min-width:600px){.feat-grid{grid-template-columns:repeat(3,1fr);}}
+.feat-card{background:#fff;border-radius:20px;padding:20px 16px;
+  box-shadow:0 4px 20px rgba(47,107,255,.07);border:1px solid rgba(47,107,255,.08);transition:.2s;}
+.feat-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(47,107,255,.13);}
+.feat-ic{width:46px;height:46px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px;}
+.feat-t{font-size:13px;font-weight:800;color:var(--text);margin-bottom:5px;}
+.feat-d{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:0;}
+.step{display:flex;align-items:flex-start;gap:16px;padding:18px 0;border-bottom:1px solid rgba(47,107,255,.08);}
+.step:last-child{border-bottom:none;}
+.step-n{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--grad);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;
+  box-shadow:0 4px 14px rgba(47,107,255,.28);}
+.step-l{font-size:15px;font-weight:700;color:var(--text);}
+.step-d{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5;}
+
+/* GRADES */
+.grade-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:32px;}
+.g-badge{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:800;
+  background:rgba(47,107,255,.08);color:var(--blue);border:1.5px solid rgba(47,107,255,.2);transition:.2s;}
+.g-badge:hover{background:var(--blue);color:#fff;}
+.subj-row{display:flex;gap:14px;flex-wrap:wrap;}
+.subj-card{flex:1;min-width:110px;background:#fff;border-radius:18px;padding:22px 16px;text-align:center;
+  border:1px solid rgba(47,107,255,.1);box-shadow:0 4px 16px rgba(47,107,255,.07);}
+.subj-em{font-size:28px;margin-bottom:8px;}
+.subj-n{font-size:14px;font-weight:800;color:var(--text);}
+
+/* ZOOM */
+.zoom-wrap{display:flex;flex-direction:column;gap:24px;align-items:center;}
+@media(min-width:600px){.zoom-wrap{flex-direction:row;align-items:flex-start;}}
+.zoom-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.zoom-card{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:18px 14px;}
+.zoom-em{font-size:24px;margin-bottom:8px;}
+.zoom-t{font-size:13px;font-weight:800;color:#fff;margin-bottom:4px;}
+.zoom-d{font-size:12px;color:rgba(255,255,255,.58);line-height:1.4;}
+.zoom-img{width:200px;flex-shrink:0;border-radius:22px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.3);}
+.zoom-img img{width:100%;border-radius:22px;}
+
+/* PRICING */
+.price-card{background:#fff;border-radius:28px;padding:40px 32px;max-width:480px;margin:0 auto;
+  box-shadow:0 12px 48px rgba(47,107,255,.12);border:1px solid rgba(47,107,255,.1);text-align:center;}
+.price-em{font-size:52px;margin-bottom:16px;}
+.price-t{font-size:22px;font-weight:900;color:var(--text);margin-bottom:10px;}
+.price-s{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:28px;}
+.price-acts{display:flex;flex-direction:column;gap:10px;}
+.btn-wa{padding:16px 24px;border-radius:16px;border:none;cursor:pointer;background:#25D366;color:#fff;
+  font-weight:800;font-size:15px;box-shadow:0 8px 22px rgba(37,211,102,.3);transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-wa:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(37,211,102,.4);}
+.btn-ig{padding:14px 24px;border-radius:16px;border:none;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);
+  font-weight:700;font-size:14px;transition:.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-ig:hover{transform:translateY(-2px);}
+
+/* CONTACT */
+.contact-list{display:flex;flex-direction:column;gap:12px;max-width:420px;margin:0 auto;}
+.contact-card{display:flex;align-items:center;gap:16px;padding:18px 20px;border-radius:18px;
+  background:#fff;border:1px solid rgba(47,107,255,.1);box-shadow:0 4px 16px rgba(47,107,255,.07);
+  transition:.2s;cursor:pointer;}
+.contact-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(47,107,255,.13);}
+.c-ic{width:48px;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.c-name{font-size:15px;font-weight:800;color:var(--text);}
+.c-hint{font-size:12px;color:var(--muted);margin-top:2px;}
+.c-arr{margin-left:auto;color:var(--muted);font-size:20px;font-weight:300;}
+
+/* FINAL */
+.final{background:var(--navy2);padding:64px 24px 48px;text-align:center;position:relative;overflow:hidden;}
+.final::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%,rgba(47,107,255,.2) 0%,transparent 60%);pointer-events:none;}
+.final-in{max-width:580px;margin:0 auto;position:relative;z-index:1;}
+.final-mascot{width:220px;margin:0 auto 24px;}
+.final-mascot img{width:100%;mix-blend-mode:screen;filter:drop-shadow(0 0 50px rgba(47,107,255,.35));}
+.final-logo{height:46px;margin:0 auto 22px;}
+.final-h{font-size:clamp(24px,6vw,36px);font-weight:900;color:#fff;margin-bottom:12px;line-height:1.2;}
+.final-h .gr{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.final-s{font-size:14px;color:rgba(255,255,255,.62);line-height:1.75;margin-bottom:32px;}
+.pills{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:32px;}
+.pill{padding:6px 14px;border-radius:20px;background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.78);font-size:12px;font-weight:600;border:1px solid rgba(255,255,255,.14);}
+.final-cta{display:inline-flex;align-items:center;gap:8px;padding:16px 38px;border-radius:18px;
+  border:none;cursor:pointer;background:var(--grad);color:#fff;font-weight:900;font-size:16px;
+  box-shadow:0 10px 32px rgba(47,107,255,.42);transition:.2s;}
+.final-cta:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(47,107,255,.5);}
+.foot{margin-top:32px;font-size:12px;color:rgba(255,255,255,.3);}
+
+/* SCROLL ANIM */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .55s ease,transform .55s ease;}
+.reveal.in{opacity:1;transform:translateY(0);}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <img src="images/logo.png" alt="GoTAB">
+    <span class="nav-sub" data-t="nav_s">Математика оқу платформасы</span>
+  </div>
+  <div class="lang-btns">
+    <button class="lang-btn on" id="lkk" onclick="setL('kk')">Қаз</button>
+    <button class="lang-btn"   id="lru" onclick="setL('ru')">Рус</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-badges">
+        <span class="badge" data-t="b1">5–11 сынып</span>
+        <span class="badge" data-t="b2">Қазақстан оқушылары үшін</span>
+      </div>
+      <h1 class="hero-title">
+        GoTAB —<br>
+        <span class="gr" data-t="h_acc">математикаға арналған ақылды оқу платформасы</span>
+      </h1>
+      <p class="hero-sub" data-t="h_sub">5–11 сынып оқушыларына математика, алгебра және геометрияны түсінікті әрі жүйелі үйренуге көмектесеміз.</p>
+      <div class="hero-btns">
+        <a href="/" class="btn-g" data-t="h_cta1">GoTAB-қа кіру →</a>
+        <a href="#pricing" class="btn-ol" data-t="h_cta2">Бағасын білу</a>
+      </div>
+    </div>
+    <div class="hero-img">
+      <img src="images/mascot-book.png" alt="GoTAB">
+    </div>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="sec bg-l" id="why">
+  <div class="sec-in">
+    <h2 class="sec-h"><span class="bl" data-t="w_h1">Неге</span> <span data-t="w_h2">біз?</span></h2>
+    <p class="sec-p" data-t="w_s">GoTAB оқуды түсінікті, тиімді және нәтижелі етеді.</p>
+    <div class="feat-grid">
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(32,201,255,.12)">🎬</div>
+        <div class="feat-t" data-t="f1t">Видео сабақтар</div>
+        <div class="feat-d" data-t="f1d">Тақырыптарды түсінікті әрі жүйелі видео арқылы үйренесің.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(29,233,182,.12)">📋</div>
+        <div class="feat-t" data-t="f2t">Интерактивті тесттер</div>
+        <div class="feat-d" data-t="f2d">Әр сабақтан кейін біліміңді тексересің.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(124,58,237,.1)">✨</div>
+        <div class="feat-t" data-t="f3t">AI диагностика</div>
+        <div class="feat-d" data-t="f3d">Қай тақырыптан қиналып жүргеніңді анықтайды.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(245,158,11,.1)">📈</div>
+        <div class="feat-t" data-t="f4t">Прогресс бақылау</div>
+        <div class="feat-d" data-t="f4d">Нәтижең мен даму бағытың көрініп тұрады.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(47,107,255,.1)">🎓</div>
+        <div class="feat-t" data-t="f5t">Zoom арқылы сабақ</div>
+        <div class="feat-d" data-t="f5d">Мұғаліммен тікелей онлайн сабақтар.</div>
+      </div>
+      <div class="feat-card reveal">
+        <div class="feat-ic" style="background:rgba(239,68,68,.08)">📄</div>
+        <div class="feat-t" data-t="f6t">Материалдар</div>
+        <div class="feat-d" data-t="f6d">Конспект, формула, PDF тапсырмалар.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec bg-w" id="how">
+  <div class="sec-in">
+    <h2 class="sec-h"><span data-t="ho_h1">Қалай </span><span class="bl" data-t="ho_h2">жұмыс</span><span data-t="ho_h3"> істейді?</span></h2>
+    <p class="sec-p" data-t="ho_s">Біз оқуды жүйелі және тиімді етеміз</p>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-n">1</div>
+        <div><div class="step-l" data-t="s1">Сабақты көресің</div><div class="step-d" data-t="s1d">Видео форматта, барлық тақырыптар жүйелі ретпен</div></div>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">2</div>
+        <div><div class="step-l" data-t="s2">Тапсырма орындайсың</div><div class="step-d" data-t="s2d">Материалдарды оқып, практикалық есептер шығарасың</div></div>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">3</div>
+        <div><div class="step-l" data-t="s3">Сынақ тапсырасың</div><div class="step-d" data-t="s3d">Тест арқылы білімің бекітіледі</div></div>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">4</div>
+        <div><div class="step-l" data-t="s4">GoTAB әлсіз тақырыптарды анықтайды</div><div class="step-d" data-t="s4d">AI анализ арқылы бағытты белгілейді</div></div>
+      </div>
+      <div class="step reveal">
+        <div class="step-n">5</div>
+        <div><div class="step-l" data-t="s5">Мұғаліммен немесе Zoom сабақтан көмек аласың</div><div class="step-d" data-t="s5d">Қиын тақырыптарды мамандармен бірге шешесің</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GRADES -->
+<section class="sec bg-l" id="grades">
+  <div class="sec-in">
+    <h2 class="sec-h"><span data-t="gr_h1">5–11 сыныптарға </span><span class="bl" data-t="gr_h2">арналған</span></h2>
+    <p class="sec-p" data-t="gr_s">Мектеп бағдарламасының барлық негізгі тақырыптары қамтылған</p>
+    <div class="grade-row">
+      <span class="g-badge reveal">5 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">6 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">7 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">8 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">9 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">10 <span data-t="gu">сынып</span></span>
+      <span class="g-badge reveal">11 <span data-t="gu">сынып</span></span>
+    </div>
+    <div class="subj-row">
+      <div class="subj-card reveal"><div class="subj-em">🔢</div><div class="subj-n" data-t="sj1">Математика</div></div>
+      <div class="subj-card reveal"><div class="subj-em">📐</div><div class="subj-n" data-t="sj2">Алгебра</div></div>
+      <div class="subj-card reveal"><div class="subj-em">📏</div><div class="subj-n" data-t="sj3">Геометрия</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ZOOM -->
+<section class="sec bg-d" id="zoom">
+  <div class="sec-in">
+    <h2 class="sec-h"><span data-t="z_h1">Zoom арқылы </span><span class="bl" data-t="z_h2">сабақтар</span></h2>
+    <p class="sec-p" data-t="z_s">Мұғаліммен тікелей онлайн байланыс</p>
+    <div class="zoom-wrap">
+      <div class="zoom-grid">
+        <div class="zoom-card reveal"><div class="zoom-em">🎯</div><div class="zoom-t" data-t="z1t">Мұғаліммен тікелей сабақ</div><div class="zoom-d" data-t="z1d">Күрделі тақырыптарды мұғалім түсіндіреді</div></div>
+        <div class="zoom-card reveal"><div class="zoom-em">💬</div><div class="zoom-t" data-t="z2t">Сұрақ-жауап</div><div class="zoom-d" data-t="z2d">Кез келген сұрағыңа жауап аласың</div></div>
+        <div class="zoom-card reveal"><div class="zoom-em">👥</div><div class="zoom-t" data-t="z3t">Шағын топтар</div><div class="zoom-d" data-t="z3d">Тиімді жеке оқу форматы</div></div>
+        <div class="zoom-card reveal"><div class="zoom-em">📅</div><div class="zoom-t" data-t="z4t">Ыңғайлы кесте</div><div class="zoom-d" data-t="z4d">Уақытыңызға сай сабақ таңдайсың</div></div>
+      </div>
+      <div class="zoom-img reveal">
+        <img src="images/mascot-desk.png" alt="GoTAB student">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="sec bg-w" id="pricing">
+  <div class="sec-in" style="text-align:center">
+    <h2 class="sec-h" style="margin-bottom:8px"><span class="bl" data-t="p_h">Бағасын білгіңіз келе ме?</span></h2>
+    <p class="sec-p" style="max-width:440px;margin:0 auto 36px" data-t="p_si">Икемді және қолжетімді тарифтер</p>
+    <div class="price-card reveal">
+      <div class="price-em">💬</div>
+      <div class="price-t" data-t="p_t">Бізге хабарласыңыз</div>
+      <p class="price-s" data-t="p_s">Баға оқушының сыныбына, оқу форматына және таңдалған пакетке байланысты. Нақты ақпарат алу үшін бізбен байланысыңыз.</p>
+      <div class="price-acts">
+        <a href="WHATSAPP_LINK" class="btn-wa" target="_blank" rel="noopener">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          <span data-t="p_wa">Бағасын WhatsApp арқылы білу</span>
+        </a>
+        <a href="INSTAGRAM_LINK" class="btn-ig" target="_blank" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+          <span data-t="p_ig">Instagram-ға жазу</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="sec bg-l" id="contact">
+  <div class="sec-in" style="text-align:center">
+    <h2 class="sec-h" style="margin-bottom:8px" data-t="c_h">Байланыс</h2>
+    <p class="sec-p" data-t="c_s">Сұрақтарыңыз болса — бізге жазыңыз</p>
+    <div class="contact-list">
+      <a href="WHATSAPP_LINK" target="_blank" rel="noopener" class="contact-card reveal">
+        <div class="c-ic" style="background:#dcfce7">💬</div>
+        <div><div class="c-name">WhatsApp</div><div class="c-hint" data-t="c1h">Хабарлама жіберу</div></div>
+        <span class="c-arr">›</span>
+      </a>
+      <a href="INSTAGRAM_LINK" target="_blank" rel="noopener" class="contact-card reveal">
+        <div class="c-ic" style="background:#fce7f3">📸</div>
+        <div><div class="c-name">Instagram</div><div class="c-hint" data-t="c2h">Бізді бақылаңыз</div></div>
+        <span class="c-arr">›</span>
+      </a>
+      <a href="/" class="contact-card reveal">
+        <div class="c-ic" style="background:rgba(47,107,255,.1)">🌐</div>
+        <div><div class="c-name">GoTAB сайты</div><div class="c-hint" data-t="c3h">Платформаға кіру</div></div>
+        <span class="c-arr">›</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final" id="cta">
+  <div class="final-in">
+    <div class="final-mascot"><img src="images/mascot-book.png" alt="GoTAB"></div>
+    <img src="images/logo.png" alt="GoTAB" class="final-logo">
+    <h2 class="final-h">
+      <span data-t="fin_h1">Білімге </span><span class="gr" data-t="fin_h2">бірге</span><br>
+      <span data-t="fin_h3">қадам басайық!</span>
+    </h2>
+    <p class="final-s" data-t="fin_s">GoTAB — математика, алгебра және геометрияны жүйелі үйренуге арналған серігің.</p>
+    <div class="pills">
+      <span class="pill" data-t="pi1">✨ Ақылды жүйе</span>
+      <span class="pill" data-t="pi2">📚 Сапалы білім</span>
+      <span class="pill" data-t="pi3">📈 Тиімді нәтиже</span>
+      <span class="pill" data-t="pi4">❤️ Сенімді қолдау</span>
+    </div>
+    <a href="/" class="final-cta"><span data-t="fin_cta">GoTAB-қа қазір кіру →</span></a>
+    <p class="foot" data-t="fin_ft">© 2025 GoTAB · gotab.onrender.com</p>
+  </div>
+</section>
+
+<script>
+/* ── Contact link placeholders — replace these values ── */
+const WA_LINK  = "#";  // e.g. "https://wa.me/77001234567"
+const IG_LINK  = "#";  // e.g. "https://instagram.com/gotab.kz"
+
+document.querySelectorAll('a[href="WHATSAPP_LINK"]').forEach(a => a.href = WA_LINK);
+document.querySelectorAll('a[href="INSTAGRAM_LINK"]').forEach(a => a.href = IG_LINK);
+
+/* ── Translations ── */
+const T = {
+kk:{
+  nav_s:"Математика оқу платформасы",
+  b1:"5–11 сынып", b2:"Қазақстан оқушылары үшін",
+  h_acc:"математикаға арналған ақылды оқу платформасы",
+  h_sub:"5–11 сынып оқушыларына математика, алгебра және геометрияны түсінікті әрі жүйелі үйренуге көмектесеміз.",
+  h_cta1:"GoTAB-қа кіру →", h_cta2:"Бағасын білу",
+  w_h1:"Неге", w_h2:"біз?",
+  w_s:"GoTAB оқуды түсінікті, тиімді және нәтижелі етеді.",
+  f1t:"Видео сабақтар",   f1d:"Тақырыптарды түсінікті әрі жүйелі видео арқылы үйренесің.",
+  f2t:"Интерактивті тесттер", f2d:"Әр сабақтан кейін біліміңді тексересің.",
+  f3t:"AI диагностика",   f3d:"Қай тақырыптан қиналып жүргеніңді анықтайды.",
+  f4t:"Прогресс бақылау", f4d:"Нәтижең мен даму бағытың көрініп тұрады.",
+  f5t:"Zoom арқылы сабақ",f5d:"Мұғаліммен тікелей онлайн сабақтар.",
+  f6t:"Материалдар",       f6d:"Конспект, формула, PDF тапсырмалар.",
+  ho_h1:"Қалай ", ho_h2:"жұмыс", ho_h3:" істейді?",
+  ho_s:"Біз оқуды жүйелі және тиімді етеміз",
+  s1:"Сабақты көресің",     s1d:"Видео форматта, барлық тақырыптар жүйелі ретпен",
+  s2:"Тапсырма орындайсың", s2d:"Материалдарды оқып, практикалық есептер шығарасың",
+  s3:"Сынақ тапсырасың",    s3d:"Тест арқылы білімің бекітіледі",
+  s4:"GoTAB әлсіз тақырыптарды анықтайды", s4d:"AI анализ арқылы бағытты белгілейді",
+  s5:"Мұғаліммен немесе Zoom сабақтан көмек аласың", s5d:"Қиын тақырыптарды мамандармен бірге шешесің",
+  gr_h1:"5–11 сыныптарға ", gr_h2:"арналған",
+  gr_s:"Мектеп бағдарламасының барлық негізгі тақырыптары қамтылған",
+  gu:"сынып", sj1:"Математика", sj2:"Алгебра", sj3:"Геометрия",
+  z_h1:"Zoom арқылы ", z_h2:"сабақтар",
+  z_s:"Мұғаліммен тікелей онлайн байланыс",
+  z1t:"Мұғаліммен тікелей сабақ",  z1d:"Күрделі тақырыптарды мұғалім түсіндіреді",
+  z2t:"Сұрақ-жауап",               z2d:"Кез келген сұрағыңа жауап аласың",
+  z3t:"Шағын топтар",              z3d:"Тиімді жеке оқу форматы",
+  z4t:"Ыңғайлы кесте",             z4d:"Уақытыңызға сай сабақ таңдайсың",
+  p_h:"Бағасын білгіңіз келе ме?", p_si:"Икемді және қолжетімді тарифтер",
+  p_t:"Бізге хабарласыңыз",
+  p_s:"Баға оқушының сыныбына, оқу форматына және таңдалған пакетке байланысты. Нақты ақпарат алу үшін бізбен байланысыңыз.",
+  p_wa:"Бағасын WhatsApp арқылы білу", p_ig:"Instagram-ға жазу",
+  c_h:"Байланыс", c_s:"Сұрақтарыңыз болса — бізге жазыңыз",
+  c1h:"Хабарлама жіберу", c2h:"Бізді бақылаңыз", c3h:"Платформаға кіру",
+  fin_h1:"Білімге ", fin_h2:"бірге", fin_h3:"қадам басайық!",
+  fin_s:"GoTAB — математика, алгебра және геометрияны жүйелі үйренуге арналған серігің.",
+  pi1:"✨ Ақылды жүйе", pi2:"📚 Сапалы білім", pi3:"📈 Тиімді нәтиже", pi4:"❤️ Сенімді қолдау",
+  fin_cta:"GoTAB-қа қазір кіру →",
+  fin_ft:"© 2025 GoTAB · gotab.onrender.com",
+},
+ru:{
+  nav_s:"Платформа обучения математике",
+  b1:"5–11 класс", b2:"Для учеников Казахстана",
+  h_acc:"умная образовательная платформа для математики",
+  h_sub:"Помогаем ученикам 5–11 классов системно освоить математику, алгебру и геометрию.",
+  h_cta1:"Войти в GoTAB →", h_cta2:"Узнать стоимость",
+  w_h1:"Почему", w_h2:"мы?",
+  w_s:"GoTAB делает учёбу понятной, эффективной и результативной.",
+  f1t:"Видеоуроки",           f1d:"Изучаешь темы через понятные и системные видео.",
+  f2t:"Интерактивные тесты",  f2d:"После каждого урока проверяешь свои знания.",
+  f3t:"AI диагностика",       f3d:"Определяет темы, в которых ты испытываешь трудности.",
+  f4t:"Отслеживание прогресса",f4d:"Твой результат и направление развития всегда на виду.",
+  f5t:"Занятия через Zoom",   f5d:"Прямые онлайн-уроки с учителем.",
+  f6t:"Материалы",             f6d:"Конспекты, формулы, PDF-задания.",
+  ho_h1:"Как это ", ho_h2:"работает", ho_h3:"?",
+  ho_s:"Мы делаем обучение системным и эффективным",
+  s1:"Смотришь урок",          s1d:"В видеоформате, все темы в системном порядке",
+  s2:"Выполняешь задание",     s2d:"Читаешь материалы и решаешь практические задачи",
+  s3:"Сдаёшь тест",            s3d:"Знания закрепляются через тестирование",
+  s4:"GoTAB определяет слабые темы", s4d:"AI-анализ помогает наметить направление",
+  s5:"Получаешь помощь от учителя или на Zoom", s5d:"Трудные темы разбираешь со специалистами",
+  gr_h1:"Для учеников ", gr_h2:"5–11 классов",
+  gr_s:"Охвачены все основные темы школьной программы",
+  gu:"класс", sj1:"Математика", sj2:"Алгебра", sj3:"Геометрия",
+  z_h1:"Занятия ", z_h2:"через Zoom",
+  z_s:"Прямой онлайн-контакт с учителем",
+  z1t:"Занятие с учителем",    z1d:"Учитель объясняет сложные темы напрямую",
+  z2t:"Вопрос-ответ",          z2d:"Получаешь ответы на любые вопросы",
+  z3t:"Малые группы",          z3d:"Эффективный индивидуальный формат",
+  z4t:"Удобное расписание",    z4d:"Выбираешь занятие в удобное время",
+  p_h:"Хотите узнать стоимость?", p_si:"Гибкие и доступные тарифы",
+  p_t:"Свяжитесь с нами",
+  p_s:"Стоимость зависит от класса ученика, формата обучения и выбранного пакета. Для получения точной информации свяжитесь с нами.",
+  p_wa:"Узнать стоимость в WhatsApp", p_ig:"Написать в Instagram",
+  c_h:"Контакты", c_s:"Если есть вопросы — пишите нам",
+  c1h:"Отправить сообщение", c2h:"Подписывайтесь на нас", c3h:"Войти на платформу",
+  fin_h1:"Сделаем шаг к знаниям ", fin_h2:"вместе", fin_h3:"!",
+  fin_s:"GoTAB — твой надёжный помощник в изучении математики, алгебры и геометрии.",
+  pi1:"✨ Умная система", pi2:"📚 Качественное обучение", pi3:"📈 Результат", pi4:"❤️ Поддержка",
+  fin_cta:"Войти в GoTAB сейчас →",
+  fin_ft:"© 2025 GoTAB · gotab.onrender.com",
+},
+};
+
+function setL(l) {
+  document.querySelectorAll('[data-t]').forEach(el => {
+    if (T[l][el.dataset.t] !== undefined) el.textContent = T[l][el.dataset.t];
+  });
+  document.getElementById('lkk').classList.toggle('on', l === 'kk');
+  document.getElementById('lru').classList.toggle('on', l === 'ru');
+  document.documentElement.lang = l;
+}
+
+/* ── Scroll reveal ── */
+const io = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('in'), i * 70);
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>

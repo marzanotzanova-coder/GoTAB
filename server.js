@@ -66,6 +66,10 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+app.get("/mini", (req, res) => {
+  res.sendFile(path.join(__dirname, "mini.html"));
+});
+
 // ===================== MIDDLEWARE =====================
 app.use(cors({
   origin: true,
