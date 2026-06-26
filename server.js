@@ -1889,13 +1889,18 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       });
     }
 
-    console.log(`[ai/practice] ALLOWED — count=${usage.count} < limit=${aiUsage.DAILY_LIMIT} | calling Gemini now`);
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("[ai/practice] OPENAI_API_KEY not set");
+      return res.status(500).json({ ok: false, error: "ai_no_key" });
+    }
 
-    // ── Step 3: call Gemini ──────────────────────────────────────────────────
+    console.log(`[ai/practice] ALLOWED — count=${usage.count} < limit=${aiUsage.DAILY_LIMIT} | calling OpenAI now | model=gpt-5.5-mini`);
+
+    // ── Step 3: call OpenAI ──────────────────────────────────────────────────
     const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
-    console.log(`[ai/practice] Gemini success | textLength=${result.text.length}`);
+    console.log(`[ai/practice] OpenAI response received | textLength=${result.text.length}`);
 
-    // ── Step 4: only increment AFTER successful Gemini response ──────────────
+    // ── Step 4: only increment AFTER successful OpenAI response ──────────────
     const newUsage = await aiUsage.incrementUsage(studentId, lk);
     console.log(`[ai/practice] usage after increment | count=${newUsage.count} remaining=${newUsage.remaining}`);
 
@@ -1911,15 +1916,28 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     const errMsg  = String(e?.message || "");
     const errCode = Number(e?.status ?? e?.response?.status ?? 0);
 
+    const openAiCode = e?.error?.code || "";
     console.error("[ai/practice] ERROR DETAILS:");
     console.error("  status    :", errCode);
-    console.error("  statusText:", e?.statusText ?? e?.response?.statusText ?? "n/a");
+    console.error("  openai_code:", openAiCode);
     console.error("  message   :", errMsg);
-    console.error("  details   :", JSON.stringify(e?.errorDetails ?? e?.details ?? null));
+    console.error("  error body:", JSON.stringify(e?.error ?? null));
     console.error("  toString  :", e.toString());
     console.error("  stack     :\n" + e.stack);
 
-    // Only treat HTTP 429 from OpenAI as rate limit
+    // Billing / no credit (HTTP 429 with insufficient_quota)
+    if (errCode === 429 && openAiCode === "insufficient_quota") {
+      console.error("[ai/practice] OpenAI insufficient_quota — billing/credit not set up");
+      return res.status(402).json({ ok: false, error: "ai_no_credit" });
+    }
+
+    // Invalid API key (HTTP 401)
+    if (errCode === 401) {
+      console.error("[ai/practice] OpenAI 401 — invalid or missing API key");
+      return res.status(500).json({ ok: false, error: "ai_no_key" });
+    }
+
+    // Rate limit (HTTP 429, not billing)
     if (errCode === 429) {
       console.error("[ai/practice] OpenAI returned HTTP 429 — rate limit");
       return res.status(429).json({ ok: false, error: "ai_rate_limit" });

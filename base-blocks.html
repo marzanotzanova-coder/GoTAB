@@ -624,9 +624,12 @@ async function _callAI(promptType){
         _aiUsageCount = AI_DAILY_LIMIT;
         _setAiState("idle");
       } else {
-        const isRateLimit = j?.error === "ai_rate_limit" || j?.error === "gemini_rate_limit" || j?.error === "quota_exceeded";
-        document.getElementById("aiErrorText").textContent =
-          isRateLimit ? t.aiGeminiRateLimit : (j?.message || j?.details || j?.error || t.aiModalError);
+        let errText;
+        if (j?.error === "ai_no_credit")                                                                errText = t.aiNoCredit;
+        else if (j?.error === "ai_no_key")                                                              errText = t.aiNoKey;
+        else if (j?.error === "ai_rate_limit" || j?.error === "gemini_rate_limit" || j?.error === "quota_exceeded") errText = t.aiRateLimit;
+        else errText = j?.message || j?.details || j?.error || t.aiModalError;
+        document.getElementById("aiErrorText").textContent = errText;
         _setAiState("error");
       }
       return;

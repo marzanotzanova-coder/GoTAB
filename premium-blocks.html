@@ -288,7 +288,7 @@ async function _callAI(promptType){
     const t=window.goI18n[window.goLang]||window.goI18n.kk;
     if(!j?.ok){
       if(j?.error==="daily_limit_reached"){ _aiUsageCount=AI_DAILY_LIMIT; _setAiState("idle"); }
-      else{ const isRateLimit=j?.error==="ai_rate_limit"||j?.error==="gemini_rate_limit"||j?.error==="quota_exceeded"; document.getElementById("aiErrorText").textContent=isRateLimit?t.aiGeminiRateLimit:(j?.message||j?.details||j?.error||t.aiModalError); _setAiState("error"); }
+      else{ let errText; if(j?.error==="ai_no_credit")errText=t.aiNoCredit; else if(j?.error==="ai_no_key")errText=t.aiNoKey; else if(j?.error==="ai_rate_limit"||j?.error==="gemini_rate_limit"||j?.error==="quota_exceeded")errText=t.aiRateLimit; else errText=j?.message||j?.details||j?.error||t.aiModalError; document.getElementById("aiErrorText").textContent=errText; _setAiState("error"); }
       return;
     }
     _aiUsageCount=j.count??_aiUsageCount;
