@@ -196,6 +196,64 @@
       cursor: pointer;
       outline: none;
     }
+
+    /* ── Quiz tabs ── */
+    .admin-tabs{display:flex;gap:8px;margin-bottom:16px;}
+    .admin-tab{flex:1;padding:10px;border-radius:14px;border:1.5px solid rgba(47,107,255,.18);background:rgba(255,255,255,.85);font-weight:700;font-size:13px;color:#2F6BFF;cursor:pointer;transition:all .15s;}
+    .admin-tab.active{background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);color:#fff;border-color:transparent;}
+
+    /* ── Quiz admin section ── */
+    .quiz-section-title{font-weight:900;font-size:14px;color:#14213D;margin:18px 0 8px;}
+    .quiz-selects{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;}
+    .quiz-textarea{width:100%;min-height:200px;padding:12px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:13px;font-family:monospace;resize:vertical;background:rgba(255,255,255,.9);color:#14213D;margin-top:8px;}
+    .quiz-textarea:focus{border-color:#2F6BFF;outline:none;}
+    .quiz-btn-row{display:flex;gap:8px;margin-top:10px;}
+    .quiz-preview-box{margin-top:14px;padding:14px;border-radius:14px;background:rgba(47,107,255,.04);border:1px solid rgba(47,107,255,.12);display:none;}
+    .quiz-preview-q{margin-bottom:14px;padding:12px;border-radius:12px;background:#fff;border:1px solid rgba(47,107,255,.1);}
+    .quiz-preview-q-text{font-weight:700;font-size:14px;color:#14213D;margin-bottom:8px;}
+    .quiz-preview-opt{padding:6px 10px;border-radius:8px;font-size:13px;margin-bottom:4px;border:1px solid rgba(47,107,255,.1);}
+    .quiz-preview-opt.correct{background:rgba(29,233,182,.15);border-color:#1DE9B6;font-weight:700;}
+    .quiz-preview-topic{font-size:11px;color:#6B7280;margin-bottom:6px;}
+    .quiz-status{font-size:13px;font-weight:700;margin-top:8px;min-height:20px;}
+    .quiz-status.ok{color:#1DE9B6;} .quiz-status.err{color:#ef4444;}
+
+    /* ── Attempts list ── */
+    .attempts-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+    .attempts-filter select{flex:1;min-width:110px;margin-top:0;font-size:12px;padding:8px 10px;}
+    .attempt-row{padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.85);border:1px solid rgba(47,107,255,.08);margin-bottom:8px;cursor:pointer;transition:background .15s;}
+    .attempt-row:hover{background:rgba(47,107,255,.05);}
+    .attempt-row-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+    .attempt-name{font-weight:800;font-size:13px;color:#14213D;}
+    .attempt-score{font-weight:900;font-size:15px;color:#2F6BFF;}
+    .attempt-meta{font-size:11px;color:#6B7280;margin-top:3px;}
+    .attempt-topics{font-size:11px;color:#ef4444;margin-top:3px;}
+    .attempts-empty{text-align:center;padding:30px;color:#6B7280;font-size:14px;}
+
+    /* ── Quiz list (saved quizzes) ── */
+    .quiz-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.85);border:1px solid rgba(47,107,255,.08);margin-bottom:6px;}
+    .quiz-row-label{font-size:13px;font-weight:700;color:#14213D;}
+    .quiz-row-meta{font-size:11px;color:#6B7280;margin-top:2px;}
+
+    /* ── Attempt detail modal ── */
+    #attemptModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9999;justify-content:center;align-items:center;padding:16px;box-sizing:border-box;}
+    .attempt-detail-box{background:#fff;border-radius:24px;max-width:720px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.18);display:flex;flex-direction:column;}
+    .attempt-detail-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px 14px;border-bottom:1px solid rgba(47,107,255,.1);position:sticky;top:0;background:#fff;border-radius:24px 24px 0 0;z-index:1;}
+    .attempt-detail-header h3{margin:0;font-size:16px;font-weight:900;color:#14213D;}
+    .attempt-x{background:rgba(47,107,255,.08);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;}
+    .attempt-detail-body{padding:20px 24px 28px;}
+    .attempt-stats{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+    .attempt-stat{text-align:center;padding:12px 18px;background:rgba(47,107,255,.05);border-radius:14px;min-width:80px;}
+    .attempt-stat .snum{font-weight:900;font-size:22px;color:#2F6BFF;}
+    .attempt-stat .slbl{font-size:11px;color:#6B7280;margin-top:4px;}
+    .attempt-section-title{font-weight:800;font-size:13px;color:#14213D;margin:16px 0 8px;}
+    .attempt-topic-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.85);border:1px solid rgba(47,107,255,.08);margin-bottom:6px;font-size:13px;}
+    .attempt-topic-pct{font-weight:800;}
+    .attempt-wrong-q{padding:12px;border-radius:12px;background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);margin-bottom:8px;font-size:13px;}
+    .attempt-wrong-q .wq-text{font-weight:700;margin-bottom:6px;color:#14213D;}
+    .attempt-wrong-q .wq-row{margin-bottom:3px;}
+    .attempt-wrong-q .wq-correct{color:#1DE9B6;font-weight:700;}
+    .attempt-wrong-q .wq-student{color:#ef4444;}
+    .attempt-diagnosis{white-space:pre-wrap;font-size:13px;line-height:1.6;padding:14px;border-radius:12px;background:rgba(47,107,255,.04);border:1px solid rgba(47,107,255,.1);}
   </style>
 </head>
 <body>
@@ -232,8 +290,15 @@
     <div class="list" id="studentsList"></div>
   </aside>
 
-  <!-- RIGHT: uploads -->
+  <!-- RIGHT: uploads + quiz -->
   <main class="card">
+    <div class="admin-tabs">
+      <button class="admin-tab active" id="tabBtnMaterials" onclick="switchTab('materials')">📦 Материалдар</button>
+      <button class="admin-tab" id="tabBtnQuiz" onclick="switchTab('quiz')">📋 Сынақтар</button>
+    </div>
+
+    <!-- ── MATERIALS TAB ── -->
+    <div id="tabMaterials">
     <div class="sectionTitle">Курстар</div>
     <div class="courseCards">
       <a href="base-blocks.html" class="courseCard courseCard-base"><span class="cc-icon">📗</span>База</a>
@@ -334,7 +399,83 @@
     <div class="muted" style="margin-top:10px" data-i18n="saveNote">
       Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.
     </div>
+    </div><!-- end #tabMaterials -->
+
+    <!-- ── QUIZ TAB ── -->
+    <div id="tabQuiz" style="display:none">
+
+      <!-- Quiz creation form -->
+      <div class="quiz-section-title">📋 Сынақты қосу / өңдеу</div>
+      <div class="quiz-selects">
+        <select id="qzPackage">
+          <option value="base">База</option>
+          <option value="standart">Стандарт</option>
+          <option value="premium">Премиум</option>
+        </select>
+        <select id="qzGrade">
+          <option value="5">5 сынып</option><option value="6">6 сынып</option>
+          <option value="7">7 сынып</option><option value="8">8 сынып</option>
+          <option value="9">9 сынып</option><option value="10">10 сынып</option>
+          <option value="11">11 сынып</option>
+        </select>
+        <select id="qzSubject">
+          <option value="math">Математика</option>
+          <option value="algebra">Алгебра</option>
+          <option value="geometry">Геометрия</option>
+        </select>
+        <input type="number" id="qzLesson" min="1" max="100" placeholder="Сабақ №" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;">
+      </div>
+
+      <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз:</div>
+      <textarea id="qzText" class="quiz-textarea" placeholder="<question>Сұрақ мәтіні
+<topic>Тақырып
+<answer>Дұрыс жауап
+<variant>Қате нұсқа 1
+<variant>Қате нұсқа 2
+<variant>Қате нұсқа 3
+
+<question>Келесі сұрақ…"></textarea>
+
+      <div class="quiz-btn-row">
+        <button class="btn ghost" id="qzPreviewBtn" onclick="previewQuiz()">🔍 Алдын ала көру</button>
+        <button class="btn primary" id="qzSaveBtn" onclick="saveQuiz()">💾 Сынақты сақтау</button>
+      </div>
+      <div class="quiz-status" id="qzStatus"></div>
+
+      <!-- Preview area -->
+      <div class="quiz-preview-box" id="qzPreviewBox"></div>
+
+      <!-- Saved quizzes list -->
+      <div class="quiz-section-title" style="margin-top:24px">📂 Сақталған сынақтар</div>
+      <div id="qzList"><div class="muted">Жүктелуде…</div></div>
+
+      <hr style="border:none;border-top:1px solid rgba(47,107,255,.1);margin:24px 0;">
+
+      <!-- Attempts -->
+      <div class="quiz-section-title">📊 Сынақ нәтижелері</div>
+      <div class="attempts-filter">
+        <select id="filtPkg" onchange="loadAttempts()"><option value="">Барлық пакет</option><option value="base">База</option><option value="standart">Стандарт</option><option value="premium">Премиум</option></select>
+        <select id="filtGrade" onchange="loadAttempts()"><option value="">Барлық сынып</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option></select>
+        <select id="filtSubject" onchange="loadAttempts()"><option value="">Барлық пән</option><option value="math">Математика</option><option value="algebra">Алгебра</option><option value="geometry">Геометрия</option></select>
+        <input type="number" id="filtLesson" min="1" max="100" placeholder="Сабақ №" onchange="loadAttempts()" style="padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:12px;width:90px;background:rgba(255,255,255,.9);">
+        <button class="btn ghost" style="padding:8px 12px;font-size:12px;" onclick="loadAttempts()">🔄</button>
+      </div>
+      <div id="attemptsList"><div class="attempts-empty">Нәтижелер жоқ</div></div>
+
+    </div><!-- end #tabQuiz -->
+
   </main>
+</div>
+
+<!-- Attempt detail modal -->
+<div id="attemptModal">
+  <div class="attempt-detail-box">
+    <div class="attempt-detail-header">
+      <h3 id="attemptModalTitle">Толық анализ</h3>
+      <button class="attempt-x" onclick="closeAttemptModal()">✕</button>
+    </div>
+    <div class="attempt-detail-body" id="attemptModalBody"></div>
+  </div>
 </div>
 
 <script src="lang.js"></script>
@@ -745,6 +886,235 @@ docs.forEach(f =>
   saveBtn.disabled = false;
   saveBtn.textContent = oldText;
 
+});
+
+// ===== QUIZ ADMIN JS =====
+
+function switchTab(tab) {
+  document.getElementById("tabMaterials").style.display = tab === "materials" ? "" : "none";
+  document.getElementById("tabQuiz").style.display      = tab === "quiz"      ? "" : "none";
+  document.getElementById("tabBtnMaterials").classList.toggle("active", tab === "materials");
+  document.getElementById("tabBtnQuiz").classList.toggle("active",      tab === "quiz");
+  if (tab === "quiz") { loadQuizList(); loadAttempts(); }
+}
+
+function escapeHtmlQ(s) {
+  return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+// ── Client-side quiz parser (mirrors server) ──
+function parseQuizClient(raw) {
+  const errors = [], questions = [];
+  const blocks = raw.split(/^<question>/im).map(b => b.trim()).filter(Boolean);
+  if (!blocks.length) return { ok: false, errors: ["<question> тегі табылмады."], questions: [] };
+  for (let bi = 0; bi < blocks.length; bi++) {
+    const qn = bi + 1;
+    const lines = blocks[bi].split("\n").map(l => l.trim()).filter(Boolean);
+    const qParts = []; let topic = null, correct = null; const variants = [];
+    for (const line of lines) {
+      const m = line.match(/^<(topic|answer|variant)>(.*)/i);
+      if (!m) { qParts.push(line); continue; }
+      const tag = m[1].toLowerCase(), val = m[2].trim();
+      if (tag === "topic" && val) topic = val;
+      else if (tag === "answer" && val) correct = val;
+      else if (tag === "variant" && val) variants.push(val);
+    }
+    const qText = qParts.join(" ").trim();
+    if (!qText)        { errors.push(`Сұрақ №${qn}: мәтін жоқ.`);              continue; }
+    if (!correct)      { errors.push(`Сұрақ №${qn}: <answer> жоқ.`);           continue; }
+    if (!variants.length) { errors.push(`Сұрақ №${qn}: <variant> жоқ.`);       continue; }
+    const options = [correct, ...variants].filter((v,i,a) => a.indexOf(v) === i);
+    if (options.length < 2) { errors.push(`Сұрақ №${qn}: 2+ нұсқа керек.`);   continue; }
+    questions.push({ question: qText, topic: topic || "Тақырып", correct, options });
+  }
+  if (!questions.length) return { ok: false, errors: errors.length ? errors : ["Сұрақтар жоқ."], questions: [] };
+  return { ok: true, questions, errors };
+}
+
+function previewQuiz() {
+  const raw = document.getElementById("qzText").value.trim();
+  const box = document.getElementById("qzPreviewBox");
+  const stat = document.getElementById("qzStatus");
+  if (!raw) { stat.className = "quiz-status err"; stat.textContent = "Мәтін бос."; return; }
+  const parsed = parseQuizClient(raw);
+  if (!parsed.ok) {
+    stat.className = "quiz-status err";
+    stat.textContent = parsed.errors.join(" | ");
+    box.style.display = "none";
+    return;
+  }
+  stat.className = "quiz-status ok";
+  stat.textContent = `✅ ${parsed.questions.length} сұрақ табылды. ${parsed.errors.length ? "⚠️ " + parsed.errors.join(" ") : ""}`;
+
+  let html = `<div style="font-weight:800;font-size:13px;margin-bottom:12px;color:#14213D">👁 Алдын ала көру (${parsed.questions.length} сұрақ)</div>`;
+  parsed.questions.forEach((q, i) => {
+    html += `<div class="quiz-preview-q">
+      <div class="quiz-preview-topic">Тақырып: ${escapeHtmlQ(q.topic)}</div>
+      <div class="quiz-preview-q-text">${i+1}. ${escapeHtmlQ(q.question)}</div>
+      ${q.options.map(opt => `<div class="quiz-preview-opt${opt === q.correct ? " correct" : ""}">
+        ${opt === q.correct ? "✅ " : "○ "}${escapeHtmlQ(opt)}
+      </div>`).join("")}
+    </div>`;
+  });
+  box.innerHTML = html;
+  box.style.display = "";
+}
+
+async function saveQuiz() {
+  const pkg        = document.getElementById("qzPackage").value;
+  const grade      = document.getElementById("qzGrade").value;
+  const subject    = document.getElementById("qzSubject").value;
+  const lessonNumber = document.getElementById("qzLesson").value;
+  const rawText    = document.getElementById("qzText").value.trim();
+  const stat       = document.getElementById("qzStatus");
+  const btn        = document.getElementById("qzSaveBtn");
+
+  if (!lessonNumber || !rawText) {
+    stat.className = "quiz-status err"; stat.textContent = "Сабақ нөмірі мен мәтін міндетті."; return;
+  }
+
+  btn.disabled = true; btn.textContent = "Сақталуда…";
+  stat.className = "quiz-status"; stat.textContent = "";
+
+  try {
+    const r = await fetch("/api/quiz/admin/save", {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ package: pkg, grade, subject, lessonNumber: Number(lessonNumber), rawText }),
+    });
+    const j = await r.json().catch(() => null);
+    if (j?.ok) {
+      stat.className = "quiz-status ok";
+      stat.textContent = `✅ Сынақ сақталды! (${j.questionCount} сұрақ)${j.warnings?.length ? " ⚠️ " + j.warnings.join(" ") : ""}`;
+      loadQuizList();
+    } else {
+      stat.className = "quiz-status err";
+      stat.textContent = "Қате: " + ((j?.errors || [j?.error]).filter(Boolean).join(" | ") || "server_error");
+    }
+  } catch(e) {
+    stat.className = "quiz-status err"; stat.textContent = "Желі қатесі.";
+  }
+  btn.disabled = false; btn.textContent = "💾 Сынақты сақтау";
+}
+
+async function loadQuizList() {
+  const box = document.getElementById("qzList");
+  box.innerHTML = "<div class='muted'>Жүктелуде…</div>";
+  try {
+    const r = await fetch("/api/quiz/admin/list", { credentials: "include", cache: "no-store" });
+    const j = await r.json().catch(() => null);
+    const quizzes = j?.quizzes || [];
+    if (!quizzes.length) { box.innerHTML = "<div class='muted'>Сынақтар жоқ.</div>"; return; }
+    box.innerHTML = quizzes.map(q => `
+      <div class="quiz-row">
+        <div>
+          <div class="quiz-row-label">${escapeHtmlQ(q.package)} · ${q.grade} сынып · ${escapeHtmlQ(q.subject)} · Сабақ ${q.lesson_number}</div>
+          <div class="quiz-row-meta">Жаңартылды: ${new Date(q.updated_at).toLocaleString("ru")}</div>
+        </div>
+        <button class="btn ghost" style="font-size:12px;padding:6px 10px;" onclick="loadQuizForEdit(${q.id},'${escapeHtmlQ(q.package)}','${q.grade}','${escapeHtmlQ(q.subject)}',${q.lesson_number})">✏️ Өңдеу</button>
+      </div>
+    `).join("");
+  } catch(e) { box.innerHTML = "<div class='muted'>Жүктеу қатесі.</div>"; }
+}
+
+async function loadQuizForEdit(id, pkg, grade, subject, lessonNumber) {
+  try {
+    const r = await fetch(`/api/quiz/admin/get?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}&lessonNumber=${lessonNumber}`, { credentials: "include" });
+    const j = await r.json().catch(() => null);
+    if (!j?.quiz) return;
+    document.getElementById("qzPackage").value    = pkg;
+    document.getElementById("qzGrade").value      = grade;
+    document.getElementById("qzSubject").value    = subject;
+    document.getElementById("qzLesson").value     = lessonNumber;
+    document.getElementById("qzText").value       = j.quiz.raw_text || "";
+    document.getElementById("qzStatus").textContent = "";
+    document.getElementById("qzPreviewBox").style.display = "none";
+    switchTab("quiz");
+    document.getElementById("qzText").scrollIntoView({ behavior: "smooth" });
+  } catch(e) { alert("Жүктеу қатесі."); }
+}
+
+async function loadAttempts() {
+  const box     = document.getElementById("attemptsList");
+  const pkg     = document.getElementById("filtPkg").value;
+  const grade   = document.getElementById("filtGrade").value;
+  const subject = document.getElementById("filtSubject").value;
+  const lesson  = document.getElementById("filtLesson").value;
+  box.innerHTML = "<div class='muted'>Жүктелуде…</div>";
+  try {
+    let url = "/api/quiz/admin/attempts?";
+    if (pkg)     url += `package=${encodeURIComponent(pkg)}&`;
+    if (grade)   url += `grade=${encodeURIComponent(grade)}&`;
+    if (subject) url += `subject=${encodeURIComponent(subject)}&`;
+    if (lesson)  url += `lessonNumber=${Number(lesson)}&`;
+    const r = await fetch(url, { credentials: "include", cache: "no-store" });
+    const j = await r.json().catch(() => null);
+    const attempts = j?.attempts || [];
+    if (!attempts.length) { box.innerHTML = "<div class='attempts-empty'>Нәтижелер жоқ</div>"; return; }
+    box.innerHTML = attempts.map(a => {
+      const weak = Object.entries(a.topic_breakdown || {}).filter(([,d]) => d.percentage < 50).map(([t]) => t);
+      return `<div class="attempt-row" onclick="openAttemptModal(${a.id})">
+        <div class="attempt-row-top">
+          <div>
+            <div class="attempt-name">${escapeHtmlQ(a.student_name || a.student_id)}</div>
+            <div class="attempt-meta">${escapeHtmlQ(a.package)} · ${a.grade} сынып · ${escapeHtmlQ(a.subject)} · Сабақ ${a.lesson_number} · ${new Date(a.created_at).toLocaleDateString("ru")}</div>
+            ${weak.length ? `<div class="attempt-topics">⚠️ Әлсіз: ${weak.join(", ")}</div>` : ""}
+          </div>
+          <div class="attempt-score">${a.correct_count}/${a.total_count}<br><span style="font-size:12px;color:#6B7280;">${a.percentage}%</span></div>
+        </div>
+      </div>`;
+    }).join("");
+  } catch(e) { box.innerHTML = "<div class='attempts-empty'>Жүктеу қатесі.</div>"; }
+}
+
+async function openAttemptModal(id) {
+  const modal = document.getElementById("attemptModal");
+  const body  = document.getElementById("attemptModalBody");
+  modal.style.display = "flex";
+  body.innerHTML = "<div style='text-align:center;padding:40px;color:#6B7280'>Жүктелуде…</div>";
+  try {
+    const r = await fetch(`/api/quiz/admin/attempt/${id}`, { credentials: "include" });
+    const j = await r.json().catch(() => null);
+    const a = j?.attempt;
+    if (!a) { body.innerHTML = "<div style='padding:20px;color:#ef4444'>Деректер табылмады.</div>"; return; }
+    document.getElementById("attemptModalTitle").textContent = `${a.student_name || a.student_id} · Сабақ ${a.lesson_number}`;
+
+    const topicRows = Object.entries(a.topic_breakdown || {}).map(([topic, d]) => `
+      <div class="attempt-topic-row">
+        <span>${escapeHtmlQ(topic)}</span>
+        <span class="attempt-topic-pct" style="color:${d.percentage >= 80 ? "#1DE9B6" : d.percentage >= 50 ? "#f59e0b" : "#ef4444"}">${d.correct}/${d.total} (${d.percentage}%)</span>
+      </div>`).join("");
+
+    const wrongRows = (a.wrong_questions || []).map(wq => `
+      <div class="attempt-wrong-q">
+        <div class="wq-text">${escapeHtmlQ(wq.question)}</div>
+        <div class="wq-row">📌 Тақырып: <b>${escapeHtmlQ(wq.topic)}</b></div>
+        <div class="wq-row wq-correct">✅ Дұрыс: ${escapeHtmlQ(wq.correct)}</div>
+        <div class="wq-row wq-student">❌ Оқушы: ${escapeHtmlQ(wq.studentAnswer || "(жауап берілмеді)")}</div>
+      </div>`).join("");
+
+    body.innerHTML = `
+      <div class="attempt-stats">
+        <div class="attempt-stat"><div class="snum">${a.correct_count}/${a.total_count}</div><div class="slbl">Нәтиже</div></div>
+        <div class="attempt-stat"><div class="snum" style="color:#1DE9B6">${a.correct_count}</div><div class="slbl">Дұрыс</div></div>
+        <div class="attempt-stat"><div class="snum" style="color:#ef4444">${a.wrong_count}</div><div class="slbl">Қате</div></div>
+        <div class="attempt-stat"><div class="snum">${a.percentage}%</div><div class="slbl">Пайыз</div></div>
+      </div>
+
+      ${topicRows ? `<div class="attempt-section-title">📊 Тақырыптар бойынша</div>${topicRows}` : ""}
+      ${wrongRows ? `<div class="attempt-section-title">❌ Қате жіберілген сұрақтар</div>${wrongRows}` : '<div style="color:#1DE9B6;font-weight:700;margin:12px 0">✅ Барлық жауап дұрыс!</div>'}
+
+      <div class="attempt-section-title">🤖 ИИ Диагностика</div>
+      <div class="attempt-diagnosis">${escapeHtmlQ(a.ai_diagnosis || "—")}</div>
+    `;
+  } catch(e) { body.innerHTML = `<div style='padding:20px;color:#ef4444'>Қате: ${e.message}</div>`; }
+}
+
+function closeAttemptModal() {
+  document.getElementById("attemptModal").style.display = "none";
+}
+document.getElementById("attemptModal").addEventListener("click", e => {
+  if (e.target.id === "attemptModal") closeAttemptModal();
 });
 
 </script>

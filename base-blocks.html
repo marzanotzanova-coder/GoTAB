@@ -255,6 +255,35 @@ body{
 .soon-desc{font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:24px;}
 .soon-close{padding:13px 36px;background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);color:white;border:none;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 8px 22px rgba(47,107,255,.28);transition:transform .18s;}
 .soon-close:hover{transform:translateY(-1px);}
+
+/* ===== Quiz modal ===== */
+.quiz-box{background:#fff;border-radius:24px;max-width:700px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
+.quiz-mhdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid rgba(47,107,255,.1);position:sticky;top:0;background:#fff;border-radius:24px 24px 0 0;z-index:1;}
+.quiz-mhdr-title{font-weight:900;font-size:16px;color:#14213D;}
+.quiz-x{background:rgba(47,107,255,.08);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;flex-shrink:0;}
+.quiz-mbody{padding:18px 22px;flex:1;overflow-y:auto;}
+.quiz-center{text-align:center;padding:40px 20px;color:#6B7280;font-size:15px;}
+.quiz-center-icon{font-size:44px;margin-bottom:14px;}
+.quiz-prog{font-size:13px;color:#6B7280;font-weight:600;margin-bottom:16px;}
+.quiz-qblock{background:rgba(255,255,255,.95);border:1px solid rgba(47,107,255,.12);border-radius:16px;padding:16px 18px;margin-bottom:14px;}
+.quiz-qnum{font-size:11px;color:#6B7280;margin-bottom:4px;}
+.quiz-qtext{font-weight:700;font-size:15px;color:#14213D;margin-bottom:12px;line-height:1.5;}
+.quiz-opt{display:flex;align-items:center;gap:10px;padding:10px 13px;border-radius:10px;cursor:pointer;border:1.5px solid rgba(47,107,255,.12);margin-bottom:7px;transition:all .15s;font-size:14px;color:#14213D;user-select:none;}
+.quiz-opt:hover{background:rgba(47,107,255,.05);border-color:rgba(47,107,255,.3);}
+.quiz-opt.selected{background:linear-gradient(90deg,rgba(47,107,255,.1),rgba(32,201,255,.08));border-color:#2F6BFF;}
+.quiz-opt input[type=radio]{accent-color:#2F6BFF;width:16px;height:16px;flex-shrink:0;pointer-events:none;}
+.quiz-mfooter{padding:12px 22px 22px;position:sticky;bottom:0;background:#fff;border-top:1px solid rgba(47,107,255,.08);}
+.quiz-submit{width:100%;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px rgba(47,107,255,.22);transition:opacity .2s;}
+.quiz-submit:disabled{opacity:.5;cursor:not-allowed;}
+.quiz-result-score{text-align:center;padding:24px 20px 16px;}
+.quiz-result-big{font-size:38px;font-weight:900;background:linear-gradient(135deg,#2F6BFF,#20C9FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+.quiz-result-stats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin:14px 0;}
+.quiz-result-stat{text-align:center;padding:12px 16px;background:rgba(47,107,255,.05);border-radius:14px;min-width:76px;}
+.quiz-result-stat .rnum{font-weight:900;font-size:22px;color:#2F6BFF;}
+.quiz-result-stat .rlbl{font-size:11px;color:#6B7280;margin-top:3px;}
+.quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
+.quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
+
 .ai-box{background:rgba(255,255,255,0.98);border-radius:28px;padding:32px 28px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(90,120,255,.22);border:1px solid rgba(255,255,255,.9);max-height:85vh;overflow-y:auto;}
 .ai-header{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1.5px solid rgba(47,107,255,.1);}
 .ai-icon{font-size:28px;line-height:1;}
@@ -364,11 +393,40 @@ body{
 
 <!-- ===== Quiz modal ===== -->
 <div id="quizModal">
-  <div class="soon-box">
-    <div class="soon-icon">📋</div>
-    <div class="soon-title" data-i18n="quizTitle">Сынақ</div>
-    <div class="soon-desc" data-i18n="quizDesc">Сынақ жақында қосылады.</div>
-    <button class="soon-close" id="quizClose" data-i18n="closeBtn">Жабу</button>
+  <div class="quiz-box">
+    <div class="quiz-mhdr">
+      <span class="quiz-mhdr-title" id="quizHeaderTitle">📋 Сынақ</span>
+      <button class="quiz-x" id="quizClose">✕</button>
+    </div>
+    <div class="quiz-mbody" id="quizBody">
+      <!-- loading -->
+      <div id="qsLoading" class="quiz-center" style="display:none">
+        <div class="quiz-center-icon">⏳</div>
+        <div id="qsLoadingText">Жүктелуде…</div>
+      </div>
+      <!-- not found -->
+      <div id="qsNone" class="quiz-center" style="display:none">
+        <div class="quiz-center-icon">📋</div>
+        <div id="qsNoneText">Бұл сабаққа сынақ әлі қосылмаған.</div>
+      </div>
+      <!-- quiz -->
+      <div id="qsQuiz" style="display:none">
+        <div class="quiz-prog" id="qsProg"></div>
+        <div id="qsQuestions"></div>
+      </div>
+      <!-- result -->
+      <div id="qsResult" style="display:none">
+        <div class="quiz-result-score">
+          <div class="quiz-result-big" id="qsResultBig"></div>
+          <div class="quiz-result-stats" id="qsResultStats"></div>
+        </div>
+        <div class="quiz-result-msg" id="qsResultMsg"></div>
+        <button class="quiz-result-close" id="qsResultClose">Жабу</button>
+      </div>
+    </div>
+    <div class="quiz-mfooter" id="qsFooter" style="display:none">
+      <button class="quiz-submit" id="qsSubmit">Сынақты аяқтау</button>
+    </div>
   </div>
 </div>
 
@@ -544,9 +602,140 @@ document.getElementById("viewerModal").addEventListener("click", e => { if(e.tar
 document.addEventListener("keydown", e => { if(e.key === "Escape"){ closeViewer(); closeQuizModal(); closeAiModal(); } });
 
 /* ===== Quiz modal ===== */
-window.openQuizModal = function(){ document.getElementById("quizModal").style.display = "flex"; };
-window.closeQuizModal = function(){ document.getElementById("quizModal").style.display = "none"; };
-document.getElementById("quizClose").onclick = () => closeQuizModal();
+function escapeHtml(s) {
+  return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+let _quizLesson  = null;
+let _quizData    = null;  // { id, total, questions }
+let _quizAnswers = {};    // { idx: "option text" }
+let _quizSubmitting = false;
+
+function _setQState(s) {
+  ["qsLoading","qsNone","qsQuiz","qsResult"].forEach(id => document.getElementById(id).style.display = "none");
+  document.getElementById("qsFooter").style.display = (s === "quiz") ? "" : "none";
+  const show = { loading:"qsLoading", none:"qsNone", quiz:"qsQuiz", result:"qsResult" }[s];
+  if (show) document.getElementById(show).style.display = "";
+}
+
+function _updateQProgress() {
+  if (!_quizData) return;
+  const answered = Object.keys(_quizAnswers).length;
+  const t = window.goI18n[window.goLang] || window.goI18n.kk;
+  const tpl = t.quizProgress || "{answered}/{total} сұраққа жауап берілді";
+  document.getElementById("qsProg").textContent = tpl.replace("{answered}", answered).replace("{total}", _quizData.total);
+  document.getElementById("qsSubmit").disabled = _quizSubmitting;
+}
+
+function _renderQuiz() {
+  const t = window.goI18n[window.goLang] || window.goI18n.kk;
+  const container = document.getElementById("qsQuestions");
+  container.innerHTML = "";
+  _quizData.questions.forEach(q => {
+    const block = document.createElement("div");
+    block.className = "quiz-qblock";
+    block.innerHTML = `<div class="quiz-qnum">Сұрақ ${q.idx + 1}</div><div class="quiz-qtext">${escapeHtml(q.question)}</div>`;
+    q.options.forEach(opt => {
+      const label = document.createElement("label");
+      label.className = "quiz-opt" + (_quizAnswers[q.idx] === opt ? " selected" : "");
+      label.innerHTML = `<input type="radio" name="q${q.idx}" value="${escapeHtml(opt)}"${_quizAnswers[q.idx] === opt ? " checked" : ""}> ${escapeHtml(opt)}`;
+      label.addEventListener("click", () => {
+        _quizAnswers[q.idx] = opt;
+        block.querySelectorAll(".quiz-opt").forEach(l => l.classList.remove("selected"));
+        label.classList.add("selected");
+        block.querySelector(`input[value="${CSS.escape(opt)}"]`).checked = true;
+        _updateQProgress();
+      });
+      block.appendChild(label);
+    });
+    container.appendChild(block);
+  });
+  _updateQProgress();
+  _setQState("quiz");
+}
+
+async function _submitQuiz() {
+  if (_quizSubmitting) return;
+  const t = window.goI18n[window.goLang] || window.goI18n.kk;
+  const answered = Object.keys(_quizAnswers).length;
+  if (answered < _quizData.total) {
+    const msg = t.quizConfirm || "Барлық сұраққа жауап берілмеді. Жіберуге сенімдісіз бе?";
+    if (!confirm(msg)) return;
+  }
+  _quizSubmitting = true;
+  document.getElementById("qsSubmit").disabled = true;
+  document.getElementById("qsSubmit").textContent = "Жіберілуде…";
+
+  const answers = _quizData.questions.map(q => _quizAnswers[q.idx] || "");
+
+  try {
+    const r = await fetch("/api/quiz/submit", {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quizId: _quizData.id, answers }),
+    });
+    const j = await r.json().catch(() => null);
+    if (!j?.ok) {
+      alert((j?.error && j.error !== "server_error") ? j.error : "Жіберу қатесі. Қайталаңыз.");
+      _quizSubmitting = false;
+      document.getElementById("qsSubmit").disabled = false;
+      document.getElementById("qsSubmit").textContent = t.quizSubmit || "Сынақты аяқтау";
+      return;
+    }
+    // Show result
+    const scoreTpl = t.quizScoreLine || "Нәтижеңіз: {correct}/{total}";
+    document.getElementById("qsResultBig").textContent =
+      scoreTpl.replace("{correct}", j.correctCount).replace("{total}", j.totalCount);
+    document.getElementById("qsResultStats").innerHTML = `
+      <div class="quiz-result-stat"><div class="rnum" style="color:#1DE9B6">${j.correctCount}</div><div class="rlbl">${t.quizCorrectLbl || "Дұрыс"}</div></div>
+      <div class="quiz-result-stat"><div class="rnum" style="color:#ef4444">${j.wrongCount}</div><div class="rlbl">${t.quizWrongLbl || "Қате"}</div></div>
+      <div class="quiz-result-stat"><div class="rnum">${j.percentage}%</div><div class="rlbl">${t.quizPercentLbl || "Пайыз"}</div></div>
+    `;
+    document.getElementById("qsResultMsg").textContent = j.message || "";
+    _setQState("result");
+  } catch(e) {
+    alert("Желі қатесі. Қайталаңыз.");
+    _quizSubmitting = false;
+    document.getElementById("qsSubmit").disabled = false;
+    document.getElementById("qsSubmit").textContent = t.quizSubmit || "Сынақты аяқтау";
+  }
+}
+
+window.openQuizModal = async function(lessonNum) {
+  _quizLesson     = lessonNum || null;
+  _quizData       = null;
+  _quizAnswers    = {};
+  _quizSubmitting = false;
+  document.getElementById("quizModal").style.display = "flex";
+  _setQState("loading");
+
+  const t = window.goI18n[window.goLang] || window.goI18n.kk;
+  document.getElementById("quizHeaderTitle").textContent = `📋 ${t.lessonLabel || "Сабақ"} ${lessonNum}`;
+
+  try {
+    const pkg     = COURSE_API;
+    const grade   = gradeSelect.value;
+    const subject = subjectSelect.value;
+    const r = await fetch(`/api/quiz/student?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}&lessonNumber=${lessonNum}`, { credentials: "include", cache: "no-store" });
+    const j = await r.json().catch(() => null);
+
+    if (!j?.ok || !j.quiz) {
+      document.getElementById("qsNoneText").textContent = t.quizNotFound || "Бұл сабаққа сынақ әлі қосылмаған.";
+      _setQState("none");
+      return;
+    }
+
+    _quizData = j.quiz;
+    _renderQuiz();
+  } catch(e) {
+    document.getElementById("qsNoneText").textContent = "Жүктеу қатесі. Қайталаңыз.";
+    _setQState("none");
+  }
+};
+
+window.closeQuizModal = function() { document.getElementById("quizModal").style.display = "none"; };
+document.getElementById("quizClose").onclick   = () => closeQuizModal();
+document.getElementById("qsResultClose").onclick = () => closeQuizModal();
+document.getElementById("qsSubmit").onclick    = () => _submitQuiz();
 document.getElementById("quizModal").addEventListener("click", e => { if(e.target.id === "quizModal") closeQuizModal(); });
 
 /* ===== AI helper modal ===== */
@@ -801,7 +990,7 @@ async function renderBlocks(){
     const qBtn = document.createElement("button");
     qBtn.className = "lbtn btn-quiz";
     qBtn.innerHTML = `<span class="ic">📋</span> ${t.btnQuiz}`;
-    qBtn.onclick = () => openQuizModal();
+    qBtn.onclick = () => openQuizModal(i);
     block.appendChild(qBtn);
 
     /* 4. AI (new) */

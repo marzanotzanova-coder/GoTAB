@@ -1954,6 +1954,301 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
 });
 
 
+// ===================== QUIZ =====================
+const quizParser = require("./services/quizParser");
+
+function quizDb() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
+  return { url, key };
+}
+
+async function generateQuizDiagnosis({ grade, subject, lessonNumber, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown }) {
+  const weakTopics   = Object.entries(topicBreakdown).filter(([,d]) => d.percentage < 50).map(([t]) => t);
+  const strongTopics = Object.entries(topicBreakdown).filter(([,d]) => d.percentage >= 80).map(([t]) => t);
+
+  const fallbackLines = [
+    `Диагностика:`,
+    `Жалпы нәтиже: ${correctCount}/${totalCount} (${percentage}%).`,
+    ``,
+    `Әлсіз тақырыптар:`,
+    weakTopics.length   ? weakTopics.map(t => `- ${t}`).join("\n")   : "- Жоқ",
+    ``,
+    `Жақсы меңгерген тақырыптар:`,
+    strongTopics.length ? strongTopics.map(t => `- ${t}`).join("\n") : "- Жоқ",
+    ``,
+    `Мұғалімге кеңес:`,
+    weakTopics.length
+      ? weakTopics.map(t => `- "${t}" тақырыбын қайталату ұсынылады.`).join("\n")
+      : "- Барлық тақырып жақсы меңгерілген.",
+    ``,
+    `Қосымша тапсырма ұсынысы:`,
+    weakTopics.length
+      ? `- ${weakTopics.join(", ")} бойынша 2 жеңіл, 2 орташа, 1 күрделі есеп.`
+      : "- Жаңа тақырыпқа өтуге болады.",
+  ];
+  const fallbackDiagnosis = fallbackLines.join("\n");
+  const fallbackAdvice = weakTopics.length
+    ? `Қосымша жаттығу ұсынылады: ${weakTopics.join(", ")}.`
+    : "Оқушы материалды жақсы меңгерген.";
+
+  if (!process.env.OPENAI_API_KEY) {
+    return { diagnosis: "ИИ диагностика уақытша қолжетімсіз. Төменде автоматты базалық анализ көрсетілді.\n\n" + fallbackDiagnosis, advice: fallbackAdvice };
+  }
+
+  try {
+    const { resolveModel } = require("./services/aiService");
+    const model = await resolveModel();
+    const OpenAI = require("openai");
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+    const topicSummary = Object.entries(topicBreakdown)
+      .map(([t, d]) => `${t}: ${d.correct}/${d.total} (${d.percentage}%)`).join("\n");
+    const wrongSummary = wrongQuestions.slice(0, 10)
+      .map(wq => `Сұрақ: "${wq.question}" | Дұрыс: "${wq.correct}" | Оқушы: "${wq.studentAnswer || "(жоқ)"}"`).join("\n");
+
+    const prompt = [
+      `GoTAB математика сынақ нәтижесі. ${grade}-сынып, ${subject}, ${lessonNumber}-сабақ.`,
+      `Нәтиже: ${correctCount}/${totalCount} (${percentage}%).`,
+      ``, `Тақырыптар бойынша нәтиже:`, topicSummary,
+      ``, `Қате жіберілген сұрақтар:`, wrongSummary || "(қате жоқ)",
+      ``,
+      `Мұғалімге арналған диагностика жасаңыз. Тек осы деректер негізінде. Форматы:`,
+      `Диагностика:\n(жалпы баға)\n\nӘлсіз тақырыптар:\n- (тізім)\n\nЖақсы меңгерген тақырыптар:\n- (тізім)\n\nҚате себептері:\n- (тізім)\n\nМұғалімге кеңес:\n- (тізім)\n\nҚосымша тапсырма ұсынысы:\n- 2 жеңіл есеп\n- 2 орташа есеп\n- 1 күрделі есеп`,
+    ].join("\n");
+
+    const resp = await client.responses.create({
+      model,
+      instructions: "Сен GoTAB математика мұғалімісің. Тек қазақ тілінде жауап бер. Диагностика нақты және қысқа болуы керек.",
+      input: prompt,
+    });
+
+    const text = (resp.output_text || "").trim();
+    if (text) return { diagnosis: text, advice: fallbackAdvice };
+  } catch (aiErr) {
+    console.error("[quiz/diagnosis] OpenAI error:", aiErr.message);
+  }
+
+  return {
+    diagnosis: "ИИ диагностика уақытша қолжетімсіз. Төменде автоматты базалық анализ көрсетілді.\n\n" + fallbackDiagnosis,
+    advice: fallbackAdvice,
+  };
+}
+
+// Admin: save / update quiz
+app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
+  try {
+    const { package: pkg, grade, subject, lessonNumber, rawText } = req.body || {};
+    if (!pkg || !grade || !subject || !lessonNumber || !rawText) {
+      return res.status(400).json({ ok: false, error: "Барлық өрістерді толтырыңыз." });
+    }
+    const ln = Number(lessonNumber);
+    if (!Number.isFinite(ln) || ln < 1) return res.status(400).json({ ok: false, error: "Сабақ нөмірі дұрыс емес." });
+
+    const parsed = quizParser.parseQuiz(rawText);
+    if (!parsed.ok) return res.status(400).json({ ok: false, errors: parsed.errors });
+
+    const { url, key } = quizDb();
+    const r = await fetch(`${url}/rest/v1/quizzes`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "resolution=merge-duplicates,return=representation" },
+      body: JSON.stringify([{ package: pkg, grade: String(grade), subject: String(subject), lesson_number: ln, raw_text: rawText, parsed_questions: parsed.questions, updated_at: new Date().toISOString() }]),
+    });
+    const data = await r.json().catch(() => null);
+    if (!r.ok) { console.error("[quiz/save] supabase:", data); return res.status(500).json({ ok: false, error: "DB қатесі.", data }); }
+    console.log(`[quiz/save] pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} q=${parsed.questions.length}`);
+    return res.json({ ok: true, questionCount: parsed.questions.length, warnings: parsed.errors });
+  } catch (e) {
+    console.error("[quiz/save] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: get quiz with correct answers
+app.get("/api/quiz/admin/get", requireAdmin, async (req, res) => {
+  try {
+    const { package: pkg, grade, subject, lessonNumber } = req.query;
+    const ln = Number(lessonNumber);
+    if (!pkg || !grade || !subject || !ln) return res.status(400).json({ ok: false, error: "bad_input" });
+    const { url, key } = quizDb();
+    const r = await fetch(
+      `${url}/rest/v1/quizzes?select=*&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    return res.json({ ok: true, quiz: rows[0] || null });
+  } catch (e) {
+    console.error("[quiz/admin/get] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: list quizzes
+app.get("/api/quiz/admin/list", requireAdmin, async (req, res) => {
+  try {
+    const { url, key } = quizDb();
+    const r = await fetch(`${url}/rest/v1/quizzes?select=id,package,grade,subject,lesson_number,updated_at&order=updated_at.desc`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    return res.json({ ok: true, quizzes: rows });
+  } catch (e) {
+    console.error("[quiz/admin/list] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: delete quiz
+app.delete("/api/quiz/admin/delete/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ ok: false, error: "bad_id" });
+    const { url, key } = quizDb();
+    const r = await fetch(`${url}/rest/v1/quizzes?id=eq.${id}`, {
+      method: "DELETE",
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    return res.json({ ok: true });
+  } catch (e) {
+    console.error("[quiz/admin/delete] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: list attempts (with optional filters)
+app.get("/api/quiz/admin/attempts", requireAdmin, async (req, res) => {
+  try {
+    const { studentId, package: pkg, grade, subject, lessonNumber } = req.query;
+    const { url, key } = quizDb();
+    let endpoint = `${url}/rest/v1/quiz_attempts?select=id,quiz_id,student_id,student_name,package,grade,subject,lesson_number,correct_count,wrong_count,total_count,percentage,topic_breakdown,created_at&order=created_at.desc&limit=200`;
+    if (studentId)    endpoint += `&student_id=eq.${encodeURIComponent(studentId)}`;
+    if (pkg)          endpoint += `&package=eq.${encodeURIComponent(pkg)}`;
+    if (grade)        endpoint += `&grade=eq.${encodeURIComponent(grade)}`;
+    if (subject)      endpoint += `&subject=eq.${encodeURIComponent(subject)}`;
+    if (lessonNumber) endpoint += `&lesson_number=eq.${Number(lessonNumber)}`;
+    const r = await fetch(endpoint, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    return res.json({ ok: true, attempts: rows });
+  } catch (e) {
+    console.error("[quiz/admin/attempts] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: get full attempt (with diagnosis)
+app.get("/api/quiz/admin/attempt/:id", requireAdmin, async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    if (!id) return res.status(400).json({ ok: false, error: "bad_id" });
+    const { url, key } = quizDb();
+    const r = await fetch(`${url}/rest/v1/quiz_attempts?id=eq.${id}&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    const attempt = rows[0];
+    if (!attempt) return res.status(404).json({ ok: false, error: "not_found" });
+    return res.json({ ok: true, attempt });
+  } catch (e) {
+    console.error("[quiz/admin/attempt] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Student: get quiz (no correct answers)
+app.get("/api/quiz/student", requireAuth, async (req, res) => {
+  try {
+    const { package: pkg, grade, subject, lessonNumber } = req.query;
+    const ln = Number(lessonNumber);
+    if (!pkg || !grade || !subject || !ln) return res.status(400).json({ ok: false, error: "bad_input" });
+    const { url, key } = quizDb();
+    const r = await fetch(
+      `${url}/rest/v1/quizzes?select=id,lesson_number,parsed_questions&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    const quiz = rows[0];
+    if (!quiz) return res.json({ ok: true, quiz: null });
+    const questions = quizParser.questionsForStudent(quiz.parsed_questions || []);
+    return res.json({ ok: true, quiz: { id: quiz.id, lessonNumber: quiz.lesson_number, total: questions.length, questions } });
+  } catch (e) {
+    console.error("[quiz/student] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Student: submit quiz
+app.post("/api/quiz/submit", requireAuth, async (req, res) => {
+  try {
+    const { quizId, answers } = req.body || {};
+    const studentId   = String(req.session?.user?.studentId || "");
+    const studentName = String(req.session?.user?.fullName  || "");
+
+    if (!quizId || !Array.isArray(answers)) return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!studentId) return res.status(400).json({ ok: false, error: "missing_student_id" });
+
+    const { url, key } = quizDb();
+    const qr = await fetch(`${url}/rest/v1/quizzes?id=eq.${Number(quizId)}&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const qrows = await qr.json().catch(() => []);
+    if (!qr.ok || !qrows[0]) return res.status(404).json({ ok: false, error: "quiz_not_found" });
+
+    const quiz   = qrows[0];
+    const parsed = quiz.parsed_questions || [];
+
+    let correctCount = 0, wrongCount = 0;
+    const wrongQuestions = [];
+    const topicMap = {};
+
+    parsed.forEach((q, idx) => {
+      const studentAnswer = String(answers[idx] || "").trim();
+      const isCorrect = studentAnswer === q.correct;
+      if (!topicMap[q.topic]) topicMap[q.topic] = { total: 0, correct: 0, wrong: 0 };
+      topicMap[q.topic].total++;
+      if (isCorrect) { correctCount++; topicMap[q.topic].correct++; }
+      else           { wrongCount++;   topicMap[q.topic].wrong++;
+        wrongQuestions.push({ idx, question: q.question, topic: q.topic, correct: q.correct, studentAnswer, options: q.options });
+      }
+    });
+
+    const totalCount = parsed.length;
+    const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+
+    const topicBreakdown = {};
+    for (const [topic, d] of Object.entries(topicMap)) {
+      topicBreakdown[topic] = { total: d.total, correct: d.correct, wrong: d.wrong, percentage: Math.round((d.correct / d.total) * 100) };
+    }
+
+    let message;
+    if      (percentage >= 90) message = "Тамаша! Өте жақсы нәтиже 🏆";
+    else if (percentage >= 70) message = "Жарайсың! Бірақ қате кеткен тақырыптарды қайталап шық 💪";
+    else if (percentage >= 50) message = "Жақсы әрекет! Дайындалуды жалғастыр 📚";
+    else                       message = "Тапсырмаларды қайта оқып шық. Болады! 🌱";
+
+    // AI diagnosis (non-blocking)
+    let aiDiagnosis = "", teacherAdvice = "";
+    try {
+      const d = await generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown });
+      aiDiagnosis   = d.diagnosis;
+      teacherAdvice = d.advice;
+    } catch (diagErr) { console.error("[quiz/submit] diagnosis:", diagErr.message); }
+
+    const attempt = { quiz_id: Number(quizId), student_id: studentId, student_name: studentName, package: quiz.package, grade: quiz.grade, subject: quiz.subject, lesson_number: quiz.lesson_number, answers, correct_count: correctCount, wrong_count: wrongCount, total_count: totalCount, percentage, wrong_questions: wrongQuestions, topic_breakdown: topicBreakdown, ai_diagnosis: aiDiagnosis, teacher_advice: teacherAdvice };
+    const ar = await fetch(`${url}/rest/v1/quiz_attempts`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify([attempt]),
+    });
+    if (!ar.ok) console.error("[quiz/submit] save attempt error:", await ar.text().catch(() => ""));
+
+    console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%)`);
+    return res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message });
+  } catch (e) {
+    console.error("[quiz/submit] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
 // ===================== START =====================
 // Discover the best available OpenAI model before serving any requests
 aiService.resolveModel().catch(e => console.error("[startup] model discovery error:", e.message));
