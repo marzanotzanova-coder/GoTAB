@@ -307,8 +307,8 @@
   <!-- RIGHT: uploads + quiz -->
   <main class="card">
     <div class="admin-tabs">
-      <button type="button" class="admin-tab active" id="tabBtnMaterials" onclick="switchTab('materials')">📦 Материалдар</button>
-      <button type="button" class="admin-tab" id="tabBtnQuiz" onclick="switchTab('quiz')">📋 Сынақтар</button>
+      <button type="button" class="admin-tab active" id="tabBtnMaterials">📦 Материалдар</button>
+      <button type="button" class="admin-tab" id="tabBtnQuiz">📋 Сынақтар</button>
     </div>
 
     <!-- ── MATERIALS TAB ── -->
@@ -915,11 +915,15 @@ docs.forEach(f =>
 // ===== QUIZ ADMIN JS =====
 
 function switchTab(tab) {
-  document.getElementById("tabMaterials").style.display = tab === "materials" ? "" : "none";
-  document.getElementById("tabQuiz").style.display      = tab === "quiz"      ? "" : "none";
-  document.getElementById("tabBtnMaterials").classList.toggle("active", tab === "materials");
-  document.getElementById("tabBtnQuiz").classList.toggle("active",      tab === "quiz");
-  if (tab === "quiz") { loadQuizList(); loadAttempts(); }
+  try {
+    document.getElementById("tabMaterials").style.display = tab === "materials" ? "" : "none";
+    document.getElementById("tabQuiz").style.display      = tab === "quiz"      ? "" : "none";
+    document.getElementById("tabBtnMaterials").classList.toggle("active", tab === "materials");
+    document.getElementById("tabBtnQuiz").classList.toggle("active",      tab === "quiz");
+    if (tab === "quiz") { loadQuizList(); loadAttempts(); }
+  } catch(e) {
+    console.error("[switchTab] error:", e);
+  }
 }
 
 function escapeHtmlQ(s) {
@@ -1029,6 +1033,12 @@ async function loadQuizList() {
   try {
     const r = await fetch("/api/quiz/admin/list", { credentials: "include", cache: "no-store" });
     const j = await r.json().catch(() => null);
+    if (!r.ok) {
+      const detail = j?.error || j?.message || r.status;
+      box.innerHTML = `<div class='muted' style='color:#ef4444'>&#9888; API қатесі (${detail}). Supabase кестесін тексеріңіз.</div>`;
+      console.error("[loadQuizList] API error:", r.status, j);
+      return;
+    }
     const quizzes = j?.quizzes || [];
     if (!quizzes.length) { box.innerHTML = "<div class='muted'>Сынақтар жоқ.</div>"; return; }
     box.innerHTML = quizzes.map(q => {
@@ -1118,6 +1128,12 @@ async function loadAttempts() {
     if (lesson)  url += `lessonNumber=${Number(lesson)}&`;
     const r = await fetch(url, { credentials: "include", cache: "no-store" });
     const j = await r.json().catch(() => null);
+    if (!r.ok) {
+      const detail = j?.error || j?.message || r.status;
+      box.innerHTML = `<div class='attempts-empty' style='color:#ef4444'>&#9888; API қатесі (${detail}).</div>`;
+      console.error("[loadAttempts] API error:", r.status, j);
+      return;
+    }
     const attempts = j?.attempts || [];
     if (!attempts.length) { box.innerHTML = "<div class='attempts-empty'>Нәтижелер жоқ</div>"; return; }
     box.innerHTML = attempts.map(a => {
@@ -1182,6 +1198,10 @@ async function openAttemptModal(id) {
 function closeAttemptModal() {
   document.getElementById("attemptModal").style.display = "none";
 }
+
+document.getElementById("tabBtnMaterials").addEventListener("click", function() { switchTab("materials"); });
+document.getElementById("tabBtnQuiz").addEventListener("click", function() { switchTab("quiz"); });
+
 document.getElementById("attemptModal").addEventListener("click", e => {
   if (e.target.id === "attemptModal") closeAttemptModal();
 });

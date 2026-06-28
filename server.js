@@ -2190,7 +2190,7 @@ app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
     console.log("[quiz/save] supabase url:", url ? url.slice(0, 50) + "..." : "MISSING");
     console.log("[quiz/save] key present:", !!key, "| table:", TABLE);
 
-    const payload = [{
+    const rowData = {
       package:          pkg,
       grade:            Number(grade),
       subject:          String(subject),
@@ -2198,31 +2198,52 @@ app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
       raw_text:         rawText,
       parsed_questions: parsed.questions,
       updated_at:       new Date().toISOString(),
-    }];
-    console.log("[quiz/save] insert payload (sans raw_text):", JSON.stringify({
-      ...payload[0], raw_text: `[${rawText.length} chars]`, parsed_questions: `[${parsed.questions.length} questions]`,
-    }));
+    };
+    console.log("[quiz/save] payload (sans raw_text): pkg=%s grade=%s subject=%s lesson=%s questions=%d",
+      pkg, grade, subject, ln, parsed.questions.length);
 
-    const r = await fetch(`${url}/rest/v1/${TABLE}`, {
-      method:  "POST",
-      headers: {
-        apikey:          key,
-        Authorization:   `Bearer ${key}`,
-        "Content-Type":  "application/json",
-        Prefer:          "resolution=merge-duplicates,return=representation",
-      },
-      body: JSON.stringify(payload),
-    });
+    // Prefer: resolution=merge-duplicates fails with anon key when row exists (returns 409).
+    // Instead: find existing row → PATCH it; otherwise INSERT.
+    const findR = await fetch(
+      `${url}/rest/v1/${TABLE}?select=id&package=eq.${encodeURIComponent(pkg)}&grade=eq.${Number(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const findRows = await findR.json().catch(() => []);
+    const existingId = Array.isArray(findRows) ? findRows[0]?.id : null;
+    console.log("[quiz/save] existingId:", existingId || "none (new insert)");
 
-    console.log("[quiz/save] supabase HTTP status:", r.status, r.statusText);
-    const data = await r.json().catch(() => null);
-
-    if (!r.ok) {
-      console.error("[quiz/save] Supabase INSERT error:", JSON.stringify(data));
-      return res.status(500).json({ ok: false, error: "server_error" });
+    let r, data;
+    if (existingId) {
+      r = await fetch(`${url}/rest/v1/${TABLE}?id=eq.${existingId}`, {
+        method:  "PATCH",
+        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify(rowData),
+      });
+    } else {
+      r = await fetch(`${url}/rest/v1/${TABLE}`, {
+        method:  "POST",
+        headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" },
+        body: JSON.stringify([rowData]),
+      });
     }
 
-    console.log(`[quiz/save] OK — pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} questions=${parsed.questions.length}`);
+    console.log("[quiz/save] supabase HTTP status:", r.status, r.statusText);
+    data = await r.json().catch(() => null);
+
+    if (!r.ok) {
+      console.error("[quiz/save] Supabase error:", JSON.stringify(data));
+      return res.status(500).json({
+        ok: false,
+        error: "db_error",
+        supabase: {
+          code:    data?.code    || String(r.status),
+          message: data?.message || data?.hint || "unknown error",
+          hint:    data?.hint    || "",
+        },
+      });
+    }
+
+    console.log(`[quiz/save] OK — pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} questions=${parsed.questions.length} op=${existingId ? "update" : "insert"}`);
     return res.json({ ok: true, questionCount: parsed.questions.length, warnings: parsed.errors });
 
   } catch (e) {
@@ -2257,11 +2278,36 @@ app.get("/api/quiz/admin/list", requireAdmin, async (req, res) => {
     const { url, key } = quizDb();
     const r = await fetch(`${url}/rest/v1/quizzes?select=id,package,grade,subject,lesson_number,updated_at&order=updated_at.desc`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
     const rows = await r.json().catch(() => []);
-    if (!r.ok) return res.status(500).json({ ok: false, error: "db_error" });
+    if (!r.ok) {
+      const msg = Array.isArray(rows) ? "db_error" : (rows?.message || rows?.hint || "db_error");
+      return res.status(500).json({ ok: false, error: msg });
+    }
     return res.json({ ok: true, quizzes: rows });
   } catch (e) {
     console.error("[quiz/admin/list] error:", e.message);
     return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: quiz health check — verifies tables are accessible
+app.get("/api/quiz/admin/health", requireAdmin, async (req, res) => {
+  try {
+    const { url, key } = quizDb();
+    const [rQ, rA] = await Promise.all([
+      fetch(`${url}/rest/v1/quizzes?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }),
+      fetch(`${url}/rest/v1/quiz_attempts?select=id&limit=1`, { headers: { apikey: key, Authorization: `Bearer ${key}` } }),
+    ]);
+    const dQ = await rQ.json().catch(() => null);
+    const dA = await rA.json().catch(() => null);
+    return res.json({
+      ok: rQ.ok && rA.ok,
+      quizzes:       { status: rQ.status, ok: rQ.ok, error: rQ.ok ? null : (dQ?.message || dQ?.hint || "table missing") },
+      quiz_attempts: { status: rA.status, ok: rA.ok, error: rA.ok ? null : (dA?.message || dA?.hint || "table missing") },
+      keyType: process.env.SUPABASE_SERVICE_KEY ? "service_role" : "anon",
+    });
+  } catch (e) {
+    console.error("[quiz/admin/health] error:", e.message);
+    return res.status(500).json({ ok: false, error: e.message });
   }
 });
 
