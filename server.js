@@ -15,6 +15,8 @@ const OpenAI = require("openai");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_KEY;
+// Prefers service role key (bypasses RLS). Falls back to anon key.
+function sbKey() { return process.env.SUPABASE_SERVICE_KEY || SUPABASE_KEY; }
   
   async function uploadBufferToSupabaseStorage(bucket, filePath, buffer, contentType) {
   const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${filePath}`;
@@ -549,8 +551,8 @@ async function pushNotif(studentId, type, text) {
     const r = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
       method: "POST",
       headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: sbKey(),
+        Authorization: `Bearer ${sbKey()}`,
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
@@ -998,8 +1000,8 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
     const sr = await fetch(`${SUPABASE_URL}/rest/v1/student_uploads`, {
       method: "POST",
       headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: sbKey(),
+        Authorization: `Bearer ${sbKey()}`,
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
@@ -1025,8 +1027,8 @@ const checkProgRes = await fetch(
   `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${block}`,
   {
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`
+      apikey: sbKey(),
+      Authorization: `Bearer ${sbKey()}`
     }
   }
 );
@@ -1061,8 +1063,8 @@ if (prevProg) {
     {
       method: "PATCH",
       headers: {
-        apikey: SUPABASE_KEY,
-        Authorization: `Bearer ${SUPABASE_KEY}`,
+        apikey: sbKey(),
+        Authorization: `Bearer ${sbKey()}`,
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
@@ -1074,8 +1076,8 @@ if (prevProg) {
   progSaveRes = await fetch(`${SUPABASE_URL}/rest/v1/progress`, {
     method: "POST",
     headers: {
-      apikey: SUPABASE_KEY,
-      Authorization: `Bearer ${SUPABASE_KEY}`,
+      apikey: sbKey(),
+      Authorization: `Bearer ${sbKey()}`,
       "Content-Type": "application/json",
       Prefer: "return=representation"
     },
@@ -1698,11 +1700,11 @@ app.get("/api/notifications", requireAuth, async (req, res) => {
     }
 
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/notifications?select=*&student_id=eq.${encodeURIComponent(studentId)}&order=created_at.desc&limit=30`,
+      `${SUPABASE_URL}/rest/v1/notifications?select=*&student_id=eq.${encodeURIComponent(studentId)}&type=not.in.(chat_out,chat_in,daily_watch)&order=created_at.desc&limit=30`,
       {
         headers: {
-          apikey: SUPABASE_KEY,
-          Authorization: `Bearer ${SUPABASE_KEY}`
+          apikey: sbKey(),
+          Authorization: `Bearer ${sbKey()}`
         }
       }
     );
@@ -2464,68 +2466,38 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
 });
 
 // ===================== MESSAGES (Two-way feedback) =====================
+// Messages are stored in the existing `notifications` table using special type values:
+//   chat_out  = message from student to teacher
+//   chat_in   = reply from admin/teacher to student
+// No separate table is needed; notifications table is confirmed to exist.
 
-const _MESSAGES_TABLE_SQL = `
-CREATE TABLE IF NOT EXISTS chat_messages (
-  id bigserial PRIMARY KEY,
-  student_id text NOT NULL,
-  author text NOT NULL CHECK (author IN ('admin', 'student')),
-  message text NOT NULL,
-  created_at timestamptz DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS chat_messages_student_idx ON chat_messages(student_id);
-`;
-
-async function ensureMessagesTable() {
-  const { url, key } = quizDb();
-  if (!url || !key) return;
-  try {
-    const probe = await fetch(`${url}/rest/v1/chat_messages?limit=0`, {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-    });
-    if (probe.ok) { console.log("[messages-setup] chat_messages table: EXISTS"); return; }
-  } catch (e) { console.error("[messages-setup] probe error:", e.message); }
-  const dbUrl = process.env.DATABASE_URL;
-  if (dbUrl) {
-    let pgClient;
-    try {
-      const { Client } = require("pg");
-      pgClient = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
-      await pgClient.connect();
-      await pgClient.query(_MESSAGES_TABLE_SQL);
-      await pgClient.end();
-      console.log("[messages-setup] chat_messages table created OK");
-    } catch (pgErr) {
-      console.error("[messages-setup] auto-create failed:", pgErr.message);
-      if (pgClient) await pgClient.end().catch(() => {});
-      console.error("[messages-setup] Run this SQL manually:\n" + _MESSAGES_TABLE_SQL);
-    }
-  } else {
-    console.warn("[messages-setup] DATABASE_URL not set — run this SQL manually:\n" + _MESSAGES_TABLE_SQL);
-  }
-}
-
-// GET /api/messages?studentId=X[&author=student|admin]
+// GET /api/messages?studentId=X
 app.get("/api/messages", requireAuth, async (req, res) => {
   try {
     const sessionUser = req.session?.user;
     const requestedId = String(req.query.studentId || "").trim();
-    const authorFilter = String(req.query.author || "").trim();
     const studentId = sessionUser.role === "admin"
       ? requestedId
       : String(sessionUser.studentId || "").trim();
     if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
     if (sessionUser.role !== "admin" && requestedId && requestedId !== studentId)
       return res.status(403).json({ ok: false, error: "forbidden" });
-    const { url, key } = quizDb();
-    let endpoint = `${url}/rest/v1/chat_messages?select=id,author,message,created_at`
-      + `&student_id=eq.${encodeURIComponent(studentId)}&order=created_at.asc&limit=50`;
-    if (authorFilter === "student" || authorFilter === "admin")
-      endpoint += `&author=eq.${encodeURIComponent(authorFilter)}`;
+    const key = sbKey();
+    const endpoint = `${SUPABASE_URL}/rest/v1/notifications`
+      + `?select=id,type,text,created_at`
+      + `&student_id=eq.${encodeURIComponent(studentId)}`
+      + `&type=in.(chat_out,chat_in)`
+      + `&order=created_at.asc&limit=100`;
     const r = await fetch(endpoint, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
     const rows = await r.json().catch(() => []);
-    if (!r.ok) { console.error("[messages/get] supabase error"); return res.status(500).json({ ok: false, error: "server_error" }); }
-    return res.json({ ok: true, messages: Array.isArray(rows) ? rows : [] });
+    if (!r.ok) { console.error("[messages/get] supabase error:", rows); return res.status(500).json({ ok: false, error: "server_error" }); }
+    const messages = (Array.isArray(rows) ? rows : []).map(n => ({
+      id: n.id,
+      author: n.type === "chat_out" ? "student" : "admin",
+      message: n.text,
+      created_at: n.created_at
+    }));
+    return res.json({ ok: true, messages });
   } catch (e) { console.error("[messages/get]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
@@ -2536,25 +2508,88 @@ app.post("/api/messages/send", requireAuth, async (req, res) => {
     const { studentId: bodyStudentId, message } = req.body || {};
     const msgText = String(message || "").trim();
     if (!msgText || msgText.length > 2000) return res.status(400).json({ ok: false, error: "bad_input" });
-    let studentId, author;
+    let studentId, msgType;
     if (sessionUser.role === "admin") {
       studentId = String(bodyStudentId || "").trim();
-      author = "admin";
+      msgType = "chat_in";
     } else {
       studentId = String(sessionUser.studentId || "").trim();
-      author = "student";
+      msgType = "chat_out";
     }
     if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
-    const { url, key } = quizDb();
-    const r = await fetch(`${url}/rest/v1/chat_messages`, {
+    const key = sbKey();
+    const row = {
+      id: "cm_" + Date.now() + "_" + Math.random().toString(16).slice(2, 8),
+      student_id: studentId,
+      type: msgType,
+      text: msgText,
+      read: false
+    };
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
-      body: JSON.stringify([{ student_id: studentId, author, message: msgText }]),
+      body: JSON.stringify([row]),
     });
     if (!r.ok) { const t = await r.text().catch(() => ""); console.error("[messages/send]", t); return res.status(500).json({ ok: false, error: "server_error" }); }
     return res.json({ ok: true });
   } catch (e) { console.error("[messages/send]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
+
+// POST /api/student/mark-video-watched — called by blocks pages when video content loads
+app.post("/api/student/mark-video-watched", requireStudent, async (req, res) => {
+  try {
+    const studentId = String(req.session?.user?.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const key = sbKey();
+    // Check if already marked today
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const checkR = await fetch(
+      `${SUPABASE_URL}/rest/v1/notifications?select=id&student_id=eq.${encodeURIComponent(studentId)}&type=eq.daily_watch&text=eq.${encodeURIComponent(todayStr)}&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const existing = await checkR.json().catch(() => []);
+    if (Array.isArray(existing) && existing.length > 0) return res.json({ ok: true, alreadyMarked: true });
+    const row = {
+      id: "dw_" + Date.now() + "_" + Math.random().toString(16).slice(2, 8),
+      student_id: studentId,
+      type: "daily_watch",
+      text: todayStr,
+      read: true
+    };
+    const insertR = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify([row]),
+    });
+    if (!insertR.ok) { const t = await insertR.text().catch(() => ""); console.error("[mark-watched]", t); return res.status(500).json({ ok: false, error: "server_error" }); }
+    return res.json({ ok: true });
+  } catch (e) { console.error("[mark-watched]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+// Shared activity query helper
+async function queryStudentActivity(studentId) {
+  const key = sbKey();
+  const h = { apikey: key, Authorization: `Bearer ${key}` };
+  const [watchR, progR, quizR, aiR] = await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/notifications?select=id&student_id=eq.${encodeURIComponent(studentId)}&type=eq.daily_watch&limit=1`, { headers: h }),
+    fetch(`${SUPABASE_URL}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
+    fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+    fetch(`${SUPABASE_URL}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+  ]);
+  const [watchRows, progRows, quizRows, aiRows] = await Promise.all([
+    watchR.json().catch(() => []),
+    progR.json().catch(() => []),
+    quizR.json().catch(() => []),
+    aiR.json().catch(() => []),
+  ]);
+  const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
+  return {
+    watched:  Array.isArray(watchRows) && watchRows.length > 0,
+    uploaded: Array.isArray(progRows)  && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
+    tested:   Array.isArray(quizRows)  && quizRows.length > 0,
+    ai:       Array.isArray(aiRows)    && aiRows.length > 0,
+  };
+}
 
 // GET /api/student-activity  (authenticated student — uses session, no query param)
 app.get("/api/student-activity", requireAuth, async (req, res) => {
@@ -2564,26 +2599,8 @@ app.get("/api/student-activity", requireAuth, async (req, res) => {
       return res.status(403).json({ ok: false, error: "forbidden" });
     const studentId = String(sessionUser.studentId || "").trim();
     if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
-    const { url, key } = quizDb();
-    const h = { apikey: key, Authorization: `Bearer ${key}` };
-    const [progR, quizR, aiR] = await Promise.all([
-      fetch(`${url}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
-      fetch(`${url}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
-      fetch(`${url}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
-    ]);
-    const [progRows, quizRows, aiRows] = await Promise.all([
-      progR.json().catch(() => []),
-      quizR.json().catch(() => []),
-      aiR.json().catch(() => []),
-    ]);
-    const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
-    return res.json({
-      ok: true,
-      watched: Array.isArray(progRows) && progRows.length > 0,
-      uploaded: Array.isArray(progRows) && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
-      tested: Array.isArray(quizRows) && quizRows.length > 0,
-      ai: Array.isArray(aiRows) && aiRows.length > 0,
-    });
+    const activity = await queryStudentActivity(studentId);
+    return res.json({ ok: true, ...activity });
   } catch (e) { console.error("[student-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
@@ -2592,27 +2609,9 @@ app.get("/api/admin/student-activity", requireAdmin, async (req, res) => {
   try {
     const studentId = String(req.query.studentId || "").trim();
     if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
-    const { url, key } = quizDb();
-    const h = { apikey: key, Authorization: `Bearer ${key}` };
-    const [progR, quizR, aiR] = await Promise.all([
-      fetch(`${url}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
-      fetch(`${url}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
-      fetch(`${url}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
-    ]);
-    const [progRows, quizRows, aiRows] = await Promise.all([
-      progR.json().catch(() => []),
-      quizR.json().catch(() => []),
-      aiR.json().catch(() => []),
-    ]);
-    const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
-    return res.json({
-      ok: true,
-      watched: Array.isArray(progRows) && progRows.length > 0,
-      uploaded: Array.isArray(progRows) && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
-      tested: Array.isArray(quizRows) && quizRows.length > 0,
-      ai: Array.isArray(aiRows) && aiRows.length > 0,
-    });
-  } catch (e) { console.error("[student-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+    const activity = await queryStudentActivity(studentId);
+    return res.json({ ok: true, ...activity });
+  } catch (e) { console.error("[admin/student-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
 // ===================== START =====================
@@ -2622,8 +2621,7 @@ aiService.resolveModel().catch(e => console.error("[startup] model discovery err
 // Ensure quiz DB tables exist (auto-creates via DATABASE_URL if missing)
 ensureQuizTables().catch(e => console.error("[startup] ensureQuizTables error:", e.message));
 
-// Ensure chat_messages table exists
-ensureMessagesTable().catch(e => console.error("[startup] ensureMessagesTable error:", e.message));
+// Messaging now uses the notifications table — no separate table setup needed.
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);

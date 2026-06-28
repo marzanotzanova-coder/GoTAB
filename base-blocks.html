@@ -1002,6 +1002,11 @@ async function renderBlocks(){
   const subject = String(subjectSelect.value || "math");
   const t = window.goI18n[window.goLang] || window.goI18n.kk;
 
+  // Mark video/content viewed for the checklist (fire-and-forget)
+  if (!isPreview) {
+    fetch("/api/student/mark-video-watched", { method: "POST", credentials: "include" }).catch(() => {});
+  }
+
   container.innerHTML = "";
 
   const totalBlocks = getBlockCount(grade, subject);

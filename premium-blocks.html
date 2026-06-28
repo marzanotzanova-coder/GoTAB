@@ -431,6 +431,7 @@ function wireNavButtons(){
 async function renderBlocks(){
   const grade=String(gradeSelect.value||"10"),subject=String(subjectSelect.value||"algebra");
   const t=window.goI18n[window.goLang]||window.goI18n.kk;
+  if(!isPreview) fetch("/api/student/mark-video-watched",{method:"POST",credentials:"include"}).catch(()=>{});
   container.innerHTML="";
   const totalBlocks=getBlockCount(grade,subject),progress={};
   const serverProg=await serverGetProgress(grade,subject);

@@ -1724,6 +1724,11 @@ function initFeedbackCard() {
     if (replyBtn)   replyBtn.textContent   = _tL.sendBtn || "Жіберу";
 
     loadConversation();
+    // Poll for new student messages every 12 seconds in admin preview
+    const _adminMsgPoll = setInterval(() => {
+      if (document.getElementById("conversationList")) loadConversation();
+    }, 12000);
+    window.__adminMsgPollInterval = _adminMsgPoll;
 
     if (replyBtn && replyInput) {
       replyBtn.addEventListener("click", async () => {
@@ -1765,6 +1770,11 @@ function initFeedbackCard() {
     if (msgInput)  msgInput.placeholder     = _tL.msgPhStudent || "Мұғалімге жазыңыз...";
 
     loadConversation();
+    // Poll for new messages every 12 seconds while card is visible
+    const _msgPollInterval = setInterval(() => {
+      if (document.getElementById("studentComposeWrap")) loadConversation();
+    }, 12000);
+    window.__msgPollInterval = _msgPollInterval;
 
     if (sendBtn && msgInput) {
       sendBtn.addEventListener("click", async () => {
