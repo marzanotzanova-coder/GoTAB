@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTAB — Cookie Policy</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
+  min-height: 100vh;
+  color: #14213D;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(90,120,255,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+.nav-logo {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #2F6BFF, #1DE9B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav select {
+  border: 1.5px solid rgba(90,120,255,0.2);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #14213D;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+.nav a { color: #2F6BFF; font-size: 14px; font-weight: 600; text-decoration: none; }
+.nav a:hover { text-decoration: underline; }
+.container { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.doc-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #2F6BFF20, #1DE9B620);
+  border: 1px solid rgba(47,107,255,0.2);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2F6BFF;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #2F6BFF, #1DE9B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.meta { font-size: 13px; color: #9CA3AF; margin-bottom: 40px; }
+.section {
+  background: rgba(255,255,255,0.85);
+  border-radius: 20px;
+  border: 1px solid rgba(90,120,255,0.1);
+  padding: 28px;
+  margin-bottom: 16px;
+}
+.section h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #14213D;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section h2 .icon { font-size: 20px; }
+.section p, .section li { font-size: 14px; color: #374151; line-height: 1.75; }
+.section ul { padding-left: 20px; }
+.section li { margin-bottom: 6px; }
+table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 13px; }
+th {
+  background: linear-gradient(90deg, #2F6BFF12, #1DE9B612);
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 700;
+  color: #14213D;
+  border-bottom: 2px solid rgba(47,107,255,0.15);
+}
+td { padding: 10px 14px; color: #374151; border-bottom: 1px solid rgba(90,120,255,0.08); }
+tr:last-child td { border-bottom: none; }
+code {
+  background: rgba(47,107,255,0.08);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 12px;
+  color: #2F6BFF;
+  font-family: monospace;
+}
+.contact-box {
+  background: linear-gradient(135deg, #2F6BFF08, #1DE9B608);
+  border: 1px solid rgba(47,107,255,0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-top: 14px;
+}
+.contact-box a { color: #2F6BFF; font-weight: 600; text-decoration: none; }
+.back-footer { text-align: center; padding: 24px; color: #9CA3AF; font-size: 12px; }
+.back-footer a { color: #2F6BFF; text-decoration: none; font-weight: 600; }
+[data-lang] { display: none; }
+[data-lang].active { display: block; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">GoTAB</a>
+  <div class="nav-right">
+    <select id="langSelect" onchange="switchLang(this.value)">
+      <option value="kk">Қазақша</option>
+      <option value="ru">Русский</option>
+    </select>
+    <a href="login.html" id="backLink">← Артқа</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- KK -->
+  <div data-lang="kk">
+    <div class="doc-badge">Cookie</div>
+    <h1>Cookie саясаты</h1>
+    <p class="meta">Соңғы жаңарту: 28 маусым 2026 · GoTAB платформасы</p>
+
+    <div class="section">
+      <h2><span class="icon">🍪</span>Cookie дегеніміз не?</h2>
+      <p>Cookie — веб-сайт сіздің браузеріңізде сақтайтын шағын мәтіндік файл. Cookie сайтты қайта кірген кезде сіздің аккаунтыңызды тану, тіл параметрлерін сақтау және сессияны басқару үшін пайдаланылады.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📋</span>Біз пайдаланатын Cookie түрлері</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Cookie атауы</th>
+            <th>Мақсаты</th>
+            <th>Мерзімі</th>
+            <th>Түрі</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>gotab.sid</code></td>
+            <td>Сессияны сәйкестендіру (кіру күйін сақтау)</td>
+            <td>7 күн</td>
+            <td>Міндетті</td>
+          </tr>
+          <tr>
+            <td><code>lang</code> (localStorage)</td>
+            <td>Тіл параметрін сақтау (Қазақша / Русский)</td>
+            <td>Тұрақты</td>
+            <td>Функционалдық</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">✅</span>Қолданылмайтын Cookie</h2>
+      <p>GoTAB мынаны пайдаланбайды:</p>
+      <ul>
+        <li>Жарнамалық немесе маркетингтік Cookie</li>
+        <li>Үшінші тарап бақылау пикселі</li>
+        <li>Google Analytics, Facebook Pixel немесе ұқсас бақылау жүйелері</li>
+        <li>Кросс-сайт бақылау технологиялары</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🔐</span>Сессия Cookie қауіпсіздігі</h2>
+      <p>Негізгі Cookie (<code>gotab.sid</code>) мынадай параметрлермен қорғалған:</p>
+      <ul>
+        <li><strong>HttpOnly:</strong> JavaScript арқылы оқуға болмайды — XSS шабуылдарынан қорғайды</li>
+        <li><strong>SameSite: Lax:</strong> Кросс-сайт сұраныстарымен Cookie жіберілмейді</li>
+        <li><strong>Secure (өндірістік ортада):</strong> Тек HTTPS арқылы жіберіледі</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">⚙️</span>Cookie-ні басқару</h2>
+      <p>Браузер параметрлері арқылы Cookie-ні қабылдамауды немесе жоюды таңдай аласыз. Алайда, <code>gotab.sid</code> Cookie-ін өшірсеңіз, платформаға кіру мүмкіндігіңіз болмайды — бұл Cookie аутентификация үшін міндетті.</p>
+      <p style="margin-top: 12px;">Браузер нұсқаулары:</p>
+      <ul>
+        <li>Chrome: Параметрлер → Қауіпсіздік және құпиялылық → Cookie</li>
+        <li>Firefox: Параметрлер → Құпиялылық → Cookie</li>
+        <li>Safari: Параметрлер → Веб-сайтқа арналған Cookie</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📬</span>Байланыс</h2>
+      <div class="contact-box">
+        <p>Cookie саясаты туралы сұрақтарыңыз болса:</p>
+        <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
+        <p>🌐 <a href="https://gotab.onrender.com">gotab.onrender.com</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RU -->
+  <div data-lang="ru">
+    <div class="doc-badge">Cookie</div>
+    <h1>Политика Cookie</h1>
+    <p class="meta">Последнее обновление: 28 июня 2026 · Платформа GoTAB</p>
+
+    <div class="section">
+      <h2><span class="icon">🍪</span>Что такое Cookie?</h2>
+      <p>Cookie — небольшой текстовый файл, который сайт сохраняет в вашем браузере. Cookie используются для распознавания вашего аккаунта при повторном посещении, сохранения языковых настроек и управления сессией.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📋</span>Типы используемых Cookie</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Название Cookie</th>
+            <th>Назначение</th>
+            <th>Срок действия</th>
+            <th>Тип</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>gotab.sid</code></td>
+            <td>Идентификация сессии (сохранение состояния входа)</td>
+            <td>7 дней</td>
+            <td>Обязательный</td>
+          </tr>
+          <tr>
+            <td><code>lang</code> (localStorage)</td>
+            <td>Сохранение языка интерфейса (Казахский / Русский)</td>
+            <td>Постоянно</td>
+            <td>Функциональный</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">✅</span>Что мы не используем</h2>
+      <p>GoTAB не использует:</p>
+      <ul>
+        <li>Рекламные или маркетинговые Cookie</li>
+        <li>Пиксели отслеживания третьих сторон</li>
+        <li>Google Analytics, Facebook Pixel или аналогичные системы</li>
+        <li>Кросс-сайтовые технологии отслеживания</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🔐</span>Безопасность сессионного Cookie</h2>
+      <p>Основной Cookie (<code>gotab.sid</code>) защищён следующими параметрами:</p>
+      <ul>
+        <li><strong>HttpOnly:</strong> Недоступен для JavaScript — защита от XSS-атак</li>
+        <li><strong>SameSite: Lax:</strong> Не передаётся в кросс-сайтовых запросах</li>
+        <li><strong>Secure (в production):</strong> Передаётся только по HTTPS</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">⚙️</span>Управление Cookie</h2>
+      <p>Вы можете отказаться от Cookie или удалить их через настройки браузера. Однако если вы отключите Cookie <code>gotab.sid</code>, вход на платформу будет невозможен — этот Cookie обязателен для аутентификации.</p>
+      <p style="margin-top: 12px;">Инструкции по браузерам:</p>
+      <ul>
+        <li>Chrome: Настройки → Конфиденциальность → Cookie и данные сайтов</li>
+        <li>Firefox: Настройки → Приватность → Cookie</li>
+        <li>Safari: Настройки → Конфиденциальность → Управлять данными сайтов</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📬</span>Контакты</h2>
+      <div class="contact-box">
+        <p>По вопросам политики Cookie:</p>
+        <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
+        <p>🌐 <a href="https://gotab.onrender.com">gotab.onrender.com</a></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="back-footer">
+  © 2026 GoTAB · <a href="login.html">← Артқа / Назад</a>
+</div>
+
+<script>
+function switchLang(lang) {
+  localStorage.setItem("lang", lang);
+  document.querySelectorAll("[data-lang]").forEach(el => el.classList.remove("active"));
+  const el = document.querySelector("[data-lang='" + lang + "']");
+  if (el) el.classList.add("active");
+  document.getElementById("langSelect").value = lang;
+  document.getElementById("backLink").textContent = lang === "kk" ? "← Артқа" : "← Назад";
+}
+const _lang = localStorage.getItem("lang") || "kk";
+switchLang(_lang);
+</script>
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GoTAB — Terms of Service</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
+  min-height: 100vh;
+  color: #14213D;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 32px;
+  background: rgba(255,255,255,0.9);
+  border-bottom: 1px solid rgba(90,120,255,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+.nav-logo {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #2F6BFF, #1DE9B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-decoration: none;
+}
+.nav-right { display: flex; align-items: center; gap: 16px; }
+.nav select {
+  border: 1.5px solid rgba(90,120,255,0.2);
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #14213D;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+}
+.nav a { color: #2F6BFF; font-size: 14px; font-weight: 600; text-decoration: none; }
+.nav a:hover { text-decoration: underline; }
+.container { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+.doc-badge {
+  display: inline-block;
+  background: linear-gradient(90deg, #2F6BFF20, #1DE9B620);
+  border: 1px solid rgba(47,107,255,0.2);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #2F6BFF;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 16px;
+}
+h1 {
+  font-size: 32px;
+  font-weight: 900;
+  background: linear-gradient(135deg, #2F6BFF, #1DE9B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+.meta { font-size: 13px; color: #9CA3AF; margin-bottom: 40px; }
+.section {
+  background: rgba(255,255,255,0.85);
+  border-radius: 20px;
+  border: 1px solid rgba(90,120,255,0.1);
+  padding: 28px;
+  margin-bottom: 16px;
+}
+.section h2 {
+  font-size: 17px;
+  font-weight: 800;
+  color: #14213D;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.section h2 .icon { font-size: 20px; }
+.section p, .section li { font-size: 14px; color: #374151; line-height: 1.75; }
+.section ul { padding-left: 20px; }
+.section li { margin-bottom: 6px; }
+.contact-box {
+  background: linear-gradient(135deg, #2F6BFF08, #1DE9B608);
+  border: 1px solid rgba(47,107,255,0.15);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-top: 14px;
+}
+.contact-box a { color: #2F6BFF; font-weight: 600; text-decoration: none; }
+.contact-box a:hover { text-decoration: underline; }
+.back-footer { text-align: center; padding: 24px; color: #9CA3AF; font-size: 12px; }
+.back-footer a { color: #2F6BFF; text-decoration: none; font-weight: 600; }
+[data-lang] { display: none; }
+[data-lang].active { display: block; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo">GoTAB</a>
+  <div class="nav-right">
+    <select id="langSelect" onchange="switchLang(this.value)">
+      <option value="kk">Қазақша</option>
+      <option value="ru">Русский</option>
+    </select>
+    <a href="login.html" id="backLink">← Артқа</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- KK -->
+  <div data-lang="kk">
+    <div class="doc-badge">Шарттар</div>
+    <h1>Пайдалану шарттары</h1>
+    <p class="meta">Соңғы жаңарту: 28 маусым 2026 · GoTAB платформасы</p>
+
+    <div class="section">
+      <h2><span class="icon">📖</span>Сервис сипаттамасы</h2>
+      <p>GoTAB — Қазақстан мектеп оқушыларына арналған онлайн математика платформасы. Платформа видеосабақтарды, тапсырма жүктемелерін, мұғалім бағалауын, жасанды интеллект (ЖИ) есептерін және прогресс бақылауды ұсынады. Қызмет <strong>gotab.onrender.com</strong> мекен-жайы арқылы қолжетімді.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🎯</span>Тіркелу және аккаунт</h2>
+      <ul>
+        <li>Платформаны пайдалану үшін тіркелу міндетті.</li>
+        <li>Тіркелу кезінде дұрыс ақпарат беру талап етіледі.</li>
+        <li>Пайдаланушы 18 жасқа толмаса, ата-ана немесе заңды өкілінің рұқсаты қажет.</li>
+        <li>Бір адам бір ғана аккаунт ашуы мүмкін.</li>
+        <li>Аккаунт деректерін (пароль) басқаларға бермеңіз.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📚</span>Пакеттер мен рұқсат</h2>
+      <ul>
+        <li>Курс контентіне рұқсат сатып алынған пакет деңгейіне (Base, Стандарт, Премиум) байланысты.</li>
+        <li>Пакет Admin тарапынан белгіленеді; төлем расталғаннан кейін белсендіріледі.</li>
+        <li>Пакет деңгейі оқушы сыныбына сай болуы тиіс.</li>
+        <li>Рұқсаты жоқ материалдарға кіруге талпыныс жасауға тыйым салынады.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🤖</span>ЖИ пайдалану шарттары</h2>
+      <ul>
+        <li>ЖИ функционалы тек белсенді оқушы аккаунттарына қолжетімді.</li>
+        <li>Күніне жасанды интеллект сұранысы санмен шектелген (сабақ бойынша).</li>
+        <li>ЖИ жауаптары автоматты түрде жасалады — GoTAB педагогикалық нақтылыққа 100% кепілдік бермейді.</li>
+        <li>ЖИ функциясын зиянды мазмұн жасау үшін пайдалануға болмайды.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🚫</span>Тыйым салынған әрекеттер</h2>
+      <ul>
+        <li>Платформаны заңсыз немесе зиянды мақсатта пайдалану</li>
+        <li>Basқа пайдаланушылардың аккаунттарына кіруге талпыну</li>
+        <li>Платформаны автоматты скриптпен немесе боттармен шабуылдау</li>
+        <li>Авторлық құқықпен қорғалған материалдарды рұқсатсыз таратуы немесе сату</li>
+        <li>Жалған ақпаратпен тіркелу немесе басқаларды алдау</li>
+        <li>Сервис тұрақтылығына зиян келтіретін кез-келген әрекет</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🏆</span>Зияткерлік меншік</h2>
+      <p>Платформадағы барлық мазмұн — сабақ видеолары, тапсырмалар, дизайн, бренд атауы — <strong>GoTAB</strong> меншігі. Пайдаланушыға жеке, коммерциялық емес, оқу мақсатты рұқсат беріледі. Рұқсатсыз жаңғырту немесе коммерциялық пайдалануға тыйым салынады.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">⚖️</span>Жауапкершілікті шектеу</h2>
+      <p>GoTAB платформасын <em>«бар күйінде»</em> ұсынады. Техникалық үзіліс, үшінші тарап сервистерінің (OpenAI, Supabase) ақаулары немесе деректерді жоғалту жағдайларында GoTAB жауапкершілік алмайды. Сервис кез-келген уақытта өзгертілуі немесе тоқтатылуы мүмкін — алдын ала хабарланған жағдайда.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🔚</span>Аккаунтты тоқтату</h2>
+      <p>GoTAB осы Шарттарды бұзу жағдайында аккаунтты алдын ала хабарламасыз тоқтата алады. Пайдаланушы кез-келген уақытта <a href="mailto:support@gotab.kz">support@gotab.kz</a> арқылы аккаунтты жою туралы өтінім бере алады.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📬</span>Байланыс</h2>
+      <div class="contact-box">
+        <p>Сұрақтар мен шағымдар үшін:</p>
+        <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
+        <p>🌐 <a href="https://gotab.onrender.com">gotab.onrender.com</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- RU -->
+  <div data-lang="ru">
+    <div class="doc-badge">Условия</div>
+    <h1>Условия использования</h1>
+    <p class="meta">Последнее обновление: 28 июня 2026 · Платформа GoTAB</p>
+
+    <div class="section">
+      <h2><span class="icon">📖</span>Описание сервиса</h2>
+      <p>GoTAB — онлайн-платформа по математике для школьников Казахстана. Платформа предоставляет видеоуроки, загрузку заданий, проверку учителем, задачи с ИИ и отслеживание прогресса. Сервис доступен по адресу <strong>gotab.onrender.com</strong>.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🎯</span>Регистрация и аккаунт</h2>
+      <ul>
+        <li>Для использования платформы необходима регистрация.</li>
+        <li>При регистрации требуется предоставлять корректные данные.</li>
+        <li>Пользователям до 18 лет требуется согласие родителя или законного представителя.</li>
+        <li>Один человек может иметь только один аккаунт.</li>
+        <li>Не передавайте данные аккаунта (пароль) третьим лицам.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📚</span>Пакеты и доступ</h2>
+      <ul>
+        <li>Доступ к контенту курса зависит от приобретённого пакета (Base, Стандарт, Премиум).</li>
+        <li>Пакет назначается Администратором после подтверждения оплаты.</li>
+        <li>Уровень пакета должен соответствовать классу ученика.</li>
+        <li>Попытки получить доступ к материалам без соответствующего разрешения запрещены.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🤖</span>Условия использования ИИ</h2>
+      <ul>
+        <li>Функция ИИ доступна только для активных аккаунтов учеников.</li>
+        <li>Количество ИИ-запросов в день ограничено (по уроку).</li>
+        <li>Ответы ИИ генерируются автоматически — GoTAB не гарантирует 100% педагогическую точность.</li>
+        <li>Использование ИИ для создания вредоносного контента запрещено.</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🚫</span>Запрещённые действия</h2>
+      <ul>
+        <li>Использование платформы в незаконных или вредоносных целях</li>
+        <li>Попытки получить доступ к аккаунтам других пользователей</li>
+        <li>Атаки на платформу с помощью автоматических скриптов или ботов</li>
+        <li>Несанкционированное распространение или продажа защищённых авторским правом материалов</li>
+        <li>Регистрация с ложными данными или обман других пользователей</li>
+        <li>Любые действия, наносящие ущерб стабильности сервиса</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🏆</span>Интеллектуальная собственность</h2>
+      <p>Весь контент платформы — видеоуроки, задания, дизайн, торговое наименование — является собственностью <strong>GoTAB</strong>. Пользователю предоставляется личная, некоммерческая лицензия для образовательных целей. Несанкционированное воспроизведение или коммерческое использование запрещено.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">⚖️</span>Ограничение ответственности</h2>
+      <p>GoTAB предоставляет платформу <em>«как есть»</em>. GoTAB не несёт ответственности за технические сбои, неисправности сторонних сервисов (OpenAI, Supabase) или потерю данных. Сервис может быть изменён или прекращён в любое время с предварительным уведомлением.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">🔚</span>Прекращение аккаунта</h2>
+      <p>GoTAB вправе заблокировать аккаунт без предупреждения в случае нарушения настоящих Условий. Пользователь может запросить удаление аккаунта в любое время, написав на <a href="mailto:support@gotab.kz">support@gotab.kz</a>.</p>
+    </div>
+
+    <div class="section">
+      <h2><span class="icon">📬</span>Контакты</h2>
+      <div class="contact-box">
+        <p>По вопросам и жалобам:</p>
+        <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
+        <p>🌐 <a href="https://gotab.onrender.com">gotab.onrender.com</a></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="back-footer">
+  © 2026 GoTAB · <a href="login.html">← Артқа / Назад</a>
+</div>
+
+<script>
+function switchLang(lang) {
+  localStorage.setItem("lang", lang);
+  document.querySelectorAll("[data-lang]").forEach(el => el.classList.remove("active"));
+  const el = document.querySelector("[data-lang='" + lang + "']");
+  if (el) el.classList.add("active");
+  document.getElementById("langSelect").value = lang;
+  document.getElementById("backLink").textContent = lang === "kk" ? "← Артқа" : "← Назад";
+}
+const _lang = localStorage.getItem("lang") || "kk";
+switchLang(_lang);
+</script>
+</body>
+</html>

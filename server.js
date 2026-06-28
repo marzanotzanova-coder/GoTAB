@@ -1,7 +1,6 @@
 process.env.TZ = "Asia/Almaty";
 require("dotenv").config();
 
-// server.js (GoTAB LMS Core - WORKING FULL)
 const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
@@ -10,6 +9,8 @@ const fs = require("fs");
 const session = require("express-session");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
+const helmet = require("helmet");
+const compression = require("compression");
 const OpenAI = require("openai");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -53,51 +54,88 @@ const avatarStorage = multer.diskStorage({
 
 const uploadAvatar = multer({ storage: avatarStorage });
 
-console.log("RUNNING FILE =", __filename);
-console.log("CWD =", process.cwd());
-console.log("OPENAI_API_KEY exists:", !!process.env.OPENAI_API_KEY);
-
 const app = express();
 const PORT = process.env.PORT || 3000;
+const IS_PROD = process.env.NODE_ENV === "production";
 
-app.use(express.static(__dirname));
+app.set("trust proxy", 1);
+app.disable("etag");
+app.disable("x-powered-by");
 
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "index.html"));
-});
+// ===================== SECURITY HEADERS =====================
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co"],
+      mediaSrc: ["'self'", "blob:", "https://*.supabase.co"],
+      connectSrc: ["'self'", "https://*.supabase.co", "https://api.openai.com"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://player.vimeo.com"],
+      formAction: ["'self'"],
+      upgradeInsecureRequests: IS_PROD ? [] : null,
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+}));
 
-app.get("/mini", (req, res) => {
-  res.sendFile(path.join(__dirname, "mini.html"));
-});
+app.use(compression());
 
-// ===================== MIDDLEWARE =====================
+// ===================== CORS =====================
+const ALLOWED_ORIGINS = IS_PROD
+  ? ["https://gotab.onrender.com"]
+  : ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"];
+
 app.use(cors({
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    callback(new Error("Not allowed by CORS"));
+  },
   credentials: true,
 }));
-app.use(express.json({ limit: "10mb" })); // feedback text etc.
 
+app.use(express.json({ limit: "5mb" }));
+
+// ===================== RATE LIMITERS =====================
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "too_many_requests" }
+});
+
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "too_many_requests" }
 });
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
   message: { ok: false, error: "too_many_requests" }
 });
 
-app.use("/api/auth/login", loginLimiter);
-
-app.use("/api", (req, res, next) => {
-  res.setHeader("Cache-Control", "no-store");
-  next();
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 600,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { ok: false, error: "too_many_requests" }
 });
 
-app.set("trust proxy", 1); // deploy кезінде керек болады (https/proxy)
+app.use("/api/", apiLimiter);
+app.use("/api/auth/login", loginLimiter);
 
-app.disable("etag"); // 🔥 304 кессін
 app.use("/api", (req, res, next) => {
   res.setHeader("Cache-Control", "no-store");
   next();
@@ -111,17 +149,21 @@ app.use(session({
   cookie: {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 1000 * 60 * 60 * 24 * 7 // 7 күн
+    secure: IS_PROD,
+    maxAge: 1000 * 60 * 60 * 24 * 7
   }
 }));
 
-// DEBUG LOG
-app.use((req,res,next)=>{
-  console.log("REQ", req.method, req.url, "Origin=", req.headers.origin);
-  res.on("finish", ()=> console.log("DONE", req.method, req.url, res.statusCode));
-  next();
-});
+app.use(express.static(__dirname, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith(".html")) {
+      res.setHeader("Cache-Control", "no-store");
+    }
+  }
+}));
+
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/mini", (req, res) => res.sendFile(path.join(__dirname, "mini.html")));
 
 function requireAuth(req, res, next){
   if(req.session && req.session.user) return next();
@@ -525,7 +567,7 @@ async function pushNotif(studentId, type, text) {
 }
 
 // Register
-app.post("/api/auth/register", async (req, res) => {
+app.post("/api/auth/register", registerLimiter, async (req, res) => {
   try {
     const { firstName, lastName, phone, email, password, password2 } = req.body || {};
 
@@ -537,7 +579,7 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(400).json({ ok: false, error: "password_mismatch" });
     }
 
-    if (String(password).length < 4) {
+    if (String(password).length < 6) {
       return res.status(400).json({ ok: false, error: "weak_password" });
     }
 
@@ -591,11 +633,7 @@ app.post("/api/auth/register", async (req, res) => {
 
     if (!insertRes.ok) {
       console.error("users insert error:", inserted);
-      return res.status(500).json({
-        ok: false,
-        error: "supabase_insert_failed",
-        data: inserted
-      });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     req.session.user = {
@@ -685,7 +723,7 @@ app.post("/api/admin/set-package", requireAdmin, async (req, res) => {
 
     if (!r.ok) {
       console.error("set-package supabase error:", data);
-      return res.status(500).json({ ok: false, error: "supabase_update_failed", data });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     return res.json({ ok: true });
@@ -740,7 +778,7 @@ app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
 
     if (!r.ok) {
       console.error("set-student-meta supabase error:", data);
-      return res.status(500).json({ ok: false, error: "supabase_update_failed", data });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     return res.json({
@@ -817,11 +855,11 @@ if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
     cb(null, dest);
   },
   filename: function (req, file, cb) {
-    const safeName = String(file.originalname || "file").replace(/\s+/g, "_");
+    const safeName = path.basename(String(file.originalname || "file")).replace(/[^a-zA-Z0-9._-]/g, "_");
     cb(null, Date.now() + "-" + safeName);
   },
 });
-const uploadAdmin = multer({ storage: adminStorage });
+const uploadAdmin = multer({ storage: adminStorage, limits: { fileSize: 500 * 1024 * 1024 } });
 
 // STUDENT uploads
 const studentStorage = multer.diskStorage({
@@ -840,11 +878,11 @@ const studentStorage = multer.diskStorage({
     cb(null, dest);
   },
   filename: function (req, file, cb) {
-    const safeName = String(file.originalname || "file").replace(/\s+/g, "_");
+    const safeName = path.basename(String(file.originalname || "file")).replace(/[^a-zA-Z0-9._-]/g, "_");
     cb(null, Date.now() + "-" + safeName);
   },
 });
-const uploadStudent = multer({ storage: studentStorage });
+const uploadStudent = multer({ storage: studentStorage, limits: { fileSize: 100 * 1024 * 1024 } });
 
 // ===================== MATERIALS =====================
 // Admin upload 1 file
@@ -898,7 +936,7 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
 
     if (!r.ok) {
       console.error("supabase insert materials error:", data);
-      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     const item = {
@@ -916,7 +954,7 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
     });
   } catch (e) {
    console.error("admin upload error:", e);
-return res.status(500).json({ ok: false, error: "server_error", message: String(e.message || e) });
+return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
@@ -971,7 +1009,7 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
 
     if (!sr.ok) {
       console.error("student_uploads insert error:", supaData);
-      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data: supaData });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     let course = String(req.session?.user?.package || "").toLowerCase().trim();
@@ -1047,7 +1085,7 @@ if (prevProg) {
 
 if (!progSaveRes.ok) {
   console.error("student upload progress save error:", progSaveData);
-  return res.status(500).json({ ok: false, error: "supabase_progress_save_failed", data: progSaveData });
+  return res.status(500).json({ ok: false, error: "server_error" });
 }
 
 const db = readDB();
@@ -1069,7 +1107,7 @@ writeDB(db);
     });
   } catch (e) {
     console.error("student upload error:", e);
-    return res.status(500).json({ ok: false, error: "server_error", message: String(e.message || e) });
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 
@@ -1117,16 +1155,12 @@ app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), as
     });
   } catch (e) {
     console.error("avatar upload error:", e);
-    return res.status(500).json({
-      ok:false,
-      error:"server_error",
-      message:String(e.message || e)
-    });
+    return res.status(500).json({ ok:false, error:"server_error" });
   }
 });
 
 // Get block materials
-app.get("/api/materials", async (req, res) => {
+app.get("/api/materials", requireAuth, async (req, res) => {
   try {
     const { grade, subject, blockNumber } = req.query;
 
@@ -1459,7 +1493,7 @@ app.post("/api/progress/set", requireAdmin, async (req, res) => {
 
     if (!saveRes.ok) {
       console.error("progress/set save error:", saveData);
-      return res.status(500).json({ ok: false, error: "supabase_save_failed", data: saveData });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     const db = readDB();
@@ -1776,7 +1810,7 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 
     if (!r.ok) {
       console.error("supabase insert error:", data);
-      return res.status(500).json({ ok: false, error: "supabase_insert_failed", data });
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     return res.json({ ok: true, data });
@@ -1790,8 +1824,7 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 const aiService = require("./services/aiService");
 const aiUsage  = require("./services/aiUsageService");
 
-// Quick diagnostic endpoint — hit /api/ai/debug to see all env checks and a live OpenAI ping
-app.get("/api/ai/debug", async (req, res) => {
+app.get("/api/ai/debug", requireAdmin, async (req, res) => {
   const report = {
     OPENAI_API_KEY:       !!process.env.OPENAI_API_KEY,
     SUPABASE_URL:         !!process.env.SUPABASE_URL,
@@ -1947,13 +1980,7 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
       return res.status(429).json({ ok: false, error: "ai_rate_limit" });
     }
 
-    return res.status(500).json({
-      ok: false,
-      error: "ai_error",
-      status: errCode,
-      message: errMsg,
-      details: e.toString()
-    });
+    return res.status(500).json({ ok: false, error: "ai_error" });
   }
 });
 
@@ -2191,17 +2218,8 @@ app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
     const data = await r.json().catch(() => null);
 
     if (!r.ok) {
-      console.error("[quiz/save] Supabase INSERT error:");
-      console.error("  message :", data?.message);
-      console.error("  details :", data?.details);
-      console.error("  hint    :", data?.hint);
-      console.error("  code    :", data?.code);
-      console.error("  full    :", JSON.stringify(data));
-      return res.status(500).json({
-        ok: false,
-        error: "DB қатесі.",
-        supabase: { message: data?.message, code: data?.code, hint: data?.hint, details: data?.details },
-      });
+      console.error("[quiz/save] Supabase INSERT error:", JSON.stringify(data));
+      return res.status(500).json({ ok: false, error: "server_error" });
     }
 
     console.log(`[quiz/save] OK — pkg=${pkg} grade=${grade} subject=${subject} lesson=${ln} questions=${parsed.questions.length}`);
@@ -2209,8 +2227,7 @@ app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
 
   } catch (e) {
     console.error("[quiz/save] server exception:", e.message);
-    console.error(e.stack);
-    return res.status(500).json({ ok: false, error: "server_error", message: e.message });
+    return res.status(500).json({ ok: false, error: "server_error" });
   }
 });
 

@@ -159,6 +159,15 @@ const i18n = {
     aiAction4: "🎯 Емтихан форматындағы есептер",
     aiUsageBar: "Бүгін: {used}/{limit} рет пайдаланылды",
     aiDailyLimit: "Бүгін осы сабақ бойынша лимитке жеттіңіз. Ертең қайта көріңіз.",
+    // footer / legal
+    footerPrivacy: "Құпиялылық",
+    footerTerms: "Шарттар",
+    footerCookies: "Cookie",
+    footerContact: "Байланыс",
+    footerRights: "Барлық құқықтар қорғалған",
+    contactTitle: "Байланыс",
+    contactEmailLabel: "Қолдау: support@gotab.kz",
+    contactWa: "WhatsApp арқылы жазыңыз",
   },
   ru: {
     // index
@@ -320,6 +329,15 @@ const i18n = {
     aiAction4: "🎯 Задачи в формате экзамена",
     aiUsageBar: "Сегодня: {used}/{limit} использовано",
     aiDailyLimit: "Сегодня лимит по этому уроку исчерпан. Возвращайтесь завтра.",
+    // footer / legal
+    footerPrivacy: "Конфиденциальность",
+    footerTerms: "Условия",
+    footerCookies: "Cookie",
+    footerContact: "Контакты",
+    footerRights: "Все права защищены",
+    contactTitle: "Контакты",
+    contactEmailLabel: "Поддержка: support@gotab.kz",
+    contactWa: "Напишите нам в WhatsApp",
   }
 };
 

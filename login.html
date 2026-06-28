@@ -14,7 +14,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    overflow: hidden;
+    overflow-x: hidden;
     position: relative;
   }
 
@@ -215,6 +215,88 @@
     .logo-go, .logo-tab { font-size: 44px; }
     .center { margin-top: 44px; }
   }
+
+  /* ── Legal Footer ── */
+  .legal-footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 10;
+    padding: 10px 20px;
+    background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(90,120,255,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .legal-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px 14px;
+  }
+  .legal-footer-links a {
+    color: #6B7280;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    transition: color 0.15s;
+  }
+  .legal-footer-links a:hover { color: #2F6BFF; }
+  .legal-footer-bottom {
+    display: flex;
+    gap: 16px;
+    color: #9CA3AF;
+    font-size: 11px;
+  }
+  .legal-footer-sep { color: #D1D5DB; font-size: 12px; }
+
+  /* ── Contact Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20,33,61,0.35);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-box {
+    background: #fff;
+    border-radius: 24px;
+    padding: 32px 28px;
+    max-width: 340px;
+    width: calc(100% - 40px);
+    box-shadow: 0 20px 60px rgba(47,107,255,0.16);
+    text-align: center;
+  }
+  .modal-box h3 {
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2F6BFF, #1DE9B6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 18px;
+  }
+  .modal-box p { font-size: 14px; color: #374151; margin-bottom: 10px; line-height: 1.6; }
+  .modal-box a { color: #2F6BFF; text-decoration: none; }
+  .modal-box a:hover { text-decoration: underline; }
+  .modal-close-btn {
+    margin-top: 18px;
+    padding: 10px 28px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #2F6BFF, #1DE9B6);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -263,8 +345,41 @@
   <img src="images/mountain.png" alt="" style="width:440px;max-width:90vw;mix-blend-mode:screen;">
 </div>
 
+<!-- Contact Modal -->
+<div class="modal-overlay" id="contactModal">
+  <div class="modal-box">
+    <h3 id="contactModalTitle">Байланыс</h3>
+    <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
+    <p>💬 <span id="contactModalWa">WhatsApp арқылы жазыңыз</span></p>
+    <button class="modal-close-btn" onclick="closeContact()" data-i18n="closeBtn">Жабу</button>
+  </div>
+</div>
+
+<footer class="legal-footer">
+  <div class="legal-footer-links">
+    <a href="privacy.html" data-i18n="footerPrivacy">Құпиялылық</a>
+    <span class="legal-footer-sep">·</span>
+    <a href="terms.html" data-i18n="footerTerms">Шарттар</a>
+    <span class="legal-footer-sep">·</span>
+    <a href="cookies.html" data-i18n="footerCookies">Cookie</a>
+    <span class="legal-footer-sep">·</span>
+    <a href="#" onclick="openContact();return false;" data-i18n="footerContact">Байланыс</a>
+  </div>
+  <div class="legal-footer-bottom">
+    <span>© 2026 GoTAB</span>
+    <span>·</span>
+    <span>v1.0.0</span>
+  </div>
+</footer>
+
 <script src="lang.js"></script>
 <script>
+function openContact() { document.getElementById("contactModal").classList.add("open"); }
+function closeContact() { document.getElementById("contactModal").classList.remove("open"); }
+document.getElementById("contactModal").addEventListener("click", function(e) {
+  if (e.target === this) closeContact();
+});
+
 (function(){
   const langSelect = document.getElementById("langSelect");
 
@@ -275,8 +390,6 @@
 
   document.getElementById("backBtn").addEventListener("click", () => { window.location.href = "index.html"; });
 
-  const ADMIN_PHONE = "77055894347";
-  const ADMIN_EMAIL = "admin@gotab.kz";
   const errorMsg = document.getElementById("errorMsg");
 
   document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -292,16 +405,16 @@
     }
 
     try{
-      if(phone === ADMIN_PHONE && email === ADMIN_EMAIL){
+      // If email field is filled, attempt admin login; server validates credentials
+      if(email){
         const r = await fetch("/api/auth/login", {
           method: "POST", headers: { "Content-Type": "application/json" },
           credentials: "include", cache: "no-store",
           body: JSON.stringify({ role: "admin", email, password })
         });
         const j = await r.json().catch(() => null);
-        if(!r.ok || !j?.ok){ errorMsg.textContent = "Admin login қате"; return; }
-        window.location.href = "admin.html";
-        return;
+        if(r.ok && j?.ok){ window.location.href = "admin.html"; return; }
+        // Fall through to student login if admin fails
       }
 
       const r = await fetch("/api/auth/login", {
@@ -316,7 +429,6 @@
       }
       window.location.href = "dashboard.html";
     }catch(e){
-      console.error(e);
       errorMsg.textContent = lang === "ru" ? "Ошибка сервера" : "Сервер байланыспады";
     }
   });
