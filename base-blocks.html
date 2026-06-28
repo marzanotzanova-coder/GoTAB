@@ -470,17 +470,23 @@ body{
    UNCHANGED HELPER FUNCTIONS (preserved exactly)
    ========================================================= */
 
-function toEmbedUrl(url){
-  if(!url) return "";
-  if(url.includes("youtu.be/")){
-    const id = url.split("youtu.be/")[1].split("?")[0];
-    return "https://www.youtube.com/embed/" + id;
-  }
-  if(url.includes("watch?v=")){
-    const id = url.split("watch?v=")[1].split("&")[0];
-    return "https://www.youtube.com/embed/" + id;
-  }
-  return url;
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const s = String(url).trim();
+  const m =
+    s.match(/[?&]v=([A-Za-z0-9_-]{11})/)      ||
+    s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)  ||
+    s.match(/\/embed\/([A-Za-z0-9_-]{11})/)     ||
+    s.match(/\/shorts\/([A-Za-z0-9_-]{11})/)    ||
+    s.match(/\/live\/([A-Za-z0-9_-]{11})/)      ||
+    s.match(/\/v\/([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+function toEmbedUrl(url) {
+  const id = extractYouTubeId(url);
+  if (!id) return null;
+  return "https://www.youtube.com/embed/" + id + "?rel=0&modestbranding=1";
 }
 
 const gradeSelect   = document.getElementById("gradeSelect");
@@ -546,23 +552,35 @@ function lastItem(list){
   return list[list.length - 1] || null;
 }
 
-/* ===== Viewer functions (unchanged) ===== */
+/* ===== Viewer functions ===== */
 window.openVideo = function(url){
   const modal = document.getElementById("viewerModal");
   const box   = document.getElementById("viewerContent");
   modal.style.display = "flex";
   box.innerHTML = "";
-  if(url.includes("youtube") || url.includes("youtu.be")){
+
+  if (/youtube\.com|youtu\.be/i.test(url)) {
+    console.log("[openVideo] original URL:", url);
+    const embedUrl = toEmbedUrl(url);
+    console.log("[openVideo] extracted ID:", extractYouTubeId(url));
+    console.log("[openVideo] embed URL:", embedUrl);
+    if (!embedUrl) {
+      box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700;font-size:15px'>Видео сілтемесі жарамсыз.</div>";
+      return;
+    }
     const wrap = document.createElement("div");
     wrap.className = "video-frame";
     const iframe = document.createElement("iframe");
-    iframe.src = toEmbedUrl(url);
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+    iframe.src = embedUrl;
+    iframe.setAttribute("allow", "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share");
+    iframe.setAttribute("allowfullscreen", "");
+    iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
+    iframe.setAttribute("frameborder", "0");
     wrap.appendChild(iframe);
     box.appendChild(wrap);
     return;
   }
+
   const wrap = document.createElement("div");
   wrap.className = "video-frame";
   const v = document.createElement("video");

@@ -361,8 +361,9 @@
     <input
   type="text"
   id="youtubeUrl"
-  placeholder="YouTube видео ссылка (https://youtu.be/...)"
+  placeholder="YouTube видео ссылка (https://youtu.be/... немесе watch?v=...)"
   style="width:100%;padding:8px;margin-top:8px;border-radius:8px;border:1px solid #ccc;">
+    <div id="youtubePreview" style="display:none;font-size:12px;margin-top:4px;padding:6px 8px;border-radius:8px;background:rgba(47,107,255,.05);border:1px solid rgba(47,107,255,.12)"></div>
 
     <div class="row">
       <div class="rowLeft">
@@ -514,6 +515,44 @@
     location.href="index.html";
   }
 })(); 
+
+// ===== YOUTUBE URL HELPERS =====
+function extractYouTubeId(url) {
+  if (!url) return null;
+  const s = String(url).trim();
+  const m =
+    s.match(/[?&]v=([A-Za-z0-9_-]{11})/)      ||
+    s.match(/youtu\.be\/([A-Za-z0-9_-]{11})/)  ||
+    s.match(/\/embed\/([A-Za-z0-9_-]{11})/)     ||
+    s.match(/\/shorts\/([A-Za-z0-9_-]{11})/)    ||
+    s.match(/\/live\/([A-Za-z0-9_-]{11})/)      ||
+    s.match(/\/v\/([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+function toEmbedUrl(url) {
+  const id = extractYouTubeId(url);
+  if (!id) return null;
+  return "https://www.youtube.com/embed/" + id + "?rel=0&modestbranding=1";
+}
+
+(function() {
+  const input   = document.getElementById("youtubeUrl");
+  const preview = document.getElementById("youtubePreview");
+  if (!input || !preview) return;
+  input.addEventListener("input", function() {
+    const val = this.value.trim();
+    if (!val) { preview.style.display = "none"; return; }
+    const id  = extractYouTubeId(val);
+    preview.style.display = "";
+    if (id) {
+      preview.style.color = "#059669";
+      preview.innerHTML = "✅ ID: <code>" + id + "</code> → " + toEmbedUrl(val);
+    } else {
+      preview.style.color = "#ef4444";
+      preview.textContent = "⚠ YouTube ID анықталмады. URL-ді тексеріңіз.";
+    }
+  });
+})();
 
 // ===== COURSE NORMALIZER (ADMIN -> SERVER) =====
 function normCourseToApi(courseUI){
@@ -836,6 +875,12 @@ const tasks = [];
 // ✅ YouTube ссылка — ДҰРЫС сақтау
 if(youtubeUrl){
 
+  const storedUrl = toEmbedUrl(youtubeUrl) || youtubeUrl;
+  if (!extractYouTubeId(youtubeUrl)) {
+    alert("YouTube URL жарамсыз. Видео ID анықталмады.\n\nДұрыс форматтар:\nhttps://youtu.be/VIDEO_ID\nhttps://www.youtube.com/watch?v=VIDEO_ID");
+    saveBtn.disabled = false; saveBtn.textContent = oldText; return;
+  }
+
   const r = await fetch("/api/admin/add-video-link", {
     method: "POST",
     headers: { "Content-Type":"application/json" },
@@ -845,7 +890,7 @@ if(youtubeUrl){
       grade,
       subject,
       blockNumber,
-      url: youtubeUrl
+      url: storedUrl
     })
   });
 

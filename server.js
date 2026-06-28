@@ -69,18 +69,19 @@ app.use(helmet({
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'", "'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co"],
+      imgSrc: ["'self'", "data:", "blob:", "https://*.supabase.co", "https://*.ytimg.com", "https://*.ggpht.com"],
       mediaSrc: ["'self'", "blob:", "https://*.supabase.co"],
       connectSrc: ["'self'", "https://*.supabase.co", "https://api.openai.com"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
-      frameSrc: ["'self'", "https://www.youtube.com", "https://player.vimeo.com"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com"],
       formAction: ["'self'"],
       upgradeInsecureRequests: IS_PROD ? [] : null,
     }
   },
   crossOriginEmbedderPolicy: false,
   crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
 }));
 
 app.use(compression());
