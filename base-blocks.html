@@ -599,16 +599,70 @@ window.openAudio = function(url){
   document.getElementById("viewerModal").style.display = "flex";
 };
 
-window.openDoc = function(url){
-  const isMobile = window.innerWidth <= 768;
-  const isPdf = String(url).toLowerCase().includes(".pdf");
-  if(isMobile && isPdf){ window.open(url, "_blank"); return; }
-  const finalUrl = isPdf ? `${url}#toolbar=0&navpanes=0&scrollbar=1&view=FitH` : url;
-  document.getElementById("viewerContent").innerHTML = `
-    <iframe src="${finalUrl}" style="width:100%;height:100%;border:none;background:#fff;display:block;"></iframe>
-  `;
-  document.getElementById("viewerModal").style.display = "flex";
+window.openDoc = function(url) {
+  try {
+    var box   = document.getElementById("viewerContent");
+    var modal = document.getElementById("viewerModal");
+    box.innerHTML = "";
+    modal.style.display = "flex";
+    var s = String(url || "").trim();
+    if (!s) { box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700'>Файл сілтемесі жоқ.</div>"; return; }
+    var ext = "";
+    try { var pn = new URL(s).pathname; ext = (pn.match(/\.([a-z0-9]{1,8})$/i) || [])[1] || ""; } catch(_e) { ext = (s.match(/\.([a-z0-9]{1,8})(?:[?#]|$)/i) || [])[1] || ""; }
+    ext = ext.toLowerCase();
+    if (["jpg","jpeg","png","gif","webp","svg","bmp","avif"].includes(ext)) {
+      var img = document.createElement("img");
+      img.alt = "Тапсырма";
+      img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain;display:block;margin:auto;padding:16px;";
+      img.onerror = function() { box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700'>Суретті жүктеу мүмкін болмады.</div>"; };
+      img.src = s;
+      box.appendChild(img);
+      return;
+    }
+    if (ext === "pdf") {
+      if (window.innerWidth <= 768) { window.open(s, "_blank"); modal.style.display = "none"; return; }
+      var pdfIframe = document.createElement("iframe");
+      pdfIframe.style.cssText = "width:100%;height:100%;border:none;background:#fff;display:block;";
+      pdfIframe.src = s + "#toolbar=0&navpanes=0&scrollbar=1&view=FitH";
+      box.appendChild(pdfIframe);
+      return;
+    }
+    if (["doc","docx","ppt","pptx","xls","xlsx","odt","ods","odp"].includes(ext)) {
+      var officeIframe = document.createElement("iframe");
+      officeIframe.style.cssText = "width:100%;height:100%;border:none;background:#fff;display:block;";
+      officeIframe.src = "https://docs.google.com/viewer?url=" + encodeURIComponent(s) + "&embedded=true";
+      box.appendChild(officeIframe);
+      return;
+    }
+    if (["txt","md","csv","json","xml"].includes(ext)) {
+      box.innerHTML = "<div style='padding:40px;text-align:center;color:#6B7280'>Жүктелуде…</div>";
+      fetch(s)
+        .then(function(r) { return r.text(); })
+        .then(function(text) {
+          var pre = document.createElement("pre");
+          pre.style.cssText = "padding:20px;font-size:13px;line-height:1.6;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:100%;margin:0;";
+          pre.textContent = text;
+          box.innerHTML = "";
+          box.appendChild(pre);
+        })
+        .catch(function() { _docFallback(box, s, "Файлды оқу мүмкін болмады."); });
+      return;
+    }
+    _docFallback(box, s, null);
+  } catch(e) {
+    console.error("[openDoc] error:", e);
+    try { document.getElementById("viewerContent").innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700'>Файлды ашу мүмкін болмады.</div>"; document.getElementById("viewerModal").style.display = "flex"; } catch(_e) {}
+  }
 };
+function _docFallback(box, url, msg) {
+  box.innerHTML = "";
+  var wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;gap:16px;";
+  if (msg) { var errEl = document.createElement("div"); errEl.style.cssText = "color:#ef4444;font-weight:700;font-size:15px;"; errEl.textContent = msg; wrap.appendChild(errEl); }
+  var a1 = document.createElement("a"); a1.href = url; a1.target = "_blank"; a1.rel = "noopener noreferrer"; a1.style.cssText = "color:#2F6BFF;font-weight:600;font-size:14px;text-decoration:none;"; a1.textContent = "Жаңа қойындыда ашу ↗"; wrap.appendChild(a1);
+  var a2 = document.createElement("a"); a2.href = url; a2.download = ""; a2.style.cssText = "color:#6B7280;font-size:13px;text-decoration:none;"; a2.textContent = "Жүктеп алу ↓"; wrap.appendChild(a2);
+  box.appendChild(wrap);
+}
 
 window.closeViewer = function(){
   document.getElementById("viewerModal").style.display = "none";

@@ -74,7 +74,7 @@ app.use(helmet({
       connectSrc: ["'self'", "https://*.supabase.co", "https://api.openai.com"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
-      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com", "https://*.supabase.co", "https://docs.google.com"],
       formAction: ["'self'"],
       upgradeInsecureRequests: IS_PROD ? [] : null,
     }
