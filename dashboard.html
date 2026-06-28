@@ -1342,10 +1342,10 @@ function renderTodayPlan(progressValues, activityData){
 
   const _tCl = window.goI18n[window.goLang] || window.goI18n.kk;
   const items = [
-    {k:"watched",  label:_tCl.checkVideo},
-    {k:"uploaded", label:_tCl.checkUpload},
-    {k:"tested",   label:_tCl.checkTest},
-    {k:"ai",       label:_tCl.checkAI},
+    {k:"watched",  label: isPreview ? _tCl.checkVideo  : (_tCl.checkVideoAction  || "Видео көру")},
+    {k:"uploaded", label: isPreview ? _tCl.checkUpload : (_tCl.checkUploadAction || "Тапсырма жүктеу")},
+    {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тақырып аралық сынақтардан өту")},
+    {k:"ai",       label: isPreview ? _tCl.checkAI     : (_tCl.checkAIAction     || "ЖИ қолдану")},
   ];
 
   items.forEach(it=>{
@@ -1672,7 +1672,7 @@ async function loadConversation() {
     box.scrollTop = box.scrollHeight;
 
   } else if (!isAdmin) {
-    const r = await fetch(`/api/messages?studentId=${encodeURIComponent(effectiveStudentId)}&author=student`, {
+    const r = await fetch(`/api/messages?studentId=${encodeURIComponent(effectiveStudentId)}`, {
       credentials: "include", cache: "no-store"
     }).catch(() => null);
     const j = r ? await r.json().catch(() => null) : null;
@@ -1685,10 +1685,15 @@ async function loadConversation() {
       return;
     }
     msgs.forEach(m => {
+      const isStudent = m.author === "student";
+      const authorLabel = isStudent ? (_tL.meMsgLabel || "Мен") : (_tL.teacherMsgLabel || "Мұғалім");
       const el = document.createElement("div");
       el.className = "row";
-      el.style.cssText = "background:rgba(47,107,255,.04);border-color:rgba(47,107,255,.08);margin-bottom:4px";
+      el.style.cssText = isStudent
+        ? "background:rgba(47,107,255,.04);border-color:rgba(47,107,255,.08);margin-bottom:4px"
+        : "border-left:3px solid rgba(29,233,182,.6);background:rgba(29,233,182,.04);border-color:rgba(29,233,182,.2);margin-bottom:4px";
       el.innerHTML = `<div class="rowLeft" style="width:100%">
+        <div style="font-size:10px;font-weight:800;color:${isStudent ? '#2F6BFF' : '#10b981'};margin-bottom:2px">${isStudent ? '👤' : '👩‍🏫'} ${escapeHtml(authorLabel)}</div>
         <div class="rowSub" style="font-size:12px">${escapeHtml(m.message)}</div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px">${new Date(m.created_at).toLocaleString()}</div>
       </div>`;
@@ -1735,10 +1740,14 @@ function initFeedbackCard() {
           const j = await r.json().catch(() => null);
           if (j?.ok) {
             replyInput.value = "";
-            if (replyStatus) { replyStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; setTimeout(() => { replyStatus.textContent = ""; }, 2000); }
+            if (replyStatus) { replyStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; replyStatus.style.color = ""; setTimeout(() => { replyStatus.textContent = ""; }, 2500); }
             loadConversation();
+          } else {
+            if (replyStatus) { replyStatus.style.color = "var(--bad, #ef4444)"; replyStatus.textContent = _tL.msgSendError || "Жіберу қатесі. Кейінірек қайталаңыз."; setTimeout(() => { replyStatus.textContent = ""; replyStatus.style.color = ""; }, 4000); }
           }
-        } catch (_) {}
+        } catch (_) {
+          if (replyStatus) { replyStatus.style.color = "var(--bad, #ef4444)"; replyStatus.textContent = _tL.msgSendError || "Жіберу қатесі. Кейінірек қайталаңыз."; setTimeout(() => { replyStatus.textContent = ""; replyStatus.style.color = ""; }, 4000); }
+        }
         replyBtn.disabled = false;
       });
     }
@@ -1772,10 +1781,14 @@ function initFeedbackCard() {
           const j = await r.json().catch(() => null);
           if (j?.ok) {
             msgInput.value = "";
-            if (msgStatus) { msgStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; setTimeout(() => { msgStatus.textContent = ""; }, 2000); }
+            if (msgStatus) { msgStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; msgStatus.style.color = ""; setTimeout(() => { msgStatus.textContent = ""; }, 2500); }
             loadConversation();
+          } else {
+            if (msgStatus) { msgStatus.style.color = "var(--bad, #ef4444)"; msgStatus.textContent = _tL.msgSendError || "Жіберу қатесі. Кейінірек қайталаңыз."; setTimeout(() => { msgStatus.textContent = ""; msgStatus.style.color = ""; }, 4000); }
           }
-        } catch (_) {}
+        } catch (_) {
+          if (msgStatus) { msgStatus.style.color = "var(--bad, #ef4444)"; msgStatus.textContent = _tL.msgSendError || "Жіберу қатесі. Кейінірек қайталаңыз."; setTimeout(() => { msgStatus.textContent = ""; msgStatus.style.color = ""; }, 4000); }
+        }
         sendBtn.disabled = false;
       });
     }

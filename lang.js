@@ -173,9 +173,17 @@ const i18n = {
     sendBtn: "Жіберу",
     msgPhStudent: "Мұғалімге хабарлама жазыңыз...",
     msgPhAdmin: "Оқушыға жауап жазыңыз...",
-    noStudentMsg: "Оқушы хабарлама жазбаған",
+    noStudentMsg: "Хабарлама жоқ",
     msgSentOk: "✅ Жіберілді",
-    myMsgsLabel: "Менің хабарламаларым",
+    msgSendError: "Жіберу қатесі. Кейінірек қайталаңыз.",
+    myMsgsLabel: "💬 Хат алмасу",
+    meMsgLabel: "Мен",
+    teacherMsgLabel: "Мұғалім",
+    // student checklist action labels (student view only)
+    checkVideoAction: "Видео көру",
+    checkUploadAction: "Тапсырма жүктеу",
+    checkTestAction: "Тақырып аралық сынақтардан өту",
+    checkAIAction: "ЖИ қолдану",
   },
   ru: {
     // index
@@ -351,9 +359,17 @@ const i18n = {
     sendBtn: "Отправить",
     msgPhStudent: "Напишите сообщение учителю...",
     msgPhAdmin: "Написать ответ ученику...",
-    noStudentMsg: "Ученик ещё не написал",
+    noStudentMsg: "Сообщений пока нет",
     msgSentOk: "✅ Отправлено",
-    myMsgsLabel: "Мои сообщения",
+    msgSendError: "Ошибка отправки. Попробуйте позже.",
+    myMsgsLabel: "💬 Переписка",
+    meMsgLabel: "Я",
+    teacherMsgLabel: "Учитель",
+    // student checklist action labels (student view only)
+    checkVideoAction: "Смотреть видео",
+    checkUploadAction: "Загрузить задание",
+    checkTestAction: "Пройти тест по теме",
+    checkAIAction: "Использовать ИИ",
   }
 };
 
