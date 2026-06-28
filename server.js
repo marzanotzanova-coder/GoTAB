@@ -2535,59 +2535,92 @@ app.post("/api/messages/send", requireAuth, async (req, res) => {
   } catch (e) { console.error("[messages/send]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
-// POST /api/student/mark-video-watched — called by blocks pages when video content loads
-app.post("/api/student/mark-video-watched", requireStudent, async (req, res) => {
+// POST /api/student/mark-activity
+// Called by blocks pages immediately after each activity completes.
+// action: "watched" | "uploaded" | "tested" | "ai"
+// Stores an explicit signal in the notifications table (always exists, proven working).
+// This is the authoritative source for checklist completion.
+app.post("/api/student/mark-activity", requireStudent, async (req, res) => {
   try {
     const studentId = String(req.session?.user?.studentId || "").trim();
-    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const action = String(req.body?.action || "").trim();
+    if (!studentId || !["watched", "uploaded", "tested", "ai"].includes(action)) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
     const key = sbKey();
-    // Check if already marked today
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const checkR = await fetch(
-      `${SUPABASE_URL}/rest/v1/notifications?select=id&student_id=eq.${encodeURIComponent(studentId)}&type=eq.daily_watch&text=eq.${encodeURIComponent(todayStr)}&limit=1`,
-      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
-    );
-    const existing = await checkR.json().catch(() => []);
-    if (Array.isArray(existing) && existing.length > 0) return res.json({ ok: true, alreadyMarked: true });
     const row = {
-      id: "dw_" + Date.now() + "_" + Math.random().toString(16).slice(2, 8),
+      id: "act_" + action + "_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6),
       student_id: studentId,
-      type: "daily_watch",
-      text: todayStr,
+      type: "act_" + action,
+      text: new Date().toISOString().slice(0, 10), // store date for future date-based filtering
       read: true
     };
-    const insertR = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
       body: JSON.stringify([row]),
     });
-    if (!insertR.ok) { const t = await insertR.text().catch(() => ""); console.error("[mark-watched]", t); return res.status(500).json({ ok: false, error: "server_error" }); }
+    if (!r.ok) {
+      const t = await r.text().catch(() => "");
+      console.error("[mark-activity]", action, t);
+      return res.status(500).json({ ok: false, error: "server_error" });
+    }
     return res.json({ ok: true });
-  } catch (e) { console.error("[mark-watched]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+  } catch (e) { console.error("[mark-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+// Keep backward-compat alias used by older blocks page code
+app.post("/api/student/mark-video-watched", requireStudent, async (req, res) => {
+  req.body = req.body || {};
+  req.body.action = "watched";
+  // Re-use mark-activity handler by forwarding internally
+  try {
+    const studentId = String(req.session?.user?.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const key = sbKey();
+    const row = {
+      id: "act_watched_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6),
+      student_id: studentId, type: "act_watched",
+      text: new Date().toISOString().slice(0, 10), read: true
+    };
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify([row]),
+    });
+    if (!r.ok) return res.status(500).json({ ok: false, error: "server_error" });
+    return res.json({ ok: true });
+  } catch (e) { return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
 // Shared activity query helper
+// Primary source: explicit act_* signals in notifications (written by mark-activity).
+// Fallback: actual database tables (progress, quiz_attempts, ai_daily_usage).
+// Returns true if EITHER source confirms completion.
 async function queryStudentActivity(studentId) {
   const key = sbKey();
   const h = { apikey: key, Authorization: `Bearer ${key}` };
-  const [watchR, progR, quizR, aiR] = await Promise.all([
-    fetch(`${SUPABASE_URL}/rest/v1/notifications?select=id&student_id=eq.${encodeURIComponent(studentId)}&type=eq.daily_watch&limit=1`, { headers: h }),
+  const [sigR, progR, quizR, aiR] = await Promise.all([
+    // Primary: explicit activity signals
+    fetch(`${SUPABASE_URL}/rest/v1/notifications?select=type&student_id=eq.${encodeURIComponent(studentId)}&type=in.(act_watched,act_uploaded,act_tested,act_ai,daily_watch)&limit=20`, { headers: h }),
+    // Fallback: actual tables
     fetch(`${SUPABASE_URL}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
     fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
     fetch(`${SUPABASE_URL}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
   ]);
-  const [watchRows, progRows, quizRows, aiRows] = await Promise.all([
-    watchR.json().catch(() => []),
+  const [sigRows, progRows, quizRows, aiRows] = await Promise.all([
+    sigR.json().catch(() => []),
     progR.json().catch(() => []),
     quizR.json().catch(() => []),
     aiR.json().catch(() => []),
   ]);
+  const sigs = new Set(Array.isArray(sigRows) ? sigRows.map(r => String(r.type || "")) : []);
   const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
   return {
-    watched:  Array.isArray(watchRows) && watchRows.length > 0,
-    uploaded: Array.isArray(progRows)  && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
-    tested:   Array.isArray(quizRows)  && quizRows.length > 0,
-    ai:       Array.isArray(aiRows)    && aiRows.length > 0,
+    watched:  sigs.has("act_watched") || sigs.has("daily_watch"),
+    uploaded: sigs.has("act_uploaded") || (Array.isArray(progRows) && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase()))),
+    tested:   sigs.has("act_tested")  || (Array.isArray(quizRows) && quizRows.length > 0),
+    ai:       sigs.has("act_ai")      || (Array.isArray(aiRows) && aiRows.length > 0),
   };
 }
 

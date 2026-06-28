@@ -1862,5 +1862,44 @@ window.__dash = {
   pingStreakServer: () => pingStreakServer(),
   renderAchievements: (...args) => renderAchievements(...args),
 };
+
+// =========================================================
+// 15) Checklist auto-refresh
+// =========================================================
+async function refreshChecklist() {
+  if (isAdmin && !isPreview) return; // pure admin view has no checklist
+  try {
+    const activityData = isPreview
+      ? await getStudentActivityForPreview()
+      : await getStudentActivityForStudent();
+    if (!activityData) return;
+    const checklist = document.getElementById("todayChecklist");
+    if (!checklist) return;
+    const _tCl = window.goI18n[window.goLang] || window.goI18n.kk;
+    const items = [
+      {k:"watched",  label: isPreview ? _tCl.checkVideo  : (_tCl.checkVideoAction  || "Видео көру")},
+      {k:"uploaded", label: isPreview ? _tCl.checkUpload : (_tCl.checkUploadAction || "Тапсырма жүктеу")},
+      {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тақырып аралық сынақтардан өту")},
+      {k:"ai",       label: isPreview ? _tCl.checkAI     : (_tCl.checkAIAction     || "ЖИ қолдану")},
+    ];
+    checklist.innerHTML = "";
+    items.forEach(it => {
+      const row = document.createElement("div");
+      row.className = "checkItem";
+      const isChecked = !!activityData[it.k];
+      row.innerHTML = `<input type="checkbox" ${isChecked ? "checked" : ""} disabled /><div style="font-weight:900">${escapeHtml(it.label)}</div>`;
+      checklist.appendChild(row);
+    });
+    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested, ai: !!activityData.ai } });
+  } catch (_) {}
+}
+
+// Refresh when student switches back to this tab (after completing actions on blocks page)
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) refreshChecklist();
+});
+// Polling fallback every 30 seconds
+setInterval(refreshChecklist, 30000);
+
 })();
 </script>

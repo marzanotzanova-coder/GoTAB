@@ -764,6 +764,8 @@ async function _submitQuiz() {
     `;
     document.getElementById("qsResultMsg").textContent = j.message || "";
     _setQState("result");
+    // Mark quiz completed for checklist
+    fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"tested"}) }).catch(()=>{});
   } catch(e) {
     alert("Желі қатесі. Қайталаңыз.");
     _quizSubmitting = false;
@@ -900,6 +902,8 @@ async function _callAI(promptType){
     const entry = { text:j.text, title:j.title||"", ts:Date.now() };
     _aiCache[cacheKey] = entry;
     _showAiResult(entry);
+    // Mark AI used for checklist
+    fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"ai"}) }).catch(()=>{});
   }catch(e){
     console.error("AI call error:", e);
     const t = window.goI18n[window.goLang] || window.goI18n.kk;
@@ -1099,6 +1103,8 @@ async function renderBlocks(){
             const r = await fetch("/api/student/upload", { method:"POST", body:fd, credentials:"include", cache:"no-store" });
             const j = await r.json().catch(()=>null);
             if(!r.ok || !j?.ok){ alert(t.uploadErr + (j?.message || j?.error || t.uploadFail)); return; }
+            // Mark assignment uploaded for checklist
+            fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"uploaded"}) }).catch(()=>{});
             alert(t.uploadSuccess);
             await renderBlocks();
           }catch(err){ console.error(err); alert(t.uploadErr + (err?.message || "Upload error")); }
