@@ -2509,6 +2509,37 @@ app.post("/api/messages/send", requireAuth, async (req, res) => {
   } catch (e) { console.error("[messages/send]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
 });
 
+// GET /api/student-activity  (authenticated student — uses session, no query param)
+app.get("/api/student-activity", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user;
+    if (sessionUser.role === "admin")
+      return res.status(403).json({ ok: false, error: "forbidden" });
+    const studentId = String(sessionUser.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const { url, key } = quizDb();
+    const h = { apikey: key, Authorization: `Bearer ${key}` };
+    const [progR, quizR, aiR] = await Promise.all([
+      fetch(`${url}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
+      fetch(`${url}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+      fetch(`${url}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+    ]);
+    const [progRows, quizRows, aiRows] = await Promise.all([
+      progR.json().catch(() => []),
+      quizR.json().catch(() => []),
+      aiR.json().catch(() => []),
+    ]);
+    const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
+    return res.json({
+      ok: true,
+      watched: Array.isArray(progRows) && progRows.length > 0,
+      uploaded: Array.isArray(progRows) && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
+      tested: Array.isArray(quizRows) && quizRows.length > 0,
+      ai: Array.isArray(aiRows) && aiRows.length > 0,
+    });
+  } catch (e) { console.error("[student-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
 // GET /api/admin/student-activity?studentId=X  (for preview checklist)
 app.get("/api/admin/student-activity", requireAdmin, async (req, res) => {
   try {

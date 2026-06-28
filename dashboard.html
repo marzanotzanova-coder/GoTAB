@@ -43,7 +43,7 @@
       border-radius: var(--radius);
       box-shadow: var(--shadow);
       padding: 18px;
-      overflow:hidden;
+      overflow-x: hidden;
       border: 1px solid rgba(255,255,255,0.8);
       display: flex;
       flex-direction: column;
@@ -120,9 +120,16 @@
 
     /* Sidebar mountain illustration */
     .sidebarMountain{
-      margin-top: auto;
-      padding-top: 16px;
+      margin-top: 16px;
       opacity: 0.85;
+      text-align: center;
+    }
+    .sidebarMountain img{
+      display: block;
+      width: 100%;
+      height: auto;
+      max-width: 100%;
+      mix-blend-mode: screen;
     }
 
     .topbar{
@@ -268,7 +275,7 @@
       background: rgba(255,255,255,.8);
       border: 1px solid rgba(47,107,255,.08);
     }
-    .checkItem input{width:18px;height:18px;accent-color:#2F6BFF;}
+    .checkItem input{width:18px;height:18px;accent-color:#2F6BFF;cursor:default;opacity:1;}
 
     .sparkWrap{
       display:flex;gap:14px;align-items:center;margin-top:10px;
@@ -437,7 +444,7 @@
     <div style="margin-top:10px" class="muted" id="hintText"></div>
 
     <div class="sidebarMountain">
-      <img src="images/mountain.png" alt="" style="width:100%;max-width:220px;mix-blend-mode:screen;">
+      <img src="images/mountain.png" alt="">
     </div>
   </aside>
 
@@ -1344,26 +1351,16 @@ function renderTodayPlan(progressValues, activityData){
   items.forEach(it=>{
     const row = document.createElement("div");
     row.className = "checkItem";
-    // In preview: use server activity data; for student: use localStorage state
-    const isChecked = (isPreview && activityData) ? !!activityData[it.k] : plan.items[it.k];
+    // Use server activity data when available; fall back to localStorage
+    const isChecked = activityData ? !!activityData[it.k] : plan.items[it.k];
     row.innerHTML = `
-      <input type="checkbox" ${isChecked ? "checked":""} />
+      <input type="checkbox" ${isChecked ? "checked":""} disabled />
       <div style="font-weight:900">${escapeHtml(it.label)}</div>
     `;
-    const cb = row.querySelector("input");
-    if(isPreview) cb.disabled = true;
-
-    cb.addEventListener("change", ()=>{
-      if(isPreview) return;
-      plan.items[it.k] = cb.checked;
-      localStorage.setItem(getPlanKey(), JSON.stringify(plan));
-      renderTodayBadge(plan);
-    });
-
     checklist.appendChild(row);
   });
 
-  if (isPreview && activityData) {
+  if (activityData) {
     renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested, ai: !!activityData.ai } });
   } else {
     renderTodayBadge(plan);
@@ -1633,6 +1630,15 @@ async function getStudentActivityForPreview() {
   } catch (e) { return null; }
 }
 
+async function getStudentActivityForStudent() {
+  if (isAdmin) return null;
+  try {
+    const r = await fetch("/api/student-activity", { credentials: "include", cache: "no-store" });
+    const j = await r.json().catch(() => null);
+    return (j && j.ok) ? j : null;
+  } catch (e) { return null; }
+}
+
 async function loadConversation() {
   const _tL = window.goI18n[window.goLang] || window.goI18n.kk;
 
@@ -1795,7 +1801,11 @@ const { avg, progressValues, grades, serverProg } = await renderKpiAndSpark();
 
 const [streakResp, activityData] = await Promise.all([
   pingStreakServer(),
-  isPreview ? getStudentActivityForPreview() : Promise.resolve(null)
+  isPreview
+    ? getStudentActivityForPreview()
+    : !isAdmin
+      ? getStudentActivityForStudent()
+      : Promise.resolve(null)
 ]);
 const serverStreak = Number(streakResp?.streak ?? 0);
 
