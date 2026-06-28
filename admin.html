@@ -198,7 +198,7 @@
     }
 
     /* ── Quiz tabs ── */
-    .admin-tabs{display:flex;gap:8px;margin-bottom:16px;}
+    .admin-tabs{display:flex;gap:8px;margin-bottom:16px;padding-right:110px;}
     .admin-tab{flex:1;padding:10px;border-radius:14px;border:1.5px solid rgba(47,107,255,.18);background:rgba(255,255,255,.85);font-weight:700;font-size:13px;color:#2F6BFF;cursor:pointer;transition:all .15s;}
     .admin-tab.active{background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);color:#fff;border-color:transparent;}
 
@@ -307,8 +307,8 @@
   <!-- RIGHT: uploads + quiz -->
   <main class="card">
     <div class="admin-tabs">
-      <button class="admin-tab active" id="tabBtnMaterials" onclick="switchTab('materials')">📦 Материалдар</button>
-      <button class="admin-tab" id="tabBtnQuiz" onclick="switchTab('quiz')">📋 Сынақтар</button>
+      <button type="button" class="admin-tab active" id="tabBtnMaterials" onclick="switchTab('materials')">📦 Материалдар</button>
+      <button type="button" class="admin-tab" id="tabBtnQuiz" onclick="switchTab('quiz')">📋 Сынақтар</button>
     </div>
 
     <!-- ── MATERIALS TAB ── -->
@@ -576,8 +576,7 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
 
     students.sort((a,b)=> String(b.createdAt||"").localeCompare(String(a.createdAt||"")));
 
-    console.log("students =", students);
- students.forEach(st=>{
+    students.forEach(st=>{
 
   try{
 
