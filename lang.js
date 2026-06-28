@@ -168,6 +168,14 @@ const i18n = {
     contactTitle: "Байланыс",
     contactEmailLabel: "Қолдау: support@gotab.kz",
     contactWa: "WhatsApp арқылы жазыңыз",
+    // two-way feedback
+    studentFb: "Оқушы пікірі",
+    sendBtn: "Жіберу",
+    msgPhStudent: "Мұғалімге хабарлама жазыңыз...",
+    msgPhAdmin: "Оқушыға жауап жазыңыз...",
+    noStudentMsg: "Оқушы хабарлама жазбаған",
+    msgSentOk: "✅ Жіберілді",
+    myMsgsLabel: "Менің хабарламаларым",
   },
   ru: {
     // index
@@ -338,6 +346,14 @@ const i18n = {
     contactTitle: "Контакты",
     contactEmailLabel: "Поддержка: support@gotab.kz",
     contactWa: "Напишите нам в WhatsApp",
+    // two-way feedback
+    studentFb: "Отзыв ученика",
+    sendBtn: "Отправить",
+    msgPhStudent: "Напишите сообщение учителю...",
+    msgPhAdmin: "Написать ответ ученику...",
+    noStudentMsg: "Ученик ещё не написал",
+    msgSentOk: "✅ Отправлено",
+    myMsgsLabel: "Мои сообщения",
   }
 };
 

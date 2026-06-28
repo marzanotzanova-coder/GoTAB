@@ -2416,12 +2416,136 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
   }
 });
 
+// ===================== MESSAGES (Two-way feedback) =====================
+
+const _MESSAGES_TABLE_SQL = `
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id bigserial PRIMARY KEY,
+  student_id text NOT NULL,
+  author text NOT NULL CHECK (author IN ('admin', 'student')),
+  message text NOT NULL,
+  created_at timestamptz DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_student_idx ON chat_messages(student_id);
+`;
+
+async function ensureMessagesTable() {
+  const { url, key } = quizDb();
+  if (!url || !key) return;
+  try {
+    const probe = await fetch(`${url}/rest/v1/chat_messages?limit=0`, {
+      headers: { apikey: key, Authorization: `Bearer ${key}` },
+    });
+    if (probe.ok) { console.log("[messages-setup] chat_messages table: EXISTS"); return; }
+  } catch (e) { console.error("[messages-setup] probe error:", e.message); }
+  const dbUrl = process.env.DATABASE_URL;
+  if (dbUrl) {
+    let pgClient;
+    try {
+      const { Client } = require("pg");
+      pgClient = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+      await pgClient.connect();
+      await pgClient.query(_MESSAGES_TABLE_SQL);
+      await pgClient.end();
+      console.log("[messages-setup] chat_messages table created OK");
+    } catch (pgErr) {
+      console.error("[messages-setup] auto-create failed:", pgErr.message);
+      if (pgClient) await pgClient.end().catch(() => {});
+      console.error("[messages-setup] Run this SQL manually:\n" + _MESSAGES_TABLE_SQL);
+    }
+  } else {
+    console.warn("[messages-setup] DATABASE_URL not set — run this SQL manually:\n" + _MESSAGES_TABLE_SQL);
+  }
+}
+
+// GET /api/messages?studentId=X[&author=student|admin]
+app.get("/api/messages", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user;
+    const requestedId = String(req.query.studentId || "").trim();
+    const authorFilter = String(req.query.author || "").trim();
+    const studentId = sessionUser.role === "admin"
+      ? requestedId
+      : String(sessionUser.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    if (sessionUser.role !== "admin" && requestedId && requestedId !== studentId)
+      return res.status(403).json({ ok: false, error: "forbidden" });
+    const { url, key } = quizDb();
+    let endpoint = `${url}/rest/v1/chat_messages?select=id,author,message,created_at`
+      + `&student_id=eq.${encodeURIComponent(studentId)}&order=created_at.asc&limit=50`;
+    if (authorFilter === "student" || authorFilter === "admin")
+      endpoint += `&author=eq.${encodeURIComponent(authorFilter)}`;
+    const r = await fetch(endpoint, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+    const rows = await r.json().catch(() => []);
+    if (!r.ok) { console.error("[messages/get] supabase error"); return res.status(500).json({ ok: false, error: "server_error" }); }
+    return res.json({ ok: true, messages: Array.isArray(rows) ? rows : [] });
+  } catch (e) { console.error("[messages/get]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+// POST /api/messages/send
+app.post("/api/messages/send", requireAuth, async (req, res) => {
+  try {
+    const sessionUser = req.session?.user;
+    const { studentId: bodyStudentId, message } = req.body || {};
+    const msgText = String(message || "").trim();
+    if (!msgText || msgText.length > 2000) return res.status(400).json({ ok: false, error: "bad_input" });
+    let studentId, author;
+    if (sessionUser.role === "admin") {
+      studentId = String(bodyStudentId || "").trim();
+      author = "admin";
+    } else {
+      studentId = String(sessionUser.studentId || "").trim();
+      author = "student";
+    }
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const { url, key } = quizDb();
+    const r = await fetch(`${url}/rest/v1/chat_messages`, {
+      method: "POST",
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify([{ student_id: studentId, author, message: msgText }]),
+    });
+    if (!r.ok) { const t = await r.text().catch(() => ""); console.error("[messages/send]", t); return res.status(500).json({ ok: false, error: "server_error" }); }
+    return res.json({ ok: true });
+  } catch (e) { console.error("[messages/send]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+// GET /api/admin/student-activity?studentId=X  (for preview checklist)
+app.get("/api/admin/student-activity", requireAdmin, async (req, res) => {
+  try {
+    const studentId = String(req.query.studentId || "").trim();
+    if (!studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const { url, key } = quizDb();
+    const h = { apikey: key, Authorization: `Bearer ${key}` };
+    const [progR, quizR, aiR] = await Promise.all([
+      fetch(`${url}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
+      fetch(`${url}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+      fetch(`${url}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+    ]);
+    const [progRows, quizRows, aiRows] = await Promise.all([
+      progR.json().catch(() => []),
+      quizR.json().catch(() => []),
+      aiR.json().catch(() => []),
+    ]);
+    const uploadStatuses = ["uploaded", "reviewing", "graded", "checked"];
+    return res.json({
+      ok: true,
+      watched: Array.isArray(progRows) && progRows.length > 0,
+      uploaded: Array.isArray(progRows) && progRows.some(r => uploadStatuses.includes(String(r.status || "").toLowerCase())),
+      tested: Array.isArray(quizRows) && quizRows.length > 0,
+      ai: Array.isArray(aiRows) && aiRows.length > 0,
+    });
+  } catch (e) { console.error("[student-activity]", e.message); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
 // ===================== START =====================
 // Discover the best available OpenAI model before serving any requests
 aiService.resolveModel().catch(e => console.error("[startup] model discovery error:", e.message));
 
 // Ensure quiz DB tables exist (auto-creates via DATABASE_URL if missing)
 ensureQuizTables().catch(e => console.error("[startup] ensureQuizTables error:", e.message));
+
+// Ensure chat_messages table exists
+ensureMessagesTable().catch(e => console.error("[startup] ensureMessagesTable error:", e.message));
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);

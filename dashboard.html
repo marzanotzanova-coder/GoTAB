@@ -529,10 +529,37 @@
         <div class="list compactList" id="notifications"></div>
       </div>
 
-      <div class="card" style="grid-column: span 6;">
-  <div class="cardTitle" data-i18n="teacherFb">💬 Мұғалім пікірі</div>
-  <div id="feedbackList" class="list"></div>
-</div>
+      <div class="card" style="grid-column: span 6;" id="feedbackCard">
+        <div class="cardTitle" id="feedbackCardTitle">💬 Мұғалім пікірі</div>
+
+        <!-- Student view: teacher block-feedback (unchanged) -->
+        <div id="teacherFbSection">
+          <div id="feedbackList" class="list"></div>
+        </div>
+
+        <!-- Student compose: write to teacher (hidden in preview/admin) -->
+        <div id="studentComposeWrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(47,107,255,.08)">
+          <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="myMsgsLbl">Менің хабарламаларым</div>
+          <div id="studentSentList" class="list" style="max-height:100px;overflow:auto;margin-bottom:8px"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
+            <textarea id="studentMsgInput" rows="2" style="flex:1;padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.16);background:rgba(255,255,255,.9);font-size:13px;font-family:inherit;resize:none;outline:none;color:var(--text)"></textarea>
+            <button id="studentMsgSendBtn" style="padding:10px 14px;border:none;border-radius:12px;background:linear-gradient(90deg,#2F6BFF,#1DE9B6);color:white;font-weight:800;font-size:13px;cursor:pointer;flex-shrink:0">Жіберу</button>
+          </div>
+          <div id="studentMsgStatus" style="font-size:11px;color:var(--good);margin-top:4px;min-height:14px"></div>
+        </div>
+
+        <!-- Admin Preview: student messages + reply (hidden for students/admin) -->
+        <div id="adminPreviewWrap" style="display:none">
+          <div id="conversationList" class="list" style="max-height:200px;overflow:auto;margin-bottom:10px"></div>
+          <div style="padding-top:10px;border-top:1px solid rgba(47,107,255,.08)">
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <textarea id="adminReplyInput" rows="2" style="flex:1;padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.16);background:rgba(255,255,255,.9);font-size:13px;font-family:inherit;resize:none;outline:none;color:var(--text)"></textarea>
+              <button id="adminReplyBtn" style="padding:10px 14px;border:none;border-radius:12px;background:linear-gradient(90deg,#2F6BFF,#1DE9B6);color:white;font-weight:800;font-size:13px;cursor:pointer;flex-shrink:0">Жауап</button>
+            </div>
+            <div id="adminReplyStatus" style="font-size:11px;color:var(--good);margin-top:4px;min-height:14px"></div>
+          </div>
+        </div>
+      </div>
 
       <!-- Profile / Support -->
       <div class="card supportCard" style="grid-column: span 12;">
@@ -1286,7 +1313,7 @@ window.pingStreakServer = pingStreakServer;
   return "studyTopics_" + (effectiveStudentId || "unknown");
 }
 
-function renderTodayPlan(progressValues){
+function renderTodayPlan(progressValues, activityData){
   const plan = getPlan(progressValues);
 
   const topicInput = document.getElementById("topicInput");
@@ -1317,8 +1344,10 @@ function renderTodayPlan(progressValues){
   items.forEach(it=>{
     const row = document.createElement("div");
     row.className = "checkItem";
+    // In preview: use server activity data; for student: use localStorage state
+    const isChecked = (isPreview && activityData) ? !!activityData[it.k] : plan.items[it.k];
     row.innerHTML = `
-      <input type="checkbox" ${plan.items[it.k] ? "checked":""} />
+      <input type="checkbox" ${isChecked ? "checked":""} />
       <div style="font-weight:900">${escapeHtml(it.label)}</div>
     `;
     const cb = row.querySelector("input");
@@ -1334,7 +1363,11 @@ function renderTodayPlan(progressValues){
     checklist.appendChild(row);
   });
 
-  renderTodayBadge(plan);
+  if (isPreview && activityData) {
+    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested, ai: !!activityData.ai } });
+  } else {
+    renderTodayBadge(plan);
+  }
 }
   function renderTodayBadge(plan){
     const badge = document.getElementById("todayBadge");
@@ -1587,7 +1620,164 @@ function renderTodayPlan(progressValues){
   }
 
 // =========================================================
-// 13) Init
+// 13) Two-way feedback helpers
+// =========================================================
+async function getStudentActivityForPreview() {
+  if (!isPreview) return null;
+  try {
+    const r = await fetch(`/api/admin/student-activity?studentId=${encodeURIComponent(effectiveStudentId)}`, {
+      credentials: "include", cache: "no-store"
+    });
+    const j = await r.json().catch(() => null);
+    return (j && j.ok) ? j : null;
+  } catch (e) { return null; }
+}
+
+async function loadConversation() {
+  const _tL = window.goI18n[window.goLang] || window.goI18n.kk;
+
+  if (isPreview) {
+    const r = await fetch(`/api/messages?studentId=${encodeURIComponent(effectiveStudentId)}`, {
+      credentials: "include", cache: "no-store"
+    }).catch(() => null);
+    const j = r ? await r.json().catch(() => null) : null;
+    const msgs = (j && j.ok && Array.isArray(j.messages)) ? j.messages : [];
+    const box = document.getElementById("conversationList");
+    if (!box) return;
+    box.innerHTML = "";
+    if (msgs.length === 0) {
+      box.innerHTML = `<div class="muted">${_tL.noStudentMsg || "Оқушы хабарлама жазбаған"}</div>`;
+      return;
+    }
+    msgs.forEach(m => {
+      const isStudent = m.author === "student";
+      const el = document.createElement("div");
+      el.className = "row";
+      el.style.cssText = isStudent
+        ? "border-left:3px solid rgba(29,233,182,.6);background:rgba(29,233,182,.04);margin-bottom:4px"
+        : "background:rgba(47,107,255,.04);border-color:rgba(47,107,255,.12);margin-bottom:4px";
+      el.innerHTML = `<div class="rowLeft" style="width:100%">
+        <div style="font-size:11px;font-weight:800;color:${isStudent ? '#10b981' : '#2F6BFF'};margin-bottom:2px">${isStudent ? '👤 Оқушы' : '👩‍🏫 Мұғалім'}</div>
+        <div class="rowSub">${escapeHtml(m.message)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${new Date(m.created_at).toLocaleString()}</div>
+      </div>`;
+      box.appendChild(el);
+    });
+    box.scrollTop = box.scrollHeight;
+
+  } else if (!isAdmin) {
+    const r = await fetch(`/api/messages?studentId=${encodeURIComponent(effectiveStudentId)}&author=student`, {
+      credentials: "include", cache: "no-store"
+    }).catch(() => null);
+    const j = r ? await r.json().catch(() => null) : null;
+    const msgs = (j && j.ok && Array.isArray(j.messages)) ? j.messages : [];
+    const box = document.getElementById("studentSentList");
+    if (!box) return;
+    box.innerHTML = "";
+    if (msgs.length === 0) {
+      box.innerHTML = `<div class="muted" style="font-size:12px">${_tL.noStudentMsg || "Хабарлама жоқ"}</div>`;
+      return;
+    }
+    msgs.forEach(m => {
+      const el = document.createElement("div");
+      el.className = "row";
+      el.style.cssText = "background:rgba(47,107,255,.04);border-color:rgba(47,107,255,.08);margin-bottom:4px";
+      el.innerHTML = `<div class="rowLeft" style="width:100%">
+        <div class="rowSub" style="font-size:12px">${escapeHtml(m.message)}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">${new Date(m.created_at).toLocaleString()}</div>
+      </div>`;
+      box.appendChild(el);
+    });
+    box.scrollTop = box.scrollHeight;
+  }
+}
+
+function initFeedbackCard() {
+  const _tL = window.goI18n[window.goLang] || window.goI18n.kk;
+
+  if (isPreview) {
+    const titleEl = document.getElementById("feedbackCardTitle");
+    if (titleEl) titleEl.textContent = "💬 " + (_tL.studentFb || "Оқушы пікірі");
+
+    const teacherSection = document.getElementById("teacherFbSection");
+    const composeWrap   = document.getElementById("studentComposeWrap");
+    const previewWrap   = document.getElementById("adminPreviewWrap");
+    if (teacherSection) teacherSection.style.display = "none";
+    if (composeWrap)    composeWrap.style.display    = "none";
+    if (previewWrap)    previewWrap.style.display    = "block";
+
+    const replyInput  = document.getElementById("adminReplyInput");
+    const replyBtn    = document.getElementById("adminReplyBtn");
+    const replyStatus = document.getElementById("adminReplyStatus");
+    if (replyInput) replyInput.placeholder = _tL.msgPhAdmin || "Жауап жазыңыз...";
+    if (replyBtn)   replyBtn.textContent   = _tL.sendBtn || "Жіберу";
+
+    loadConversation();
+
+    if (replyBtn && replyInput) {
+      replyBtn.addEventListener("click", async () => {
+        const msg = replyInput.value.trim();
+        if (!msg || replyBtn.disabled) return;
+        replyBtn.disabled = true;
+        try {
+          const r = await fetch("/api/messages/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ studentId: effectiveStudentId, message: msg })
+          });
+          const j = await r.json().catch(() => null);
+          if (j?.ok) {
+            replyInput.value = "";
+            if (replyStatus) { replyStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; setTimeout(() => { replyStatus.textContent = ""; }, 2000); }
+            loadConversation();
+          }
+        } catch (_) {}
+        replyBtn.disabled = false;
+      });
+    }
+
+  } else if (!isAdmin) {
+    const composeWrap = document.getElementById("studentComposeWrap");
+    if (composeWrap) composeWrap.style.display = "block";
+
+    const myMsgsLbl = document.getElementById("myMsgsLbl");
+    const sendBtn   = document.getElementById("studentMsgSendBtn");
+    const msgInput  = document.getElementById("studentMsgInput");
+    const msgStatus = document.getElementById("studentMsgStatus");
+    if (myMsgsLbl) myMsgsLbl.textContent   = _tL.myMsgsLabel || "Менің хабарламаларым";
+    if (sendBtn)   sendBtn.textContent      = _tL.sendBtn || "Жіберу";
+    if (msgInput)  msgInput.placeholder     = _tL.msgPhStudent || "Мұғалімге жазыңыз...";
+
+    loadConversation();
+
+    if (sendBtn && msgInput) {
+      sendBtn.addEventListener("click", async () => {
+        const msg = msgInput.value.trim();
+        if (!msg || sendBtn.disabled) return;
+        sendBtn.disabled = true;
+        try {
+          const r = await fetch("/api/messages/send", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ message: msg })
+          });
+          const j = await r.json().catch(() => null);
+          if (j?.ok) {
+            msgInput.value = "";
+            if (msgStatus) { msgStatus.textContent = _tL.msgSentOk || "✅ Жіберілді"; setTimeout(() => { msgStatus.textContent = ""; }, 2000); }
+            loadConversation();
+          }
+        } catch (_) {}
+        sendBtn.disabled = false;
+      });
+    }
+  }
+}
+
+// =========================================================
+// 14) Init
 // =========================================================
 async function init(){
   await loadStudentInfoIfPreview(); // ✅ алдымен package анықталсын
@@ -1603,11 +1793,14 @@ async function init(){
 
 const { avg, progressValues, grades, serverProg } = await renderKpiAndSpark();
 
-const streakResp = await pingStreakServer();
+const [streakResp, activityData] = await Promise.all([
+  pingStreakServer(),
+  isPreview ? getStudentActivityForPreview() : Promise.resolve(null)
+]);
 const serverStreak = Number(streakResp?.streak ?? 0);
 
 renderAchievements(avg, serverStreak, serverProg);
-  renderTodayPlan(progressValues);
+  renderTodayPlan(progressValues, activityData);
 
   const plan = getPlan(progressValues);
   const gradesDesc = grades.slice().sort((a,b)=> b.lesson - a.lesson).slice(0,4).map(x=>x.lesson);
@@ -1626,6 +1819,7 @@ await renderRecentGradesServer(serverProg, grades);
 
 renderNotifications();
 renderProfileLine();
+initFeedbackCard();
 };
 
 window.pingStreakServer = pingStreakServer;
