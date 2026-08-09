@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GoTAB — Вход</title>
+<link rel="preload" href="images/logo.png" as="image">
+<link rel="preload" href="images/mountain.png" as="image">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -18,6 +20,44 @@
     position: relative;
   }
 
+  /* ── Floating math background ── */
+  .math-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .math-item {
+    position: absolute;
+    color: #5a78ff;
+    opacity: 0;
+    font-size: 14px;
+    font-style: italic;
+    font-weight: 600;
+    white-space: nowrap;
+    animation: floatUp linear infinite;
+  }
+  @keyframes floatUp {
+    0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+    8%   { opacity: 0.18; }
+    90%  { opacity: 0.13; }
+    100% { transform: translateY(-110vh) rotate(12deg); opacity: 0; }
+  }
+
+  /* ── Sparkle dots ── */
+  .sp {
+    position: absolute;
+    opacity: 0.4;
+    pointer-events: none;
+    animation: pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50%       { opacity: 0.7; transform: scale(1.3); }
+  }
+
+  /* ── Language selector ── */
   .lang-wrap {
     position: absolute;
     top: 18px;
@@ -41,15 +81,9 @@
     cursor: pointer;
     outline: none;
   }
+  .lang-icon { color: #2F6BFF; }
 
-  .sp {
-    position: absolute;
-    color: #8A5CFF;
-    opacity: 0.45;
-    pointer-events: none;
-    font-style: normal;
-  }
-
+  /* ── Center form ── */
   .center {
     display: flex;
     flex-direction: column;
@@ -68,25 +102,10 @@
     gap: 10px;
     margin-bottom: 10px;
   }
-  .logo-go {
-    font-size: 56px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #2F6BFF, #20C9FF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-  }
-  .logo-tab {
-    font-size: 56px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    background: linear-gradient(135deg, #20C9FF, #1DE9B6);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
+  .gotab-logo img {
+    height: 160px;
+    width: auto;
+    mix-blend-mode: multiply;
   }
 
   .subtitle {
@@ -98,6 +117,7 @@
   .subtitle .s-cyan { color: #20C9FF; }
   .subtitle .s-mint { color: #1DE9B6; }
 
+  /* ── Form card ── */
   .form-card {
     width: 100%;
     background: rgba(255,255,255,0.92);
@@ -113,13 +133,15 @@
   }
   .input-wrap .icon {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
     color: #9CA3AF;
-    font-size: 15px;
     pointer-events: none;
+    display: flex;
+    align-items: center;
   }
+  .input-wrap .icon svg { width: 18px; height: 18px; }
   .input-wrap input {
     width: 100%;
     height: 52px;
@@ -136,6 +158,8 @@
     border-color: #2F6BFF;
     box-shadow: 0 0 0 3px rgba(47,107,255,0.12);
   }
+  .input-wrap input:focus + .icon svg,
+  .input-wrap input:focus ~ .icon svg { color: #2F6BFF; }
   .input-wrap input::placeholder { color: #9CA3AF; }
 
   .eye-btn {
@@ -148,9 +172,10 @@
     cursor: pointer;
     padding: 0;
     color: #9CA3AF;
-    font-size: 16px;
-    line-height: 1;
+    display: flex;
+    align-items: center;
   }
+  .eye-btn svg { width: 18px; height: 18px; }
   .eye-btn:hover { color: #2F6BFF; }
 
   .btn-main {
@@ -194,6 +219,7 @@
     min-height: 18px;
   }
 
+  /* ── Mountain ── */
   .mountain-area {
     position: fixed;
     bottom: 56px;
@@ -204,20 +230,22 @@
     pointer-events: none;
     z-index: 1;
   }
-  .cloud-left, .cloud-right {
-    position: absolute;
-    bottom: 145px;
-    opacity: 0.7;
+  .mountain-area img {
+    width: 440px;
+    max-width: 90vw;
+    mix-blend-mode: screen;
+    animation: mountainFloat 6s ease-in-out infinite;
   }
-  .cloud-left { left: 4%; }
-  .cloud-right { right: 4%; }
+  @keyframes mountainFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-8px); }
+  }
 
   @media (max-width: 480px) {
-    .logo-go, .logo-tab { font-size: 44px; }
     .center { margin-top: 44px; }
   }
 
-  /* ── Legal Footer ── */
+  /* ── Footer ── */
   .legal-footer {
     position: fixed;
     bottom: 0; left: 0; right: 0;
@@ -302,38 +330,51 @@
 </head>
 <body>
 
+<!-- Floating math background -->
+<div class="math-bg" id="mathBg"></div>
+
+<!-- Sparkle dots -->
+<svg class="sp" style="top:8%;left:8%;width:14px;height:14px" viewBox="0 0 24 24" fill="#8A5CFF"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+<svg class="sp" style="top:15%;right:12%;width:10px;height:10px;animation-delay:1s" viewBox="0 0 24 24" fill="#20C9FF"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+<svg class="sp" style="top:28%;left:14%;width:8px;height:8px;animation-delay:2s" viewBox="0 0 24 24" fill="#8A5CFF"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+<svg class="sp" style="bottom:40%;right:16%;width:10px;height:10px;animation-delay:0.5s" viewBox="0 0 24 24" fill="#1DE9B6"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+<svg class="sp" style="bottom:35%;left:20%;width:8px;height:8px;animation-delay:1.5s" viewBox="0 0 24 24" fill="#20C9FF"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>
+
+<!-- Language selector -->
 <div class="lang-wrap">
-  🌐
+  <svg class="lang-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
   <select id="langSelect">
     <option value="kk">Қазақша</option>
     <option value="ru">Русский</option>
   </select>
 </div>
 
-<i class="sp" style="top:8%;left:8%;font-size:15px">✦</i>
-<i class="sp" style="top:15%;right:12%;font-size:10px;color:#20C9FF">✦</i>
-<i class="sp" style="top:28%;left:14%;font-size:8px">✦</i>
-<i class="sp" style="bottom:40%;right:16%;font-size:10px;color:#1DE9B6">✦</i>
-<i class="sp" style="bottom:35%;left:20%;font-size:8px;color:#20C9FF">✦</i>
-
 <div class="center">
   <div class="gotab-logo">
-    <img src="images/logo.png" alt="GoTAB" style="height:160px;width:auto;mix-blend-mode:multiply;">
+    <img src="images/logo.png" alt="GoTAB" fetchpriority="high">
   </div>
 
   <div class="form-card">
     <div class="input-wrap">
-      <span class="icon">📱</span>
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+      </span>
       <input type="text" id="phone" placeholder="Телефон нөмірі" data-i18n-placeholder="phonePh">
     </div>
     <div class="input-wrap">
-      <span class="icon">✉️</span>
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      </span>
       <input type="email" id="email" placeholder="Email">
     </div>
     <div class="input-wrap">
-      <span class="icon">🔒</span>
+      <span class="icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </span>
       <input type="password" id="password" placeholder="Құпиясөз" data-i18n-placeholder="passwordPh">
-      <button class="eye-btn" id="togglePass" type="button">👁</button>
+      <button class="eye-btn" id="togglePass" type="button">
+        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
     </div>
 
     <button class="btn-main" id="loginBtn" data-i18n="loginBtn">Кіру</button>
@@ -343,15 +384,21 @@
 </div>
 
 <div class="mountain-area">
-  <img src="images/mountain.png" alt="" style="width:440px;max-width:90vw;mix-blend-mode:screen;">
+  <img src="images/mountain.png" alt="" fetchpriority="high">
 </div>
 
 <!-- Contact Modal -->
 <div class="modal-overlay" id="contactModal">
   <div class="modal-box">
     <h3 id="contactModalTitle">Байланыс</h3>
-    <p>📧 <a href="mailto:support@gotab.kz">support@gotab.kz</a></p>
-    <p>💬 <span id="contactModalWa">WhatsApp арқылы жазыңыз</span></p>
+    <p>
+      <svg style="width:14px;height:14px;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="#2F6BFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      <a href="mailto:support@gotab.kz">support@gotab.kz</a>
+    </p>
+    <p>
+      <svg style="width:14px;height:14px;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="#1DE9B6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span id="contactModalWa">WhatsApp арқылы жазыңыз</span>
+    </p>
     <button class="modal-close-btn" onclick="closeContact()" data-i18n="closeBtn">Жабу</button>
   </div>
 </div>
@@ -375,18 +422,63 @@
 
 <script src="lang.js"></script>
 <script>
-function openContact() { document.getElementById("contactModal").classList.add("open"); }
+// Floating math formulas
+(function(){
+  const formulas = [
+    'x²+y²=r²', 'a²+b²=c²', 'E=mc²', 'π≈3.14', '∫f(x)dx',
+    'y=mx+b', '∑n(n+1)/2', '√(a²+b²)', 'sin²+cos²=1',
+    'Δx/Δt', 'f\'(x)', 'log₂n', '2πr', 'ax²+bx+c=0',
+    'P(A∪B)', 'n!', 'lim→∞', 'θ=arctan', 'V=πr²h',
+    'α+β+γ=180°', 'S=½bh', 'F=ma', 'v=λf', 'Aₙ=A₀rⁿ'
+  ];
+  const colors = ['#5a78ff','#20C9FF','#1DE9B6','#8A5CFF','#2F6BFF'];
+  const container = document.getElementById('mathBg');
+
+  function spawn(){
+    const el = document.createElement('span');
+    el.className = 'math-item';
+    el.textContent = formulas[Math.floor(Math.random()*formulas.length)];
+    el.style.left = Math.random()*95 + '%';
+    el.style.bottom = '-30px';
+    el.style.fontSize = (12 + Math.random()*10) + 'px';
+    el.style.color = colors[Math.floor(Math.random()*colors.length)];
+    const dur = 12 + Math.random()*16;
+    el.style.animationDuration = dur + 's';
+    el.style.animationDelay = '0s';
+    container.appendChild(el);
+    setTimeout(() => el.remove(), dur*1000);
+  }
+
+  // Initial burst
+  for(let i=0;i<12;i++){
+    setTimeout(spawn, i*400);
+  }
+  setInterval(spawn, 1200);
+})();
+
+function openContact()  { document.getElementById("contactModal").classList.add("open"); }
 function closeContact() { document.getElementById("contactModal").classList.remove("open"); }
-document.getElementById("contactModal").addEventListener("click", function(e) {
-  if (e.target === this) closeContact();
+document.getElementById("contactModal").addEventListener("click", function(e){
+  if(e.target===this) closeContact();
 });
 
 (function(){
   const langSelect = document.getElementById("langSelect");
 
+  // Eye toggle
+  const eyeOpen = `<svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+  const eyeClosed = `<svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+
   document.getElementById("togglePass").addEventListener("click", () => {
     const p = document.getElementById("password");
-    p.type = p.type === "password" ? "text" : "password";
+    const btn = document.getElementById("togglePass");
+    if(p.type === "password"){
+      p.type = "text";
+      btn.innerHTML = eyeClosed;
+    } else {
+      p.type = "password";
+      btn.innerHTML = eyeOpen;
+    }
   });
 
   document.getElementById("backBtn").addEventListener("click", () => { window.location.href = "index.html"; });
@@ -394,43 +486,41 @@ document.getElementById("contactModal").addEventListener("click", function(e) {
   const errorMsg = document.getElementById("errorMsg");
 
   document.getElementById("loginBtn").addEventListener("click", async () => {
-    const phone = document.getElementById("phone").value.trim();
-    const email = document.getElementById("email").value.trim();
+    const phone    = document.getElementById("phone").value.trim();
+    const email    = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
-    const lang = langSelect.value;
+    const lang     = langSelect.value;
     errorMsg.textContent = "";
 
     if(!phone || !password){
-      errorMsg.textContent = lang === "ru" ? "Заполните все поля" : "Барлық өрістерді толтырыңыз";
+      errorMsg.textContent = lang==="ru" ? "Заполните все поля" : "Барлық өрістерді толтырыңыз";
       return;
     }
 
     try{
-      // If email field is filled, attempt admin login; server validates credentials
       if(email){
-        const r = await fetch("/api/auth/login", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          credentials: "include", cache: "no-store",
-          body: JSON.stringify({ role: "admin", email, password })
+        const r = await fetch("/api/auth/login",{
+          method:"POST", headers:{"Content-Type":"application/json"},
+          credentials:"include", cache:"no-store",
+          body: JSON.stringify({role:"admin", email, password})
         });
-        const j = await r.json().catch(() => null);
-        if(r.ok && j?.ok){ window.location.href = "admin.html"; return; }
-        // Fall through to student login if admin fails
+        const j = await r.json().catch(()=>null);
+        if(r.ok && j?.ok){ window.location.href="admin.html"; return; }
       }
 
-      const r = await fetch("/api/auth/login", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        credentials: "include", cache: "no-store",
-        body: JSON.stringify({ role: "student", phone, password })
+      const r = await fetch("/api/auth/login",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        credentials:"include", cache:"no-store",
+        body: JSON.stringify({role:"student", phone, password})
       });
-      const j = await r.json().catch(() => null);
+      const j = await r.json().catch(()=>null);
       if(!r.ok || !j?.ok){
-        errorMsg.textContent = lang === "ru" ? "Неверный телефон или пароль" : "Телефон немесе пароль қате";
+        errorMsg.textContent = lang==="ru" ? "Неверный телефон или пароль" : "Телефон немесе пароль қате";
         return;
       }
       window.location.href = "dashboard.html";
     }catch(e){
-      errorMsg.textContent = lang === "ru" ? "Ошибка сервера" : "Сервер байланыспады";
+      errorMsg.textContent = lang==="ru" ? "Ошибка сервера" : "Сервер байланыспады";
     }
   });
 })();
