@@ -486,7 +486,7 @@ function extractYouTubeId(url) {
 function toEmbedUrl(url) {
   const id = extractYouTubeId(url);
   if (!id) return null;
-  return "https://www.youtube.com/embed/" + id + "?rel=0&modestbranding=1";
+  return "https://www.youtube.com/embed/" + id + "?rel=0&modestbranding=1&enablejsapi=1";
 }
 
 const gradeSelect   = document.getElementById("gradeSelect");
@@ -552,6 +552,37 @@ function lastItem(list){
   return list[list.length - 1] || null;
 }
 
+/* ===== Video watched tracking ===== */
+let _ytWatchedListener = null;
+function _markVideoWatched() {
+  if (isPreview) return;
+  fetch("/api/student/mark-activity", {
+    method: "POST", credentials: "include",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({action: "watched"})
+  }).catch(() => {});
+}
+function _attachYtWatchedListener(iframe) {
+  if (_ytWatchedListener) window.removeEventListener("message", _ytWatchedListener);
+  let fired = false;
+  _ytWatchedListener = function(e) {
+    if (fired) return;
+    try {
+      const d = typeof e.data === "string" ? JSON.parse(e.data) : e.data;
+      if (d && d.event === "onStateChange" && (d.info === 1 || d.info === 0)) {
+        fired = true;
+        window.removeEventListener("message", _ytWatchedListener);
+        _ytWatchedListener = null;
+        _markVideoWatched();
+      }
+    } catch(_) {}
+  };
+  window.addEventListener("message", _ytWatchedListener);
+  iframe.onload = function() {
+    try { iframe.contentWindow.postMessage(JSON.stringify({event:"listening",id:1}), "*"); } catch(_) {}
+  };
+}
+
 /* ===== Viewer functions ===== */
 window.openVideo = function(url){
   const modal = document.getElementById("viewerModal");
@@ -576,6 +607,7 @@ window.openVideo = function(url){
     iframe.setAttribute("allowfullscreen", "");
     iframe.setAttribute("referrerpolicy", "strict-origin-when-cross-origin");
     iframe.setAttribute("frameborder", "0");
+    _attachYtWatchedListener(iframe);
     wrap.appendChild(iframe);
     box.appendChild(wrap);
     return;
@@ -586,6 +618,10 @@ window.openVideo = function(url){
   const v = document.createElement("video");
   v.controls = true;
   v.src = url;
+  v.addEventListener("play", function onNativePlay() {
+    v.removeEventListener("play", onNativePlay);
+    _markVideoWatched();
+  });
   wrap.appendChild(v);
   box.appendChild(wrap);
 };
@@ -1005,11 +1041,6 @@ async function renderBlocks(){
   const grade   = String(gradeSelect.value || "5");
   const subject = String(subjectSelect.value || "math");
   const t = window.goI18n[window.goLang] || window.goI18n.kk;
-
-  // Mark video/content viewed for the checklist (fire-and-forget)
-  if (!isPreview) {
-    fetch("/api/student/mark-video-watched", { method: "POST", credentials: "include" }).catch(() => {});
-  }
 
   container.innerHTML = "";
 
