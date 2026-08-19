@@ -90,7 +90,10 @@ app.use(compression());
 
 // ===================== CORS =====================
 const ALLOWED_ORIGINS = IS_PROD
-  ? ["https://gotab.onrender.com"]
+  ? [
+      "https://gotab-production-e4e0.up.railway.app",
+      "https://gotab.onrender.com"
+    ]
   : ["http://localhost:3000", "http://localhost:3001", "http://127.0.0.1:3000"];
 
 app.use(cors({
