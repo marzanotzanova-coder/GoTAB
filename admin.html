@@ -350,6 +350,20 @@
 <option value="geometry">Геометрия</option>
 </select>
 
+<!-- LESSON TITLE -->
+<div class="row" style="margin-top:12px;">
+  <div class="rowLeft">
+    <div class="rowTitle">📚 Сабақ тақырыбы</div>
+    <div class="rowSub">Осы сабақта оқытылатын нақты тақырып</div>
+  </div>
+</div>
+
+<input
+  type="text"
+  id="lesson-title"
+  placeholder="Мысалы: Натурал сандар және нөл. Жұп және тақ сандар"
+/>
+
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle" data-i18n="videosLabel">Видеолар</div>
@@ -801,11 +815,13 @@ function getMaxBlockByGradeSubject(grade, subject){
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 
- function uploadOneFile(file, grade, subject, blockNumber, type){
+ function uploadOneFile(file, grade, subject, blockNumber, type, lessonTitle){
   const fd = new FormData();
+
   fd.append("grade", grade);
   fd.append("subject", subject);
   fd.append("blockNumber", String(blockNumber));
+  fd.append("lessonTitle", lessonTitle);
   fd.append("type", type);
   fd.append("file", file);
 
@@ -827,6 +843,15 @@ function getMaxBlockByGradeSubject(grade, subject){
 
  const grade = document.getElementById("grade-select").value;
 const subject = document.getElementById("subject-select").value;
+
+const lessonTitleInput = document.getElementById("lesson-title");
+const lessonTitle = String(lessonTitleInput?.value || "").trim();
+
+if (!lessonTitle) {
+  alert("Сабақ тақырыбын енгізіңіз!");
+  lessonTitleInput?.focus();
+  return;
+}
 
 const maxBlock = getMaxBlockByGradeSubject(grade, subject);
 
@@ -904,15 +929,15 @@ if(youtubeUrl){
 
 // 📁 Қалған файлдар бұрынғыдай
 videos.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video"))
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video", lessonTitle))
 );
 
 audios.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio"))
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio", lessonTitle))
 );
 
 docs.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc"))
+  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc", lessonTitle))
 );
 
     await Promise.all(tasks);

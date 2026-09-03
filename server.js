@@ -899,12 +899,32 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
     const block = Number(req.body.blockNumber);
     const type = String(req.body.type || "").toLowerCase(); // video|audio|doc
 
-    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !req.file) {
-      return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
+    // ✅ NEW: lesson title
+    const lessonTitle = String(req.body.lessonTitle || "").trim();
+
+    if (
+      !grade ||
+      !subject ||
+      !safeBlockNumber(block, grade, subject) ||
+      !req.file
+    ) {
+      return res.status(400).json({
+        ok: false,
+        error: "bad_grade_subject_or_block"
+      });
     }
 
-   const ext = path.extname(req.file.originalname || "") || ".bin";
-   const filePath = `materials/${grade}/${subject}/block${block}/${Date.now()}${ext}`; 
+    if (!lessonTitle) {
+      return res.status(400).json({
+        ok: false,
+        error: "lesson_title_required"
+      });
+    }
+
+    const ext = path.extname(req.file.originalname || "") || ".bin";
+
+    const filePath =
+      `materials/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
 
     const buffer = fs.readFileSync(req.file.path);
 
@@ -915,11 +935,26 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
       req.file.mimetype
     );
 
-    try { fs.unlinkSync(req.file.path); } catch {}
+    try {
+      fs.unlinkSync(req.file.path);
+    } catch {}
 
     const dbType =
-      type === "video" ? "video" :
-      type === "audio" ? "audio" : "doc";
+      type === "video"
+        ? "video"
+        : type === "audio"
+        ? "audio"
+        : "doc";
+
+    // ✅ lessonTitle database-ке бірге сақталады
+    const materialRow = {
+      grade,
+      subject,
+      block,
+      type: dbType,
+      url: publicUrl,
+      lesson_title: lessonTitle
+    };
 
     const r = await fetch(`${SUPABASE_URL}/rest/v1/materials`, {
       method: "POST",
@@ -929,25 +964,24 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
         "Content-Type": "application/json",
         Prefer: "return=representation"
       },
-      body: JSON.stringify([{
-        grade,
-        subject,
-        block,
-        type: dbType,
-        url: publicUrl
-      }])
+      body: JSON.stringify([materialRow])
     });
 
     const data = await r.json().catch(() => null);
 
     if (!r.ok) {
       console.error("supabase insert materials error:", data);
-      return res.status(500).json({ ok: false, error: "server_error" });
+
+      return res.status(500).json({
+        ok: false,
+        error: "server_error"
+      });
     }
 
     const item = {
       url: publicUrl,
       name: req.file.originalname,
+      lessonTitle,
       createdAt: nowISO()
     };
 
@@ -956,11 +990,17 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
       grade,
       subject,
       block: String(block),
+      lessonTitle,
       item
     });
+
   } catch (e) {
-   console.error("admin upload error:", e);
-return res.status(500).json({ ok: false, error: "server_error" });
+    console.error("admin upload error:", e);
+
+    return res.status(500).json({
+      ok: false,
+      error: "server_error"
+    });
   }
 });
 
@@ -1787,10 +1827,14 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
     const grade = String(req.body.grade || "").trim();
     const subject = String(req.body.subject || "").trim();
     const blockNumber = Number(req.body.blockNumber);
+    const lessonTitle = String(req.body.lessonTitle || "").trim();
     const url = String(req.body.url || "").trim();
 
-    if (!grade || !subject || !blockNumber || !url) {
-      return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!grade || !subject || !blockNumber || !lessonTitle || !url) {
+      return res.status(400).json({
+        ok: false,
+        error: "bad_input"
+      });
     }
 
     const r = await fetch(`${SUPABASE_URL}/rest/v1/materials`, {
@@ -1807,7 +1851,8 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
           subject,
           block: blockNumber,
           type: "video",
-          url
+          url,
+          lesson_title: lessonTitle
         }
       ])
     });
@@ -1816,13 +1861,25 @@ app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
 
     if (!r.ok) {
       console.error("supabase insert error:", data);
-      return res.status(500).json({ ok: false, error: "server_error" });
+
+      return res.status(500).json({
+        ok: false,
+        error: "server_error"
+      });
     }
 
-    return res.json({ ok: true, data });
+    return res.json({
+      ok: true,
+      data
+    });
+
   } catch (e) {
     console.error("add-video-link error:", e);
-    return res.status(500).json({ ok: false, error: "server_error" });
+
+    return res.status(500).json({
+      ok: false,
+      error: "server_error"
+    });
   }
 });
 
