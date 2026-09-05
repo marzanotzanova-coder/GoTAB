@@ -2561,7 +2561,7 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
     if (!ar.ok) console.error("[quiz/submit] save attempt error:", await ar.text().catch(() => ""));
 
     console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%)`);
-    return res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, aiDiagnosis, teacherAdvice });
+    return res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, aiDiagnosis, teacherAdvice, topicBreakdown, wrongQuestions });
   } catch (e) {
     console.error("[quiz/submit] error:", e.message);
     return res.status(500).json({ ok: false, error: "server_error" });

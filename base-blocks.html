@@ -285,14 +285,26 @@ body{
 .quiz-result-stat .rlbl{font-size:11px;color:#6B7280;margin-top:3px;}
 .quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
 .quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
-.quiz-result-diag{margin:0 20px 20px;background:#F8F9FF;border:1.5px solid rgba(47,107,255,.12);border-radius:16px;padding:18px 20px;text-align:left;max-height:360px;overflow-y:auto;}
-.diag-header{font-size:13px;font-weight:800;color:#2F6BFF;margin-bottom:14px;letter-spacing:.3px;}
-.diag-section-title{font-weight:800;font-size:13px;color:#14213D;margin:12px 0 5px;}
-.diag-section-title.weak{color:#ef4444;}
-.diag-section-title.strong{color:#059669;}
-.diag-item{font-size:13px;color:#374151;padding:3px 0 3px 16px;position:relative;line-height:1.5;}
-.diag-item::before{content:"•";position:absolute;left:5px;color:#2F6BFF;}
-.diag-body{font-size:13px;color:#4B5563;line-height:1.6;margin-bottom:4px;}
+.quiz-result-diag{margin:0 16px 20px;background:#F8F9FF;border:1.5px solid rgba(47,107,255,.1);border-radius:16px;overflow:hidden;text-align:left;}
+.qs-section-title{font-weight:800;font-size:13px;color:#14213D;padding:12px 20px 6px;border-top:1px solid rgba(47,107,255,.07);}
+.qs-section-title:first-child{border-top:none;}
+.qs-topic-row{display:flex;justify-content:space-between;align-items:center;padding:7px 20px;border-bottom:1px solid rgba(0,0,0,.04);font-size:13px;}
+.qs-topic-name{color:#374151;flex:1;margin-right:10px;}
+.qs-topic-pct{font-weight:800;font-size:12px;flex-shrink:0;}
+.qs-wrong-wrap{padding:0 20px 10px;}
+.qs-wrong-q{padding:11px 13px;border-radius:12px;background:rgba(239,68,68,.04);border:1px solid rgba(239,68,68,.12);margin-bottom:7px;font-size:13px;}
+.qs-wq-text{font-weight:700;color:#14213D;margin-bottom:6px;}
+.qs-wq-row{margin-bottom:3px;font-size:12px;color:#4B5563;}
+.qs-wq-correct{color:#059669;font-weight:700;}
+.qs-wq-student{color:#ef4444;}
+.qs-diag-text{margin:0 20px 16px;font-size:13px;line-height:1.7;color:#374151;}
+.donut-wrap{display:flex;align-items:center;gap:12px;padding:12px 20px 14px;}
+.donut-svg{width:120px;height:120px;flex-shrink:0;}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:5px;min-width:0;}
+.donut-legend-item{display:flex;align-items:center;gap:6px;}
+.donut-legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.donut-legend-label{flex:1;color:#374151;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;}
+.donut-legend-val{font-weight:800;font-size:11px;flex-shrink:0;}
 
 .ai-box{background:rgba(255,255,255,0.98);border-radius:28px;padding:32px 28px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(90,120,255,.22);border:1px solid rgba(255,255,255,.9);max-height:85vh;overflow-y:auto;}
 .ai-header{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1.5px solid rgba(47,107,255,.1);}
@@ -729,22 +741,73 @@ let _quizData    = null;  // { id, total, questions }
 let _quizAnswers = {};    // { idx: "option text" }
 let _quizSubmitting = false;
 
-function _formatDiagnosis(text) {
-  if (!text) return "";
-  const lines = text.split("\n");
-  let html = '<div class="diag-header">🤖 ИИ Диагностика</div>';
-  for (let i = 0; i < lines.length; i++) {
-    const t = lines[i].trim();
-    if (!t) { if (i > 0) html += ""; continue; }
-    if (t.startsWith("- ") || t.startsWith("• ")) {
-      html += `<div class="diag-item">${t.slice(2)}</div>`;
-    } else if (/[А-ЯҒҚҢӨҮҰіӘA-Z].*:$/.test(t)) {
-      const isWeak   = /Әлсіз|Қате|Нашар/i.test(t);
-      const isStrong = /Жақсы|Тамаша|Күшті/i.test(t);
-      html += `<div class="diag-section-title${isWeak ? " weak" : isStrong ? " strong" : ""}">${t}</div>`;
+function _buildDonut(topicBreakdown) {
+  const topics = Object.entries(topicBreakdown || {});
+  if (!topics.length) return "";
+  const total = topics.reduce((s, [,d]) => s + d.total, 0);
+  if (!total) return "";
+  const PALETTE = ["#2F6BFF","#20C9FF","#1DE9B6","#f59e0b","#ef4444","#8B5CF6","#ec4899","#059669","#f97316","#06b6d4"];
+  const cx = 80, cy = 80, r = 68, ri = 44;
+  let paths = "", legendHtml = "";
+  let angle = -Math.PI / 2;
+  const allCorrect = topics.reduce((s, [,d]) => s + d.correct, 0);
+  const pct = Math.round(allCorrect / total * 100);
+  topics.forEach(([topic, d], i) => {
+    const slice = (d.total / total) * 2 * Math.PI;
+    const color = PALETTE[i % PALETTE.length];
+    const pc = d.percentage >= 80 ? "#059669" : d.percentage >= 50 ? "#f59e0b" : "#ef4444";
+    if (topics.length === 1) {
+      paths += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/><circle cx="${cx}" cy="${cy}" r="${ri}" fill="white"/>`;
     } else {
-      html += `<div class="diag-body">${t}</div>`;
+      const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+      const x2 = cx + r * Math.cos(angle + slice), y2 = cy + r * Math.sin(angle + slice);
+      const xi1 = cx + ri * Math.cos(angle), yi1 = cy + ri * Math.sin(angle);
+      const xi2 = cx + ri * Math.cos(angle + slice), yi2 = cy + ri * Math.sin(angle + slice);
+      const lg = slice > Math.PI ? 1 : 0;
+      paths += `<path d="M${xi1.toFixed(1)},${yi1.toFixed(1)} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${xi2.toFixed(1)},${yi2.toFixed(1)} A${ri},${ri} 0 ${lg},0 ${xi1.toFixed(1)},${yi1.toFixed(1)}Z" fill="${color}"/>`;
     }
+    const label = topic.length > 26 ? topic.slice(0, 24) + "…" : topic;
+    legendHtml += `<div class="donut-legend-item"><span class="donut-legend-dot" style="background:${color}"></span><span class="donut-legend-label">${label}</span><span class="donut-legend-val" style="color:${pc}">${d.percentage}%</span></div>`;
+    angle += slice;
+  });
+  return `<div class="donut-wrap"><svg viewBox="0 0 160 160" class="donut-svg">${paths}<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="20" font-weight="800" fill="#14213D">${pct}%</text><text x="${cx}" y="${cy + 14}" text-anchor="middle" font-size="10" fill="#6B7280">нәтиже</text></svg><div class="donut-legend">${legendHtml}</div></div>`;
+}
+
+function _filterStudentDiagnosis(text) {
+  const skipRe = /^(Мұғалімге|Қосымша тапсырма)/i;
+  const lines = text.split("\n");
+  const out = [];
+  let skip = false;
+  for (const line of lines) {
+    const t = line.trim();
+    if (/[А-ЯҒҚҢӨҮҰіӘA-Z].+:$/.test(t)) skip = skipRe.test(t);
+    if (!skip) out.push(line);
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+function _buildResultDetail(j) {
+  let html = "";
+  const topics = Object.entries(j.topicBreakdown || {});
+  const wrongs = j.wrongQuestions || [];
+  if (topics.length) {
+    html += _buildDonut(j.topicBreakdown);
+    html += `<div class="qs-section-title">📊 Тақырыптар бойынша</div>`;
+    html += topics.map(([topic, d]) => {
+      const c = d.percentage >= 80 ? "#059669" : d.percentage >= 50 ? "#f59e0b" : "#ef4444";
+      return `<div class="qs-topic-row"><span class="qs-topic-name">${topic}</span><span class="qs-topic-pct" style="color:${c}">${d.correct}/${d.total} (${d.percentage}%)</span></div>`;
+    }).join("");
+  }
+  if (wrongs.length) {
+    html += `<div class="qs-section-title">❌ Қате жіберілген сұрақтар</div><div class="qs-wrong-wrap">`;
+    html += wrongs.map(wq => `<div class="qs-wrong-q"><div class="qs-wq-text">${wq.question}</div><div class="qs-wq-row">📌 Тақырып: <b>${wq.topic}</b></div><div class="qs-wq-row qs-wq-correct">✅ Дұрыс: ${wq.correct}</div><div class="qs-wq-row qs-wq-student">❌ Оқушы: ${wq.studentAnswer || "(жауап берілмеді)"}</div></div>`).join("");
+    html += `</div>`;
+  } else if (topics.length) {
+    html += `<div style="color:#059669;font-weight:700;padding:14px 20px">✅ Барлық жауап дұрыс!</div>`;
+  }
+  if (j.aiDiagnosis) {
+    const filtered = _filterStudentDiagnosis(j.aiDiagnosis);
+    if (filtered) html += `<div class="qs-section-title">🤖 ИИ Диагностика</div><div class="qs-diag-text">${filtered.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>")}</div>`;
   }
   return html;
 }
@@ -831,12 +894,9 @@ async function _submitQuiz() {
     `;
     document.getElementById("qsResultMsg").textContent = j.message || "";
     const diagEl = document.getElementById("qsResultDiag");
-    if (j.aiDiagnosis) {
-      diagEl.innerHTML = _formatDiagnosis(j.aiDiagnosis);
-      diagEl.style.display = "";
-    } else {
-      diagEl.style.display = "none";
-    }
+    const detailHtml = _buildResultDetail(j);
+    if (detailHtml) { diagEl.innerHTML = detailHtml; diagEl.style.display = ""; }
+    else { diagEl.style.display = "none"; }
     _setQState("result");
     // Mark quiz completed for checklist
     fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"tested"}) }).catch(()=>{});
