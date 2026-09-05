@@ -77,7 +77,8 @@ function resolveModel() {
 // ── Main function ──────────────────────────────────────────────────────────────
 async function generateProblems({ grade, subject, lessonId, lessonTitle, todayTopics, promptType }) {
   const OPENAI_KEY = process.env.OPENAI_API_KEY;
-  const MODEL_NAME = await resolveModel();
+  // gpt-4o-mini is 3-5x faster than gpt-4o for simple problem generation
+  const MODEL_NAME = "gpt-4o-mini";
 
   console.log(`[aiService] generateProblems | OPENAI_API_KEY exists=${!!OPENAI_KEY} model=${MODEL_NAME} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType}`);
 
@@ -119,7 +120,8 @@ async function generateProblems({ grade, subject, lessonId, lessonTitle, todayTo
     response = await client.responses.create({
       model: MODEL_NAME,
       instructions,
-      input: userMsg
+      input: userMsg,
+      max_output_tokens: 700,
     });
   } catch (e) {
     console.error("[aiService] OpenAI responses.create threw:");
