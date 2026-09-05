@@ -1822,6 +1822,47 @@ app.get("/api/health", (req, res) => {
   res.json({ ok: true, time: nowISO() });
 });
 
+// Update lesson_title for all material rows in a block (no file re-upload needed)
+app.post("/api/admin/update-lesson-title", requireAdmin, async (req, res) => {
+  try {
+    const grade       = normalizeGrade(req.body.grade);
+    const subject     = normalizeSubject(grade, req.body.subject);
+    const blockNumber = Number(req.body.blockNumber);
+    const lessonTitle = String(req.body.lessonTitle || "").trim();
+
+    if (!grade || !subject || !blockNumber || !lessonTitle) {
+      return res.status(400).json({ ok: false, error: "missing_fields" });
+    }
+
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/materials?grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${blockNumber}`,
+      {
+        method: "PATCH",
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation"
+        },
+        body: JSON.stringify({ lesson_title: lessonTitle })
+      }
+    );
+
+    const data = await r.json().catch(() => null);
+    if (!r.ok) {
+      console.error("[update-lesson-title] supabase error:", data);
+      return res.status(500).json({ ok: false, error: "db_error" });
+    }
+
+    const updated = Array.isArray(data) ? data.length : 0;
+    console.log(`[update-lesson-title] grade=${grade} subject=${subject} block=${blockNumber} title="${lessonTitle}" rows=${updated}`);
+    return res.json({ ok: true, updated });
+  } catch (e) {
+    console.error("[update-lesson-title] error:", e.message);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
 app.post("/api/admin/add-video-link", requireAdmin, async (req, res) => {
   try {
     const grade = String(req.body.grade || "").trim();

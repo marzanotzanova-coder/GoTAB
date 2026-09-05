@@ -428,6 +428,39 @@
     <div class="muted" style="margin-top:10px" data-i18n="saveNote">
       Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.
     </div>
+
+    <!-- ── Lesson title update ── -->
+    <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(47,107,255,.1)">
+      <div class="sectionTitle" style="font-size:14px;margin-bottom:10px">📝 Сабақ тақырыбын өзгерту</div>
+      <div class="muted" style="margin-bottom:10px">Бұрын жүктелген сабақтың тақырыбын ЖИ-ға беру үшін жаңарт</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
+        <select id="lt-course">
+          <option value="base">База</option>
+          <option value="standart">Стандарт</option>
+          <option value="premium">Премиум</option>
+        </select>
+        <select id="lt-grade">
+          <option value="5">5 сынып</option><option value="6">6 сынып</option>
+          <option value="7">7 сынып</option><option value="8">8 сынып</option>
+          <option value="9">9 сынып</option><option value="10">10 сынып</option>
+          <option value="11">11 сынып</option>
+        </select>
+        <select id="lt-subject">
+          <option value="math">Математика</option>
+          <option value="algebra">Алгебра</option>
+          <option value="geometry">Геометрия</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="number" id="lt-block" min="1" max="100" placeholder="Сабақ №"
+          style="width:100px;padding:10px 12px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:13px;background:rgba(255,255,255,.9);color:#14213D;outline:none;flex-shrink:0">
+        <input type="text" id="lt-title" placeholder="Жаңа тақырып атауы (мысалы: Натурал сандар және нөл)"
+          style="flex:1;padding:10px 14px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:13px;background:rgba(255,255,255,.9);color:#14213D;outline:none;margin-top:0">
+        <button type="button" id="lt-save-btn" class="btn primary" style="white-space:nowrap;flex-shrink:0">💾 Сақтау</button>
+      </div>
+      <div id="lt-status" style="font-size:13px;font-weight:700;margin-top:8px;min-height:18px"></div>
+    </div>
+
     </div><!-- end #tabMaterials -->
 
     <!-- ── QUIZ TAB ── -->
@@ -1279,6 +1312,45 @@ function closeAttemptModal() {
 
 document.getElementById("tabBtnMaterials").addEventListener("click", function() { switchTab("materials"); });
 document.getElementById("tabBtnQuiz").addEventListener("click", function() { switchTab("quiz"); });
+
+// ── Lesson title update ──
+document.getElementById("lt-save-btn").addEventListener("click", async function() {
+  const course   = document.getElementById("lt-course").value;
+  const grade    = document.getElementById("lt-grade").value;
+  const subject  = document.getElementById("lt-subject").value;
+  const block    = parseInt(document.getElementById("lt-block").value, 10);
+  const title    = document.getElementById("lt-title").value.trim();
+  const stat     = document.getElementById("lt-status");
+
+  if (!block || block < 1) { stat.style.color = "#ef4444"; stat.textContent = "Сабақ нөмірін енгізіңіз."; return; }
+  if (!title)              { stat.style.color = "#ef4444"; stat.textContent = "Тақырып бос болмасын."; return; }
+
+  this.disabled = true;
+  stat.style.color = "#6B7280"; stat.textContent = "Сақталуда…";
+  try {
+    const r = await fetch("/api/admin/update-lesson-title", {
+      method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ course, grade, subject, blockNumber: block, lessonTitle: title })
+    });
+    const j = await r.json().catch(() => null);
+    if (j?.ok) {
+      stat.style.color = "#1DE9B6";
+      stat.textContent = `✅ Сақталды! (${j.updated} жазба жаңартылды)`;
+      document.getElementById("lt-title").value = "";
+      document.getElementById("lt-block").value = "";
+    } else {
+      stat.style.color = "#ef4444";
+      stat.textContent = "Қате: " + (j?.error || "server_error");
+    }
+  } catch(e) {
+    stat.style.color = "#ef4444"; stat.textContent = "Желі қатесі.";
+  }
+  this.disabled = false;
+});
+document.getElementById("lt-title").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") { e.preventDefault(); document.getElementById("lt-save-btn").click(); }
+});
 
 // Wire quiz form buttons
 document.getElementById("qzPreviewBtn").addEventListener("click", function() { previewQuiz(); });
