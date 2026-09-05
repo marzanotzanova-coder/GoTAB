@@ -466,8 +466,8 @@
 <question>Келесі сұрақ…"></textarea>
 
       <div class="quiz-btn-row">
-        <button type="button" class="btn ghost" id="qzPreviewBtn" onclick="previewQuiz()">🔍 Алдын ала көру</button>
-        <button type="button" class="btn primary" id="qzSaveBtn" onclick="saveQuiz()">💾 Сынақты сақтау</button>
+        <button type="button" class="btn ghost" id="qzPreviewBtn">🔍 Алдын ала көру</button>
+        <button type="button" class="btn primary" id="qzSaveBtn">💾 Сынақты сақтау</button>
       </div>
       <div class="quiz-status" id="qzStatus"></div>
 
@@ -1274,6 +1274,10 @@ function closeAttemptModal() {
 
 document.getElementById("tabBtnMaterials").addEventListener("click", function() { switchTab("materials"); });
 document.getElementById("tabBtnQuiz").addEventListener("click", function() { switchTab("quiz"); });
+
+// Wire quiz buttons via addEventListener (more reliable than inline onclick)
+document.getElementById("qzPreviewBtn").addEventListener("click", function() { previewQuiz(); });
+document.getElementById("qzSaveBtn").addEventListener("click", function() { saveQuiz(); });
 
 // Enter key on lesson number input triggers save
 document.getElementById("qzLesson").addEventListener("keydown", function(e) {
