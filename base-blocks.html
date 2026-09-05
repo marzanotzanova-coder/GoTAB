@@ -170,10 +170,12 @@ body{
 .material-block.locked .toggle-lock-btn{pointer-events:auto;opacity:1;}
 
 .lesson-title{
-  font-weight:800;font-size:13px;color:var(--text);
+  font-weight:800;font-size:12px;color:var(--text);
   margin-bottom:10px;text-align:center;
   padding-bottom:8px;
   border-bottom:1.5px solid rgba(47,107,255,.08);
+  line-height:1.35;
+  word-break:keep-all;
 }
 
 /* ===== LESSON BUTTONS ===== */
@@ -1074,6 +1076,7 @@ async function renderBlocks(){
     // Store lesson title for AI (from any video/doc that has lesson_title)
     const anyItem = [...(materials.videos||[]), ...(materials.docs||[])].find(x => x.lesson_title);
     if (anyItem?.lesson_title) _lessonTitles[i] = anyItem.lesson_title;
+    const lessonTitleText = _lessonTitles[i] || "";
 
     const block = document.createElement("div");
     block.className = "material-block";
@@ -1081,7 +1084,11 @@ async function renderBlocks(){
     /* --- Lesson title --- */
     const titleEl = document.createElement("div");
     titleEl.className = "lesson-title";
-    titleEl.textContent = `${t.lessonLabel} ${i}`;
+    if (lessonTitleText) {
+      titleEl.innerHTML = `<span style="color:#6B7280;font-size:11px;display:block;margin-bottom:2px">${t.lessonLabel} ${i}</span>${lessonTitleText}`;
+    } else {
+      titleEl.textContent = `${t.lessonLabel} ${i}`;
+    }
     block.appendChild(titleEl);
 
     /* 1. Video */
