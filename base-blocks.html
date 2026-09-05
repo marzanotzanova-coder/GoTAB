@@ -285,6 +285,18 @@ body{
 .quiz-result-stat .rlbl{font-size:11px;color:#6B7280;margin-top:3px;}
 .quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
 .quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
+.qs-thinking{text-align:center;padding:52px 24px 44px;}
+.qs-orbit-wrap{width:80px;height:80px;position:relative;margin:0 auto 26px;}
+.qs-orbit-ring{position:absolute;inset:0;border-radius:50%;border:2px dashed rgba(47,107,255,.2);animation:qsRingSpin 7s linear infinite;}
+@keyframes qsRingSpin{to{transform:rotate(360deg);}}
+.qs-orbit-dot{position:absolute;width:14px;height:14px;border-radius:50%;top:50%;left:50%;margin:-7px;background:linear-gradient(135deg,#2F6BFF,#20C9FF);box-shadow:0 2px 10px rgba(47,107,255,.45);animation:qsOrbit 1.5s linear infinite;animation-delay:var(--d,0s);}
+@keyframes qsOrbit{0%{transform:rotate(0deg) translateX(32px) rotate(0deg);opacity:1;}50%{opacity:.3;}100%{transform:rotate(360deg) translateX(32px) rotate(-360deg);opacity:1;}}
+.qs-thinking-title{font-size:16px;font-weight:800;color:#14213D;margin-bottom:8px;animation:qsFade 2s ease-in-out infinite;}
+@keyframes qsFade{0%,100%{opacity:1;}50%{opacity:.5;}}
+.qs-thinking-desc{font-size:13px;color:#9CA3AF;}
+.qs-diag-loading{display:flex;align-items:center;gap:10px;padding:14px 20px;font-size:13px;color:#6B7280;border-top:1px solid rgba(47,107,255,.07);}
+.qs-diag-spin{width:16px;height:16px;border:2px solid rgba(47,107,255,.15);border-top-color:#2F6BFF;border-radius:50%;animation:qsSpin .8s linear infinite;flex-shrink:0;}
+@keyframes qsSpin{to{transform:rotate(360deg);}}
 .quiz-result-diag{margin:0 16px 20px;background:#F8F9FF;border:1.5px solid rgba(47,107,255,.1);border-radius:16px;overflow:hidden;text-align:left;}
 .qs-section-title{font-weight:800;font-size:13px;color:#14213D;padding:12px 20px 6px;border-top:1px solid rgba(47,107,255,.07);}
 .qs-section-title:first-child{border-top:none;}
@@ -439,6 +451,19 @@ body{
       <div id="qsQuiz" style="display:none">
         <div class="quiz-prog" id="qsProg"></div>
         <div id="qsQuestions"></div>
+      </div>
+      <!-- thinking (AI processing) -->
+      <div id="qsThinking" style="display:none">
+        <div class="qs-thinking">
+          <div class="qs-orbit-wrap">
+            <div class="qs-orbit-ring"></div>
+            <div class="qs-orbit-dot" style="--d:0s"></div>
+            <div class="qs-orbit-dot" style="--d:.5s"></div>
+            <div class="qs-orbit-dot" style="--d:1s"></div>
+          </div>
+          <div class="qs-thinking-title">🤖 ЖИ тексеруде…</div>
+          <div class="qs-thinking-desc">Нәтижелер дайындалуда</div>
+        </div>
       </div>
       <!-- result -->
       <div id="qsResult" style="display:none">
@@ -813,14 +838,46 @@ function _buildResultDetail(j) {
   if (j.aiDiagnosis) {
     const filtered = _filterStudentDiagnosis(j.aiDiagnosis);
     if (filtered) html += `<div class="qs-section-title">🤖 ИИ Диагностика</div><div class="qs-diag-text">${filtered.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>")}</div>`;
+  } else if (j.attemptId) {
+    html += `<div id="qsDiagLoadingRow" class="qs-diag-loading"><div class="qs-diag-spin"></div><span>🤖 ИИ диагностика жасалуда…</span></div>`;
   }
   return html;
 }
 
+let _diagPollTimer = null;
+
+function _stopDiagPoll() { if (_diagPollTimer) { clearInterval(_diagPollTimer); _diagPollTimer = null; } }
+
+function _startDiagPoll(attemptId) {
+  _stopDiagPoll();
+  let tries = 0;
+  _diagPollTimer = setInterval(async () => {
+    tries++;
+    if (tries > 20) { _stopDiagPoll(); document.getElementById("qsDiagLoadingRow")?.remove(); return; }
+    try {
+      const r = await fetch(`/api/quiz/attempt/${attemptId}/diagnosis`, { credentials: "include" });
+      const j = await r.json().catch(() => null);
+      if (j?.ready && j.aiDiagnosis) {
+        _stopDiagPoll();
+        const loadEl = document.getElementById("qsDiagLoadingRow");
+        if (loadEl) {
+          const filtered = _filterStudentDiagnosis(j.aiDiagnosis);
+          if (filtered) {
+            const safe = filtered.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+            loadEl.outerHTML = `<div class="qs-section-title">🤖 ИИ Диагностика</div><div class="qs-diag-text">${safe}</div>`;
+          } else { loadEl.remove(); }
+        }
+      }
+    } catch(e) {}
+  }, 2000);
+}
+
 function _setQState(s) {
-  ["qsLoading","qsNone","qsQuiz","qsResult"].forEach(id => document.getElementById(id).style.display = "none");
+  ["qsLoading","qsNone","qsQuiz","qsResult","qsThinking"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.style.display = "none";
+  });
   document.getElementById("qsFooter").style.display = (s === "quiz") ? "" : "none";
-  const show = { loading:"qsLoading", none:"qsNone", quiz:"qsQuiz", result:"qsResult" }[s];
+  const show = { loading:"qsLoading", none:"qsNone", quiz:"qsQuiz", result:"qsResult", thinking:"qsThinking" }[s];
   if (show) document.getElementById(show).style.display = "";
 }
 
@@ -869,8 +926,7 @@ async function _submitQuiz() {
     if (!confirm(msg)) return;
   }
   _quizSubmitting = true;
-  document.getElementById("qsSubmit").disabled = true;
-  document.getElementById("qsSubmit").textContent = "Жіберілуде…";
+  _setQState("thinking");
 
   const answers = _quizData.questions.map(q => _quizAnswers[q.idx] || "");
 
@@ -886,6 +942,7 @@ async function _submitQuiz() {
       _quizSubmitting = false;
       document.getElementById("qsSubmit").disabled = false;
       document.getElementById("qsSubmit").textContent = t.quizSubmit || "Сынақты аяқтау";
+      _setQState("quiz");
       return;
     }
     // Show result
@@ -903,13 +960,14 @@ async function _submitQuiz() {
     if (detailHtml) { diagEl.innerHTML = detailHtml; diagEl.style.display = ""; }
     else { diagEl.style.display = "none"; }
     _setQState("result");
-    // Mark quiz completed for checklist
+    if (j.attemptId) _startDiagPoll(j.attemptId);
     fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"tested"}) }).catch(()=>{});
   } catch(e) {
     alert("Желі қатесі. Қайталаңыз.");
     _quizSubmitting = false;
     document.getElementById("qsSubmit").disabled = false;
     document.getElementById("qsSubmit").textContent = t.quizSubmit || "Сынақты аяқтау";
+    _setQState("quiz");
   }
 }
 
@@ -945,7 +1003,7 @@ window.openQuizModal = async function(lessonNum) {
   }
 };
 
-window.closeQuizModal = function() { document.getElementById("quizModal").style.display = "none"; };
+window.closeQuizModal = function() { document.getElementById("quizModal").style.display = "none"; _stopDiagPoll(); };
 document.getElementById("quizClose").onclick   = () => closeQuizModal();
 document.getElementById("qsResultClose").onclick = () => closeQuizModal();
 document.getElementById("qsSubmit").onclick    = () => _submitQuiz();

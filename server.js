@@ -2544,27 +2544,58 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
     else if (percentage >= 50) message = "Жақсы әрекет! Дайындалуды жалғастыр 📚";
     else                       message = "Тапсырмаларды қайта оқып шық. Болады! 🌱";
 
-    // AI diagnosis (non-blocking)
-    let aiDiagnosis = "", teacherAdvice = "";
-    try {
-      const d = await generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown });
-      aiDiagnosis   = d.diagnosis;
-      teacherAdvice = d.advice;
-    } catch (diagErr) { console.error("[quiz/submit] diagnosis:", diagErr.message); }
-
-    const attempt = { quiz_id: Number(quizId), student_id: studentId, student_name: studentName, package: quiz.package, grade: quiz.grade, subject: quiz.subject, lesson_number: quiz.lesson_number, answers, correct_count: correctCount, wrong_count: wrongCount, total_count: totalCount, percentage, wrong_questions: wrongQuestions, topic_breakdown: topicBreakdown, ai_diagnosis: aiDiagnosis, teacher_advice: teacherAdvice };
+    // Save attempt immediately (without diagnosis) → return to student fast
+    const attempt = { quiz_id: Number(quizId), student_id: studentId, student_name: studentName, package: quiz.package, grade: quiz.grade, subject: quiz.subject, lesson_number: quiz.lesson_number, answers, correct_count: correctCount, wrong_count: wrongCount, total_count: totalCount, percentage, wrong_questions: wrongQuestions, topic_breakdown: topicBreakdown, ai_diagnosis: null, teacher_advice: null };
     const ar = await fetch(`${url}/rest/v1/quiz_attempts`, {
       method: "POST",
       headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=representation" },
       body: JSON.stringify([attempt]),
     });
-    if (!ar.ok) console.error("[quiz/submit] save attempt error:", await ar.text().catch(() => ""));
+    const savedRows = await ar.json().catch(() => []);
+    const attemptId = Array.isArray(savedRows) && savedRows[0]?.id ? savedRows[0].id : null;
+    if (!ar.ok) console.error("[quiz/submit] save attempt error:", JSON.stringify(savedRows));
 
-    console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%)`);
-    return res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, aiDiagnosis, teacherAdvice, topicBreakdown, wrongQuestions });
+    console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%) attemptId=${attemptId}`);
+
+    // Return result to student immediately
+    res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, topicBreakdown, wrongQuestions, attemptId });
+
+    // Background: generate AI diagnosis and update attempt record
+    if (attemptId) {
+      generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown })
+        .then(({ diagnosis, advice }) =>
+          fetch(`${url}/rest/v1/quiz_attempts?id=eq.${attemptId}`, {
+            method: "PATCH",
+            headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ ai_diagnosis: diagnosis, teacher_advice: advice }),
+          })
+        )
+        .catch(e => console.error("[bg-diagnosis] error:", e.message));
+    }
   } catch (e) {
     console.error("[quiz/submit] error:", e.message);
     return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Poll endpoint: student checks if AI diagnosis is ready for their attempt
+app.get("/api/quiz/attempt/:id/diagnosis", requireAuth, async (req, res) => {
+  try {
+    const attemptId = Number(req.params.id);
+    const studentId = String(req.session?.user?.studentId || "");
+    if (!attemptId || !studentId) return res.status(400).json({ ok: false });
+    const { url, key } = quizDb();
+    const r = await fetch(
+      `${url}/rest/v1/quiz_attempts?id=eq.${attemptId}&student_id=eq.${studentId}&select=ai_diagnosis&limit=1`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    const rows = await r.json().catch(() => []);
+    const row  = Array.isArray(rows) ? rows[0] : null;
+    if (!row) return res.status(404).json({ ok: false });
+    res.json({ ok: true, ready: !!(row.ai_diagnosis), aiDiagnosis: row.ai_diagnosis || null });
+  } catch(e) {
+    console.error("[attempt/diagnosis] error:", e.message);
+    res.status(500).json({ ok: false });
   }
 });
 
