@@ -75,7 +75,7 @@ function resolveModel() {
 }
 
 // ── Main function ──────────────────────────────────────────────────────────────
-async function generateProblems({ grade, subject, lessonId, todayTopics, promptType }) {
+async function generateProblems({ grade, subject, lessonId, lessonTitle, todayTopics, promptType }) {
   const OPENAI_KEY = process.env.OPENAI_API_KEY;
   const MODEL_NAME = await resolveModel();
 
@@ -98,7 +98,9 @@ async function generateProblems({ grade, subject, lessonId, todayTopics, promptT
     "Одан кейін нөмірленген тізім."
   ].join(" ");
 
-  const topicLine = todayTopics ? `Бүгін оқыған тақырыптар: "${todayTopics}".` : "";
+  const topicLine = lessonTitle
+    ? `Сабақтың тақырыбы: "${lessonTitle}". Есептер тек осы тақырыпқа сай болсын.`
+    : (todayTopics ? `Бүгін оқыған тақырыптар: "${todayTopics}".` : "");
 
   const userMsg = [
     `${grade}-сынып, ${subject} пәні.`,

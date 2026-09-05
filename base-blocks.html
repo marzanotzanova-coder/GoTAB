@@ -852,9 +852,11 @@ document.getElementById("quizModal").addEventListener("click", e => { if(e.targe
 const AI_DAILY_LIMIT = 3;
 const AI_CACHE_TTL   = 60000;
 let _aiLesson      = null;
+let _aiLessonTitle = "";
 let _aiUsageCount  = 0;
 let _aiLoading     = false;
 const _aiCache     = {};
+const _lessonTitles = {}; // blockNum → lesson_title
 
 function _setAiState(s){
   ["aiIdle","aiLoading","aiResult","aiError"].forEach(id => document.getElementById(id).style.display = "none");
@@ -887,6 +889,7 @@ async function _loadAiUsage(){
 
 window.openAiModal = function(lessonNum){
   _aiLesson = lessonNum || null;
+  _aiLessonTitle = _lessonTitles[lessonNum] || "";
   _setAiState("idle");
   document.getElementById("aiModal").style.display = "flex";
   _loadAiUsage();
@@ -912,6 +915,7 @@ async function _callAI(promptType){
       body:JSON.stringify({
         grade:gradeSelect.value, subject:subjectSelect.value,
         lessonId:_aiLesson?"Сабақ "+_aiLesson:"",
+        lessonTitle:_aiLessonTitle,
         todayTopics:topics, promptType, lessonKey
       })
     });
@@ -1066,6 +1070,10 @@ async function renderBlocks(){
   const cards = [];
   for(let i = 1; i <= totalBlocks; i++){
     const materials = normalizeLists(materialResults[i - 1]);
+
+    // Store lesson title for AI (from any video/doc that has lesson_title)
+    const anyItem = [...(materials.videos||[]), ...(materials.docs||[])].find(x => x.lesson_title);
+    if (anyItem?.lesson_title) _lessonTitles[i] = anyItem.lesson_title;
 
     const block = document.createElement("div");
     block.className = "material-block";

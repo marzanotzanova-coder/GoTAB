@@ -1946,7 +1946,7 @@ app.get("/api/ai/usage", requireAuth, async (req, res) => {
 
 app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
   try {
-    const { grade, subject, lessonId, todayTopics, promptType, lessonKey } = req.body || {};
+    const { grade, subject, lessonId, lessonTitle, todayTopics, promptType, lessonKey } = req.body || {};
     const studentId = String(req.session?.user?.studentId || "");
 
     console.log(`[ai/practice] START | studentId=${studentId} grade=${grade} subject=${subject} lessonId=${lessonId} promptType=${promptType} lessonKey=${lessonKey}`);
@@ -1997,7 +1997,8 @@ app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
     console.log(`[ai/practice] ALLOWED — count=${usage.count} < limit=${aiUsage.DAILY_LIMIT} | calling OpenAI now | model=gpt-5.5-mini`);
 
     // ── Step 3: call OpenAI ──────────────────────────────────────────────────
-    const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, todayTopics: topics, promptType });
+    const lt = String(lessonTitle || "").trim().slice(0, 200);
+    const result = await aiService.generateProblems({ grade: g, subject: s, lessonId: l, lessonTitle: lt, todayTopics: topics, promptType });
     console.log(`[ai/practice] OpenAI response received | textLength=${result.text.length}`);
 
     // ── Step 4: only increment AFTER successful OpenAI response ──────────────
