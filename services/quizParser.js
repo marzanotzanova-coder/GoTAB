@@ -45,10 +45,14 @@ function parseQuiz(rawText) {
     return { ok: false, questions: [], errors: ["Мәтін бос."] };
   }
 
+  // Normalize typos: any <q...> tag at line start → <question>
+  // e.g. <qiestion>, <quesiton>, <questoin> all become <question>
+  const normalizedText = rawText.replace(/^<q[a-z]+>/gim, '<question>');
+
   const errors   = [];
   const questions = [];
 
-  const blocks = rawText.split(/^<question>/im).map(b => b.trim()).filter(Boolean);
+  const blocks = normalizedText.split(/^<question>/im).map(b => b.trim()).filter(Boolean);
 
   if (blocks.length === 0) {
     return { ok: false, questions: [], errors: ["<question> тегі табылмады."] };

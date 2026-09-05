@@ -1003,7 +1003,9 @@ function escapeHtmlQ(s) {
 // ── Client-side quiz parser (mirrors server) ──
 function parseQuizClient(raw) {
   const errors = [], questions = [];
-  const blocks = raw.split(/^<question>/im).map(b => b.trim()).filter(Boolean);
+  // Normalize typos: <qiestion>, <quesiton> etc. → <question>
+  const normalized = raw.replace(/^<q[a-z]+>/gim, '<question>');
+  const blocks = normalized.split(/^<question>/im).map(b => b.trim()).filter(Boolean);
   if (!blocks.length) return { ok: false, errors: ["<question> тегі табылмады."], questions: [] };
   for (let bi = 0; bi < blocks.length; bi++) {
     const qn = bi + 1;
