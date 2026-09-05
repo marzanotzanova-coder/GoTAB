@@ -285,6 +285,14 @@ body{
 .quiz-result-stat .rlbl{font-size:11px;color:#6B7280;margin-top:3px;}
 .quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
 .quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
+.quiz-result-diag{margin:0 20px 20px;background:#F8F9FF;border:1.5px solid rgba(47,107,255,.12);border-radius:16px;padding:18px 20px;text-align:left;max-height:360px;overflow-y:auto;}
+.diag-header{font-size:13px;font-weight:800;color:#2F6BFF;margin-bottom:14px;letter-spacing:.3px;}
+.diag-section-title{font-weight:800;font-size:13px;color:#14213D;margin:12px 0 5px;}
+.diag-section-title.weak{color:#ef4444;}
+.diag-section-title.strong{color:#059669;}
+.diag-item{font-size:13px;color:#374151;padding:3px 0 3px 16px;position:relative;line-height:1.5;}
+.diag-item::before{content:"•";position:absolute;left:5px;color:#2F6BFF;}
+.diag-body{font-size:13px;color:#4B5563;line-height:1.6;margin-bottom:4px;}
 
 .ai-box{background:rgba(255,255,255,0.98);border-radius:28px;padding:32px 28px;max-width:480px;width:100%;box-shadow:0 24px 64px rgba(90,120,255,.22);border:1px solid rgba(255,255,255,.9);max-height:85vh;overflow-y:auto;}
 .ai-header{display:flex;align-items:center;gap:10px;margin-bottom:22px;padding-bottom:14px;border-bottom:1.5px solid rgba(47,107,255,.1);}
@@ -423,6 +431,7 @@ body{
           <div class="quiz-result-stats" id="qsResultStats"></div>
         </div>
         <div class="quiz-result-msg" id="qsResultMsg"></div>
+        <div id="qsResultDiag" class="quiz-result-diag" style="display:none"></div>
         <button class="quiz-result-close" id="qsResultClose">Жабу</button>
       </div>
     </div>
@@ -720,6 +729,26 @@ let _quizData    = null;  // { id, total, questions }
 let _quizAnswers = {};    // { idx: "option text" }
 let _quizSubmitting = false;
 
+function _formatDiagnosis(text) {
+  if (!text) return "";
+  const lines = text.split("\n");
+  let html = '<div class="diag-header">🤖 ИИ Диагностика</div>';
+  for (let i = 0; i < lines.length; i++) {
+    const t = lines[i].trim();
+    if (!t) { if (i > 0) html += ""; continue; }
+    if (t.startsWith("- ") || t.startsWith("• ")) {
+      html += `<div class="diag-item">${t.slice(2)}</div>`;
+    } else if (/[А-ЯҒҚҢӨҮҰіӘA-Z].*:$/.test(t)) {
+      const isWeak   = /Әлсіз|Қате|Нашар/i.test(t);
+      const isStrong = /Жақсы|Тамаша|Күшті/i.test(t);
+      html += `<div class="diag-section-title${isWeak ? " weak" : isStrong ? " strong" : ""}">${t}</div>`;
+    } else {
+      html += `<div class="diag-body">${t}</div>`;
+    }
+  }
+  return html;
+}
+
 function _setQState(s) {
   ["qsLoading","qsNone","qsQuiz","qsResult"].forEach(id => document.getElementById(id).style.display = "none");
   document.getElementById("qsFooter").style.display = (s === "quiz") ? "" : "none";
@@ -801,6 +830,13 @@ async function _submitQuiz() {
       <div class="quiz-result-stat"><div class="rnum">${j.percentage}%</div><div class="rlbl">${t.quizPercentLbl || "Пайыз"}</div></div>
     `;
     document.getElementById("qsResultMsg").textContent = j.message || "";
+    const diagEl = document.getElementById("qsResultDiag");
+    if (j.aiDiagnosis) {
+      diagEl.innerHTML = _formatDiagnosis(j.aiDiagnosis);
+      diagEl.style.display = "";
+    } else {
+      diagEl.style.display = "none";
+    }
     _setQState("result");
     // Mark quiz completed for checklist
     fetch("/api/student/mark-activity", { method: "POST", credentials: "include", headers: {"Content-Type":"application/json"}, body: JSON.stringify({action:"tested"}) }).catch(()=>{});
