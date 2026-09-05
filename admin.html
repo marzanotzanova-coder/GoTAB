@@ -1126,9 +1126,12 @@ async function loadQuizList() {
             <div class="quiz-row-meta">Жаңартылды: ${new Date(q.updated_at).toLocaleString("ru")}</div>
           </div>
           <div class="quiz-row-btns">
-            <button class="qr-btn qr-btn-edit"    onclick="loadQuizForEdit(${q.id},'${pkg}','${q.grade}','${subj}',${q.lesson_number})">✏️ Өңдеу</button>
-            <button class="qr-btn qr-btn-preview" onclick="previewQuizFromList(${q.id},'${pkg}','${q.grade}','${subj}',${q.lesson_number})">🔍 Көру</button>
-            <button class="qr-btn qr-btn-delete"  onclick="deleteQuiz(${q.id},'${label}')">🗑 Жою</button>
+            <button type="button" class="qr-btn qr-btn-edit"
+              data-action="edit" data-id="${q.id}" data-pkg="${pkg}" data-grade="${q.grade}" data-subj="${subj}" data-lesson="${q.lesson_number}">✏️ Өңдеу</button>
+            <button type="button" class="qr-btn qr-btn-preview"
+              data-action="preview" data-id="${q.id}" data-pkg="${pkg}" data-grade="${q.grade}" data-subj="${subj}" data-lesson="${q.lesson_number}">🔍 Көру</button>
+            <button type="button" class="qr-btn qr-btn-delete"
+              data-action="delete" data-id="${q.id}" data-label="${label}">🗑 Жою</button>
           </div>
         </div>`;
     }).join("");
@@ -1213,7 +1216,7 @@ async function loadAttempts() {
     if (!attempts.length) { box.innerHTML = "<div class='attempts-empty'>Нәтижелер жоқ</div>"; return; }
     box.innerHTML = attempts.map(a => {
       const weak = Object.entries(a.topic_breakdown || {}).filter(([,d]) => d.percentage < 50).map(([t]) => t);
-      return `<div class="attempt-row" onclick="openAttemptModal(${a.id})">
+      return `<div class="attempt-row" data-attempt-id="${a.id}" style="cursor:pointer">
         <div class="attempt-row-top">
           <div>
             <div class="attempt-name">${escapeHtmlQ(a.student_name || a.student_id)}</div>
@@ -1277,9 +1280,19 @@ function closeAttemptModal() {
 document.getElementById("tabBtnMaterials").addEventListener("click", function() { switchTab("materials"); });
 document.getElementById("tabBtnQuiz").addEventListener("click", function() { switchTab("quiz"); });
 
-// Wire quiz buttons via addEventListener (more reliable than inline onclick)
+// Wire quiz form buttons
 document.getElementById("qzPreviewBtn").addEventListener("click", function() { previewQuiz(); });
 document.getElementById("qzSaveBtn").addEventListener("click", function() { saveQuiz(); });
+
+// Event delegation for dynamically generated quiz list buttons (Edit/Preview/Delete)
+document.getElementById("qzList").addEventListener("click", function(e) {
+  const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+  const { action, id, pkg, grade, subj, lesson, label } = btn.dataset;
+  if (action === "edit")    loadQuizForEdit(Number(id), pkg, grade, subj, Number(lesson));
+  if (action === "preview") previewQuizFromList(Number(id), pkg, grade, subj, Number(lesson));
+  if (action === "delete")  deleteQuiz(Number(id), label);
+});
 
 // Enter key on lesson number input triggers save
 document.getElementById("qzLesson").addEventListener("keydown", function(e) {
@@ -1292,6 +1305,12 @@ document.getElementById("qzText").addEventListener("keydown", function(e) {
 
 document.getElementById("attemptModal").addEventListener("click", e => {
   if (e.target.id === "attemptModal") closeAttemptModal();
+});
+
+// Event delegation for attempt rows
+document.getElementById("attemptsList").addEventListener("click", function(e) {
+  const row = e.target.closest("[data-attempt-id]");
+  if (row) openAttemptModal(Number(row.dataset.attemptId));
 });
 document.getElementById("quizPreviewModal").addEventListener("click", e => {
   if (e.target.id === "quizPreviewModal") closeQuizPreviewModal();
