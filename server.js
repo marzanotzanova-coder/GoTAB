@@ -2087,6 +2087,7 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (
   topic_breakdown  jsonb,
   wrong_questions  jsonb,
   ai_diagnosis   text,
+  teacher_advice text,
   answers        jsonb,
   created_at     timestamptz default now()
 );`;

@@ -455,7 +455,7 @@
         <input type="number" id="qzLesson" min="1" max="100" placeholder="Сабақ №" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;">
       </div>
 
-      <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз:</div>
+      <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз: <span style="color:#2F6BFF;font-weight:700">(Ctrl+Enter — сақтау)</span></div>
       <textarea id="qzText" class="quiz-textarea" placeholder="<question>Сұрақ мәтіні
 <topic>Тақырып
 <answer>Дұрыс жауап
@@ -466,8 +466,8 @@
 <question>Келесі сұрақ…"></textarea>
 
       <div class="quiz-btn-row">
-        <button class="btn ghost" id="qzPreviewBtn" onclick="previewQuiz()">🔍 Алдын ала көру</button>
-        <button class="btn primary" id="qzSaveBtn" onclick="saveQuiz()">💾 Сынақты сақтау</button>
+        <button type="button" class="btn ghost" id="qzPreviewBtn" onclick="previewQuiz()">🔍 Алдын ала көру</button>
+        <button type="button" class="btn primary" id="qzSaveBtn" onclick="saveQuiz()">💾 Сынақты сақтау</button>
       </div>
       <div class="quiz-status" id="qzStatus"></div>
 
@@ -1084,15 +1084,18 @@ async function saveQuiz() {
     if (j?.ok) {
       stat.className = "quiz-status ok";
       stat.textContent = `✅ Сынақ сақталды! (${j.questionCount} сұрақ)${j.warnings?.length ? " ⚠️ " + j.warnings.join(" ") : ""}`;
+      stat.scrollIntoView({ behavior: "smooth", block: "nearest" });
       loadQuizList();
     } else {
       stat.className = "quiz-status err";
       const mainMsg  = (j?.errors || [j?.error]).filter(Boolean).join(" | ") || "server_error";
       const dbDetail = j?.supabase ? ` [${j.supabase.code}: ${j.supabase.message}${j.supabase.hint ? " — " + j.supabase.hint : ""}]` : "";
       stat.textContent = "Қате: " + mainMsg + dbDetail;
+      stat.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   } catch(e) {
     stat.className = "quiz-status err"; stat.textContent = "Желі қатесі.";
+    stat.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
   btn.disabled = false; btn.textContent = "💾 Сынақты сақтау";
 }
@@ -1271,6 +1274,15 @@ function closeAttemptModal() {
 
 document.getElementById("tabBtnMaterials").addEventListener("click", function() { switchTab("materials"); });
 document.getElementById("tabBtnQuiz").addEventListener("click", function() { switchTab("quiz"); });
+
+// Enter key on lesson number input triggers save
+document.getElementById("qzLesson").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") { e.preventDefault(); saveQuiz(); }
+});
+// Ctrl+Enter in textarea also triggers save
+document.getElementById("qzText").addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); saveQuiz(); }
+});
 
 document.getElementById("attemptModal").addEventListener("click", e => {
   if (e.target.id === "attemptModal") closeAttemptModal();
