@@ -41,20 +41,7 @@ function sbKey() { return process.env.SUPABASE_SERVICE_KEY || SUPABASE_KEY; }
   return `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`;
 }
 
-const avatarStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const dest = path.join(__dirname, "uploads", "avatars");
-    ensureDir(dest);
-    cb(null, dest);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname || "") || ".jpg";
-    const name = "avatar_" + Date.now() + ext;
-    cb(null, name);
-  }
-});
-
-const uploadAvatar = multer({ storage: avatarStorage });
+const uploadAvatar = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -98,7 +85,9 @@ const ALLOWED_ORIGINS = IS_PROD
 
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    if (!origin) return callback(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
+    if (/\.vercel\.app$/.test(origin)) return callback(null, true);
     callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
@@ -431,8 +420,12 @@ if (Array.isArray(db.students) && db.students.length > 0) {
 }
 
 function writeDB(db) {
-  ensureDB();
-  fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+  try {
+    ensureDB();
+    fs.writeFileSync(DB_PATH, JSON.stringify(db, null, 2), "utf-8");
+  } catch (e) {
+    console.warn("writeDB skipped (read-only fs):", e.code);
+  }
 }
 
 function nowISO(){
@@ -846,49 +839,10 @@ app.get("/api/admin/student/:studentId", requireAdmin, async (req, res) => {
 
 // ===================== MULTER STORAGE =====================
 // ADMIN uploads
-const adminStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const grade = normalizeGrade(req.body.grade);
-    const subject = normalizeSubject(grade, req.body.subject);
-    const block = Number(req.body.blockNumber);
-
-if (!grade || !subject || !safeBlockNumber(block, grade, subject)) {
-  return cb(new Error("Bad grade/subject/block"));
-}
-
-    const dest = path.join(__dirname, "uploads", grade, subject, "block" + block);
-    ensureDir(dest);
-    cb(null, dest);
-  },
-  filename: function (req, file, cb) {
-    const safeName = path.basename(String(file.originalname || "file")).replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, Date.now() + "-" + safeName);
-  },
-});
-const uploadAdmin = multer({ storage: adminStorage, limits: { fileSize: 500 * 1024 * 1024 } });
+const uploadAdmin = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
 
 // STUDENT uploads
-const studentStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const grade = normalizeGrade(req.body.grade);
-    const subject = normalizeSubject(grade, req.body.subject);
-    const block = Number(req.body.blockNumber);
-    const studentId = String(req.session?.user?.studentId || "");
-
-   if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId) {
-  return cb(new Error("Bad input"));
-}
-
-    const dest = path.join(__dirname, "student_uploads", grade, subject, "block" + block, studentId);
-    ensureDir(dest);
-    cb(null, dest);
-  },
-  filename: function (req, file, cb) {
-    const safeName = path.basename(String(file.originalname || "file")).replace(/[^a-zA-Z0-9._-]/g, "_");
-    cb(null, Date.now() + "-" + safeName);
-  },
-});
-const uploadStudent = multer({ storage: studentStorage, limits: { fileSize: 100 * 1024 * 1024 } });
+const uploadStudent = multer({ storage: multer.memoryStorage(), limits: { fileSize: 100 * 1024 * 1024 } });
 
 // ===================== MATERIALS =====================
 // Admin upload 1 file
@@ -926,7 +880,7 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
     const filePath =
       `materials/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
 
-    const buffer = fs.readFileSync(req.file.path);
+    const buffer = req.file.buffer;
 
     const publicUrl = await uploadBufferToSupabaseStorage(
       "files",
@@ -934,10 +888,6 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
       buffer,
       req.file.mimetype
     );
-
-    try {
-      fs.unlinkSync(req.file.path);
-    } catch {}
 
     const dbType =
       type === "video"
@@ -1019,7 +969,7 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
     const ext = path.extname(req.file.originalname || "") || ".bin";
     const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
 
-    const buffer = fs.readFileSync(req.file.path);
+    const buffer = req.file.buffer;
 
     const publicUrl = await uploadBufferToSupabaseStorage(
       "files",
@@ -1027,8 +977,6 @@ app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), as
       buffer,
       req.file.mimetype
     );
-
-    try { fs.unlinkSync(req.file.path); } catch {}
 
    const supaItem = {
   student_id: studentId,
@@ -1166,7 +1114,9 @@ app.post("/api/avatar/upload", requireStudent, uploadAvatar.single("avatar"), as
       return res.status(400).json({ ok:false, error:"bad_input" });
     }
 
-    const avatarUrl = "/uploads/avatars/" + req.file.filename;
+    const ext = path.extname(req.file.originalname || "") || ".jpg";
+    const avatarPath = `avatars/${studentId}_${Date.now()}${ext}`;
+    const avatarUrl = await uploadBufferToSupabaseStorage("files", avatarPath, req.file.buffer, req.file.mimetype);
 
     const r = await fetch(
       `${SUPABASE_URL}/rest/v1/users?student_id=eq.${encodeURIComponent(studentId)}`,
