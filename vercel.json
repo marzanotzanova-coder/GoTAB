@@ -5,16 +5,17 @@
       "src": "server.js",
       "use": "@vercel/node",
       "config": { "includeFiles": ["**"] }
-    }
+    },
+    { "src": "images/**", "use": "@vercel/static" },
+    { "src": "style.css", "use": "@vercel/static" },
+    { "src": "script.js", "use": "@vercel/static" },
+    { "src": "lang.js", "use": "@vercel/static" },
+    { "src": "course.js", "use": "@vercel/static" },
+    { "src": "auth.js", "use": "@vercel/static" },
+    { "src": "admin.js", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/images/(.*)", "dest": "/images/$1" },
-    { "src": "/style.css", "dest": "/style.css" },
-    { "src": "/script.js", "dest": "/script.js" },
-    { "src": "/lang.js", "dest": "/lang.js" },
-    { "src": "/course.js", "dest": "/course.js" },
-    { "src": "/auth.js", "dest": "/auth.js" },
-    { "src": "/admin.js", "dest": "/admin.js" },
+    { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/server.js" }
   ]
 }
