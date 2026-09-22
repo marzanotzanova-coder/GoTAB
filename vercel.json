@@ -7,5 +7,14 @@
       "config": { "includeFiles": ["**"] }
     }
   ],
-  "routes": [{ "src": "/(.*)", "dest": "/server.js" }]
+  "routes": [
+    { "src": "/images/(.*)", "dest": "/images/$1" },
+    { "src": "/style.css", "dest": "/style.css" },
+    { "src": "/script.js", "dest": "/script.js" },
+    { "src": "/lang.js", "dest": "/lang.js" },
+    { "src": "/course.js", "dest": "/course.js" },
+    { "src": "/auth.js", "dest": "/auth.js" },
+    { "src": "/admin.js", "dest": "/admin.js" },
+    { "src": "/(.*)", "dest": "/server.js" }
+  ]
 }
