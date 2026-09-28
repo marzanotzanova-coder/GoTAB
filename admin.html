@@ -341,7 +341,7 @@
       <option value="premium">Премиум</option>
     </select>
 
-    <select id="grade-select">
+    <select id="grade-select" onchange="updateSubjectOptions()">
 <option value="5">5 сынып</option>
 <option value="6">6 сынып</option>
 <option value="7">7 сынып</option>
@@ -353,9 +353,8 @@
 
 <select id="subject-select">
 <option value="math">Математика</option>
-<option value="algebra">Алгебра</option>
-<option value="geometry">Геометрия</option>
 </select>
+<div id="subject-hint" style="font-size:12px;color:#888;margin-top:4px;margin-bottom:6px"></div>
 
 <!-- LESSON TITLE -->
 <div class="row" style="margin-top:12px;">
@@ -434,6 +433,14 @@
 
     <div class="muted" style="margin-top:10px" data-i18n="saveNote">
       Кеңес: жүктеп болған соң сабақ бетіне өтесің, тексеріп көресің.
+    </div>
+
+    <!-- ── Supabase диагностика ── -->
+    <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(47,107,255,.1)">
+      <div class="sectionTitle" style="font-size:14px;margin-bottom:8px">🔍 Supabase-те не бар? (Диагностика)</div>
+      <div class="muted" style="margin-bottom:10px">Барлық жүктелген материалдар тізімі — видео қай сынып/пән/сабаққа тіркелген</div>
+      <button class="btn" id="diagBtn" onclick="loadAllMaterials()" style="background:linear-gradient(135deg,#4f1fe8,#2F6BFF);color:#fff;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;font-size:14px;font-weight:700">📋 Барлық материалды тексеру</button>
+      <div id="diagResult" style="margin-top:12px;font-size:13px;overflow-x:auto"></div>
     </div>
 
     <!-- ── Lesson title update ── -->
@@ -1429,6 +1436,71 @@ document.getElementById("quizPreviewModal").addEventListener("click", e => {
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closeAttemptModal(); closeQuizPreviewModal(); }
 });
+
+function updateSubjectOptions() {
+  const grade = Number(document.getElementById("grade-select").value);
+  const sel = document.getElementById("subject-select");
+  const hint = document.getElementById("subject-hint");
+  if (grade === 5 || grade === 6) {
+    sel.innerHTML = '<option value="math">Математика</option>';
+    if (hint) hint.textContent = "5-6 сынып → тек Математика";
+  } else {
+    sel.innerHTML = '<option value="algebra">Алгебра</option><option value="geometry">Геометрия</option>';
+    if (hint) hint.textContent = `${grade} сынып → Алгебра немесе Геометрия`;
+  }
+}
+updateSubjectOptions();
+
+async function loadAllMaterials() {
+  const btn = document.getElementById("diagBtn");
+  const result = document.getElementById("diagResult");
+  btn.disabled = true;
+  btn.textContent = "Жүктелуде...";
+  result.innerHTML = "";
+  try {
+    const r = await fetch("/api/admin/all-materials", { credentials: "include" });
+    const data = await r.json();
+    if (!data.ok || !data.materials.length) {
+      result.innerHTML = "<div style='color:#e53e3e;padding:10px'>Supabase-те материал жоқ немесе қате.</div>";
+      return;
+    }
+    const rows = data.materials;
+    const grpKey = m => `${m.grade} сынып / ${m.subject} / Сабақ ${m.block}`;
+    const groups = {};
+    rows.forEach(m => {
+      const k = grpKey(m);
+      if (!groups[k]) groups[k] = [];
+      groups[k].push(m);
+    });
+    let html = `<div style='color:#22543d;margin-bottom:10px;font-weight:700'>Жалпы: ${rows.length} материал, ${Object.keys(groups).length} бірегей сабақ</div>`;
+    html += `<table style='border-collapse:collapse;width:100%;font-size:12px'>
+      <thead><tr style='background:rgba(47,107,255,.08)'>
+        <th style='padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0'>Сынып</th>
+        <th style='padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0'>Пән</th>
+        <th style='padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0'>Сабақ №</th>
+        <th style='padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0'>Тип</th>
+        <th style='padding:6px 10px;text-align:left;border-bottom:1px solid #e2e8f0'>Тақырып</th>
+      </tr></thead><tbody>`;
+    rows.forEach((m, i) => {
+      const bg = i % 2 === 0 ? "#fff" : "rgba(47,107,255,.03)";
+      const typeColor = m.type === "video" ? "#2F6BFF" : m.type === "audio" ? "#805ad5" : "#38a169";
+      html += `<tr style='background:${bg}'>
+        <td style='padding:5px 10px;border-bottom:1px solid #f0f0f0'>${m.grade}</td>
+        <td style='padding:5px 10px;border-bottom:1px solid #f0f0f0'>${m.subject}</td>
+        <td style='padding:5px 10px;border-bottom:1px solid #f0f0f0;font-weight:700;color:#2F6BFF'>${m.block}</td>
+        <td style='padding:5px 10px;border-bottom:1px solid #f0f0f0;color:${typeColor};font-weight:600'>${m.type}</td>
+        <td style='padding:5px 10px;border-bottom:1px solid #f0f0f0;color:#555'>${m.lesson_title || "—"}</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    result.innerHTML = html;
+  } catch (e) {
+    result.innerHTML = `<div style='color:#e53e3e;padding:10px'>Қате: ${e.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "📋 Барлық материалды тексеру";
+  }
+}
 
 </script>
 

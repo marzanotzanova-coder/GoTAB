@@ -1213,6 +1213,26 @@ app.get("/api/materials", requireAuth, async (req, res) => {
   }
 });
 
+// Admin: list all materials in Supabase (diagnostic)
+app.get("/api/admin/all-materials", requireAdmin, async (req, res) => {
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/materials?select=*&order=grade.asc,subject.asc,block.asc`,
+      {
+        headers: {
+          apikey: SUPABASE_KEY,
+          Authorization: `Bearer ${SUPABASE_KEY}`
+        }
+      }
+    );
+    const data = await r.json().catch(() => []);
+    res.json({ ok: true, materials: Array.isArray(data) ? data : [] });
+  } catch (e) {
+    console.error("all-materials error:", e);
+    res.status(500).json({ ok: false, materials: [] });
+  }
+});
+
 // ===================== PROGRESS PIPELINE =====================
 // ✅ Get progress (per student, per course) + gradesMap + feedbackMap
 app.get("/api/progress/get", requireAuth, async (req, res) => {

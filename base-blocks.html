@@ -229,19 +229,48 @@ body{
   width:min(1000px,100%);
   height:min(90vh,100%);
   border-radius:20px;
-  position:relative;overflow:hidden;
+  overflow:hidden;
+  display:flex;flex-direction:column;
 }
-#viewerContent{width:100%;height:100%;overflow:auto;background:#fff;}
+#viewerToolbar{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 12px;
+  background:rgba(18,18,28,0.88);
+  border-radius:20px 20px 0 0;
+  flex-shrink:0;
+}
+#viewerZoomGroup{display:flex;align-items:center;gap:4px;}
+#viewerZoomLabel{font-size:13px;font-weight:700;color:#fff;min-width:44px;text-align:center;}
+.vbtn{
+  width:32px;height:32px;border:none;border-radius:8px;
+  background:rgba(255,255,255,.16);color:#fff;
+  font-size:18px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s;flex-shrink:0;
+}
+.vbtn:hover{background:rgba(255,255,255,.30);}
+#viewerDownloadBtn{
+  padding:0 14px;height:32px;
+  background:linear-gradient(90deg,#2F6BFF,#20C9FF);
+  color:#fff;border-radius:8px;
+  font-size:13px;font-weight:700;
+  text-decoration:none;white-space:nowrap;
+  align-items:center;display:none;
+  transition:filter .15s;
+}
+#viewerDownloadBtn:hover{filter:brightness(1.12);}
+#viewerContent{flex:1;width:100%;overflow:auto;background:#fff;}
 .video-frame{width:100%;height:100%;position:relative;}
 .video-frame iframe,.video-frame video{width:100%;height:100%;border:none;display:block;}
 #viewerClose{
-  position:absolute;top:12px;right:12px;
-  width:40px;height:40px;
+  width:32px;height:32px;
   border:none;border-radius:50%;
-  background:rgba(0,0,0,.72);color:#fff;
-  font-size:22px;font-weight:700;cursor:pointer;z-index:10001;
+  background:rgba(255,255,255,.16);color:#fff;
+  font-size:20px;font-weight:700;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:background .15s;
 }
+#viewerClose:hover{background:rgba(255,255,255,.30);}
 
 .soon-box{
   background:rgba(255,255,255,0.97);
@@ -357,6 +386,10 @@ body{
   .block-container{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
   #viewerModal{padding:0;align-items:flex-end;}
   #viewerBox{width:100%;height:92vh;border-radius:20px 20px 0 0;}
+  #viewerToolbar{padding:6px 10px;gap:6px;border-radius:20px 20px 0 0;}
+  .vbtn{width:28px;height:28px;font-size:16px;}
+  #viewerZoomLabel{min-width:34px;font-size:12px;}
+  #viewerDownloadBtn{padding:0 10px;font-size:12px;height:28px;}
 }
 </style>
 </head>
@@ -421,10 +454,20 @@ body{
   </main>
 </div>
 
-<!-- ===== Viewer modal (unchanged logic) ===== -->
+<!-- ===== Viewer modal ===== -->
 <div id="viewerModal">
   <div id="viewerBox">
-    <button id="viewerClose">×</button>
+    <div id="viewerToolbar">
+      <div id="viewerZoomGroup">
+        <button class="vbtn" id="viewerZoomOut" title="Кішірейту">−</button>
+        <span id="viewerZoomLabel">100%</span>
+        <button class="vbtn" id="viewerZoomIn" title="Үлкейту">+</button>
+        <button class="vbtn" id="viewerZoomReset" title="Қалпына келтіру" style="font-size:13px">↺</button>
+      </div>
+      <div style="flex:1"></div>
+      <a id="viewerDownloadBtn" href="#" download target="_blank" rel="noopener noreferrer">⬇ Жүктеу</a>
+      <button class="vbtn" id="viewerClose">×</button>
+    </div>
     <div id="viewerContent"></div>
   </div>
 </div>
@@ -635,12 +678,54 @@ function _attachYtWatchedListener(iframe) {
   };
 }
 
+/* ===== Viewer zoom & download ===== */
+let _viewerZoom = 1.0;
+let _viewerCurrentUrl = null;
+let _viewerCurrentType = null;
+
+function _viewerApplyZoom() {
+  const content = document.getElementById("viewerContent");
+  if (!content) return;
+  const child = content.firstElementChild;
+  if (!child) return;
+  if (_viewerCurrentType === "video" || _viewerCurrentType === "audio" || _viewerCurrentType === "youtube") return;
+  child.style.zoom = _viewerZoom === 1 ? "" : String(_viewerZoom);
+  const lbl = document.getElementById("viewerZoomLabel");
+  if (lbl) lbl.textContent = Math.round(_viewerZoom * 100) + "%";
+}
+
+function _viewerSetDownload(url, type) {
+  _viewerCurrentUrl = url || null;
+  _viewerCurrentType = type || null;
+  const btn = document.getElementById("viewerDownloadBtn");
+  const zg  = document.getElementById("viewerZoomGroup");
+  if (!btn || !zg) return;
+  const canDownload = !!url && type !== "youtube";
+  btn.href = canDownload ? url : "#";
+  btn.style.display = canDownload ? "flex" : "none";
+  const showZoom = type !== "video" && type !== "audio" && type !== "youtube";
+  zg.style.display = showZoom ? "flex" : "none";
+}
+
+function _viewerResetState() {
+  _viewerZoom = 1.0;
+  _viewerCurrentUrl = null;
+  _viewerCurrentType = null;
+  const lbl = document.getElementById("viewerZoomLabel");
+  if (lbl) lbl.textContent = "100%";
+  const btn = document.getElementById("viewerDownloadBtn");
+  if (btn) { btn.href = "#"; btn.style.display = "none"; }
+  const zg = document.getElementById("viewerZoomGroup");
+  if (zg) zg.style.display = "flex";
+}
+
 /* ===== Viewer functions ===== */
 window.openVideo = function(url){
   const modal = document.getElementById("viewerModal");
   const box   = document.getElementById("viewerContent");
   modal.style.display = "flex";
   box.innerHTML = "";
+  _viewerResetState();
 
   if (/youtube\.com|youtu\.be/i.test(url)) {
     console.log("[openVideo] original URL:", url);
@@ -649,6 +734,7 @@ window.openVideo = function(url){
     console.log("[openVideo] embed URL:", embedUrl);
     if (!embedUrl) {
       box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700;font-size:15px'>Видео сілтемесі жарамсыз.</div>";
+      _viewerSetDownload(null, "youtube");
       return;
     }
     const wrap = document.createElement("div");
@@ -662,6 +748,7 @@ window.openVideo = function(url){
     _attachYtWatchedListener(iframe);
     wrap.appendChild(iframe);
     box.appendChild(wrap);
+    _viewerSetDownload(null, "youtube");
     return;
   }
 
@@ -676,15 +763,18 @@ window.openVideo = function(url){
   });
   wrap.appendChild(v);
   box.appendChild(wrap);
+  _viewerSetDownload(url, "video");
 };
 
 window.openAudio = function(url){
+  _viewerResetState();
   document.getElementById("viewerContent").innerHTML = `
     <audio controls style="width:100%;height:auto;margin-top:40px;">
       <source src="${url}">
     </audio>
   `;
   document.getElementById("viewerModal").style.display = "flex";
+  _viewerSetDownload(url, "audio");
 };
 
 window.openDoc = function(url) {
@@ -693,6 +783,7 @@ window.openDoc = function(url) {
     var modal = document.getElementById("viewerModal");
     box.innerHTML = "";
     modal.style.display = "flex";
+    _viewerResetState();
     var s = String(url || "").trim();
     if (!s) { box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700'>Файл сілтемесі жоқ.</div>"; return; }
     var ext = "";
@@ -705,14 +796,16 @@ window.openDoc = function(url) {
       img.onerror = function() { box.innerHTML = "<div style='padding:40px;text-align:center;color:#ef4444;font-weight:700'>Суретті жүктеу мүмкін болмады.</div>"; };
       img.src = s;
       box.appendChild(img);
+      _viewerSetDownload(s, "image");
       return;
     }
     if (ext === "pdf") {
       if (window.innerWidth <= 768) { window.open(s, "_blank"); modal.style.display = "none"; return; }
       var pdfIframe = document.createElement("iframe");
       pdfIframe.style.cssText = "width:100%;height:100%;border:none;background:#fff;display:block;";
-      pdfIframe.src = s + "#toolbar=0&navpanes=0&scrollbar=1&view=FitH";
+      pdfIframe.src = s + "#toolbar=0&navpanes=0&scrollbar=1&view=FitPage";
       box.appendChild(pdfIframe);
+      _viewerSetDownload(s, "pdf");
       return;
     }
     if (["doc","docx","ppt","pptx","xls","xlsx","odt","ods","odp"].includes(ext)) {
@@ -720,6 +813,7 @@ window.openDoc = function(url) {
       officeIframe.style.cssText = "width:100%;height:100%;border:none;background:#fff;display:block;";
       officeIframe.src = "https://docs.google.com/viewer?url=" + encodeURIComponent(s) + "&embedded=true";
       box.appendChild(officeIframe);
+      _viewerSetDownload(s, "office");
       return;
     }
     if (["txt","md","csv","json","xml"].includes(ext)) {
@@ -732,6 +826,7 @@ window.openDoc = function(url) {
           pre.textContent = text;
           box.innerHTML = "";
           box.appendChild(pre);
+          _viewerSetDownload(s, "text");
         })
         .catch(function() { _docFallback(box, s, "Файлды оқу мүмкін болмады."); });
       return;
@@ -744,6 +839,7 @@ window.openDoc = function(url) {
 };
 function _docFallback(box, url, msg) {
   box.innerHTML = "";
+  _viewerSetDownload(url, "other");
   var wrap = document.createElement("div");
   wrap.style.cssText = "display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:40px;text-align:center;gap:16px;";
   if (msg) { var errEl = document.createElement("div"); errEl.style.cssText = "color:#ef4444;font-weight:700;font-size:15px;"; errEl.textContent = msg; wrap.appendChild(errEl); }
@@ -755,11 +851,15 @@ function _docFallback(box, url, msg) {
 window.closeViewer = function(){
   document.getElementById("viewerModal").style.display = "none";
   document.getElementById("viewerContent").innerHTML = "";
+  _viewerResetState();
 };
 
 document.getElementById("viewerClose").onclick = () => closeViewer();
 document.getElementById("viewerModal").addEventListener("click", e => { if(e.target.id === "viewerModal") closeViewer(); });
 document.addEventListener("keydown", e => { if(e.key === "Escape"){ closeViewer(); closeQuizModal(); closeAiModal(); } });
+document.getElementById("viewerZoomIn").onclick    = () => { _viewerZoom = Math.min(4, Math.round((_viewerZoom + 0.25) * 100) / 100); _viewerApplyZoom(); };
+document.getElementById("viewerZoomOut").onclick   = () => { _viewerZoom = Math.max(0.25, Math.round((_viewerZoom - 0.25) * 100) / 100); _viewerApplyZoom(); };
+document.getElementById("viewerZoomReset").onclick = () => { _viewerZoom = 1.0; _viewerApplyZoom(); };
 
 /* ===== Quiz modal ===== */
 function escapeHtml(s) {
