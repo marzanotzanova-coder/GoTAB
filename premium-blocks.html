@@ -233,8 +233,11 @@ const COURSE_API="premium",COURSE_LS="premium";
 function getAllowedGradesByPackage(pkg,grade){
   const p=String(pkg||"").toLowerCase().trim(),g=Number(grade);
   if(p==="premium"){
-    if(g===10) return[5,6,7,8,9,10];
-    if(g===11) return[5,6,7,8,9,10,11];
+    if(g===7)  return[7];
+    if(g===8)  return[7,8];
+    if(g===9)  return[7,8,9];
+    if(g===10) return[7,8,9,10];
+    if(g===11) return[7,8,9,10,11];
     return[];
   }
   return[];
