@@ -630,9 +630,9 @@ function getAllowedGradeOptions(pkgUI){
   if(pkg === "baza") pkg = "base";
   if(pkg === "standard") pkg = "standart";
 
-  if(pkg === "base") return [5,6,7];
-  if(pkg === "standart") return [8,9];
-  if(pkg === "premium") return [10,11];
+  if(pkg === "base") return [5,6];
+  if(pkg === "standart") return [7,8,9];
+  if(pkg === "premium") return [7,8,9,10,11];
 
   return [5,6,7,8,9,10,11];
 }

@@ -517,19 +517,22 @@ function getAllowedGradesByPackage(pkg, grade) {
   if (p === "base") {
     if (g === 5) return [5];
     if (g === 6) return [5, 6];
-    if (g === 7) return [5, 6, 7];
     return [];
   }
 
   if (p === "standart") {
-    if (g === 8) return [5, 6, 7, 8];
-    if (g === 9) return [5, 6, 7, 8, 9];
+    if (g === 7) return [7];
+    if (g === 8) return [7, 8];
+    if (g === 9) return [7, 8, 9];
     return [];
   }
 
   if (p === "premium") {
-    if (g === 10) return [5, 6, 7, 8, 9, 10];
-    if (g === 11) return [5, 6, 7, 8, 9, 10, 11];
+    if (g === 7)  return [7];
+    if (g === 8)  return [7, 8];
+    if (g === 9)  return [7, 8, 9];
+    if (g === 10) return [7, 8, 9, 10];
+    if (g === 11) return [7, 8, 9, 10, 11];
     return [];
   }
 
