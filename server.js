@@ -7,6 +7,8 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const session = require("express-session");
+const pgSession = require("connect-pg-simple")(session);
+const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -136,11 +138,26 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
+let _sessionStore;
+if (process.env.DATABASE_URL) {
+  const _sessionPool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
+    max: 3
+  });
+  _sessionStore = new pgSession({
+    pool: _sessionPool,
+    createTableIfMissing: true,
+    tableName: "session"
+  });
+}
+
 app.use(session({
   name: "gotab.sid",
   secret: process.env.SESSION_SECRET || "dev_secret_change_me",
   resave: false,
   saveUninitialized: false,
+  store: _sessionStore,
   cookie: {
     httpOnly: true,
     sameSite: "lax",
