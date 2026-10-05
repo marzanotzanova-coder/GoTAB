@@ -7,8 +7,6 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const session = require("express-session");
-const pgSession = require("connect-pg-simple")(session);
-const { Pool } = require("pg");
 const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
@@ -138,18 +136,44 @@ app.use("/api", (req, res, next) => {
   next();
 });
 
-let _sessionStore;
-if (process.env.DATABASE_URL) {
-  const _sessionPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: { rejectUnauthorized: false },
-    max: 3
-  });
-  _sessionStore = new pgSession({
-    pool: _sessionPool,
-    createTableIfMissing: true,
-    tableName: "session"
-  });
+class SupabaseStore extends session.Store {
+  async get(sid, callback) {
+    try {
+      const r = await fetch(
+        `${SUPABASE_URL}/rest/v1/sessions?select=data,expires&sid=eq.${encodeURIComponent(sid)}`,
+        { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+      );
+      const rows = await r.json().catch(() => []);
+      if (!Array.isArray(rows) || !rows[0]) return callback(null, null);
+      if (new Date(rows[0].expires) < new Date()) {
+        this.destroy(sid, () => {});
+        return callback(null, null);
+      }
+      callback(null, JSON.parse(rows[0].data));
+    } catch (e) { callback(null, null); }
+  }
+
+  set(sid, sessionData, callback) {
+    const ttl = sessionData.cookie?.maxAge || 7 * 24 * 60 * 60 * 1000;
+    const expires = new Date(Date.now() + ttl).toISOString();
+    fetch(`${SUPABASE_URL}/rest/v1/sessions`, {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates"
+      },
+      body: JSON.stringify({ sid, data: JSON.stringify(sessionData), expires })
+    }).catch(() => {}).then(() => { if (callback) callback(null); });
+  }
+
+  destroy(sid, callback) {
+    fetch(`${SUPABASE_URL}/rest/v1/sessions?sid=eq.${encodeURIComponent(sid)}`, {
+      method: "DELETE",
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }
+    }).catch(() => {}).then(() => { if (callback) callback(null); });
+  }
 }
 
 app.use(session({
@@ -157,7 +181,7 @@ app.use(session({
   secret: process.env.SESSION_SECRET || "dev_secret_change_me",
   resave: false,
   saveUninitialized: false,
-  store: _sessionStore,
+  store: SUPABASE_URL ? new SupabaseStore() : undefined,
   cookie: {
     httpOnly: true,
     sameSite: "lax",
