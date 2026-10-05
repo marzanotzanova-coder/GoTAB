@@ -303,6 +303,9 @@ body{
 .quiz-opt:hover{background:rgba(47,107,255,.05);border-color:rgba(47,107,255,.3);}
 .quiz-opt.selected{background:linear-gradient(90deg,rgba(47,107,255,.1),rgba(32,201,255,.08));border-color:#2F6BFF;}
 .quiz-opt input[type=radio]{accent-color:#2F6BFF;width:16px;height:16px;flex-shrink:0;pointer-events:none;}
+.quiz-open-input{width:100%;padding:10px 13px;border-radius:10px;border:1.5px solid rgba(47,107,255,.2);font-size:14px;color:#14213D;background:#fff;box-sizing:border-box;font-family:inherit;resize:vertical;min-height:44px;transition:border-color .15s;}
+.quiz-open-input:focus{border-color:#2F6BFF;outline:none;}
+.quiz-open-label{font-size:12px;color:#6B7280;margin-bottom:6px;display:block;}
 .quiz-mfooter{padding:12px 22px 22px;position:sticky;bottom:0;background:#fff;border-top:1px solid rgba(47,107,255,.08);}
 .quiz-submit{width:100%;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF,#1DE9B6);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 8px 22px rgba(47,107,255,.22);transition:opacity .2s;}
 .quiz-submit:disabled{opacity:.5;cursor:not-allowed;}
@@ -998,19 +1001,37 @@ function _renderQuiz() {
     const block = document.createElement("div");
     block.className = "quiz-qblock";
     block.innerHTML = `<div class="quiz-qnum">Сұрақ ${q.idx + 1}</div><div class="quiz-qtext">${escapeHtml(q.question)}</div>`;
-    q.options.forEach(opt => {
-      const label = document.createElement("label");
-      label.className = "quiz-opt" + (_quizAnswers[q.idx] === opt ? " selected" : "");
-      label.innerHTML = `<input type="radio" name="q${q.idx}" value="${escapeHtml(opt)}"${_quizAnswers[q.idx] === opt ? " checked" : ""}> ${escapeHtml(opt)}`;
-      label.addEventListener("click", () => {
-        _quizAnswers[q.idx] = opt;
-        block.querySelectorAll(".quiz-opt").forEach(l => l.classList.remove("selected"));
-        label.classList.add("selected");
-        block.querySelector(`input[value="${CSS.escape(opt)}"]`).checked = true;
+    if (q.type === "open" || !q.options || q.options.length === 0) {
+      const lbl = document.createElement("span");
+      lbl.className = "quiz-open-label";
+      lbl.textContent = "Жауабыңызды жазыңыз:";
+      const inp = document.createElement("textarea");
+      inp.className = "quiz-open-input";
+      inp.rows = 2;
+      inp.value = _quizAnswers[q.idx] || "";
+      inp.addEventListener("input", () => {
+        const v = inp.value.trim();
+        if (v) _quizAnswers[q.idx] = inp.value;
+        else delete _quizAnswers[q.idx];
         _updateQProgress();
       });
-      block.appendChild(label);
-    });
+      block.appendChild(lbl);
+      block.appendChild(inp);
+    } else {
+      q.options.forEach(opt => {
+        const label = document.createElement("label");
+        label.className = "quiz-opt" + (_quizAnswers[q.idx] === opt ? " selected" : "");
+        label.innerHTML = `<input type="radio" name="q${q.idx}" value="${escapeHtml(opt)}"${_quizAnswers[q.idx] === opt ? " checked" : ""}> ${escapeHtml(opt)}`;
+        label.addEventListener("click", () => {
+          _quizAnswers[q.idx] = opt;
+          block.querySelectorAll(".quiz-opt").forEach(l => l.classList.remove("selected"));
+          label.classList.add("selected");
+          block.querySelector(`input[value="${CSS.escape(opt)}"]`).checked = true;
+          _updateQProgress();
+        });
+        block.appendChild(label);
+      });
+    }
     container.appendChild(block);
   });
   _updateQProgress();

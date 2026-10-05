@@ -79,17 +79,22 @@ function parseQuiz(rawText) {
 
     const questionText = questionParts.join(" ").trim();
 
-    if (!questionText) { errors.push(`Сұрақ №${qNum}: мәтін жоқ.`);                     continue; }
-    if (!correct)      { errors.push(`Сұрақ №${qNum}: <answer> тегі жоқ.`);             continue; }
-    if (!variants.length){ errors.push(`Сұрақ №${qNum}: кем дегенде 1 <variant> керек.`); continue; }
+    if (!questionText) { errors.push(`Сұрақ №${qNum}: мәтін жоқ.`);         continue; }
+    if (!correct)      { errors.push(`Сұрақ №${qNum}: <answer> тегі жоқ.`); continue; }
 
     if (!topic) topic = inferTopic(questionText);
+
+    // Open-answer: no variants → student types their own answer
+    if (!variants.length) {
+      questions.push({ question: questionText, topic, correct, options: [], type: "open" });
+      continue;
+    }
 
     const options = [correct, ...variants].filter((v, i, a) => a.indexOf(v) === i);
 
     if (options.length < 2) { errors.push(`Сұрақ №${qNum}: кем дегенде 2 нұсқа керек.`); continue; }
 
-    questions.push({ question: questionText, topic, correct, options });
+    questions.push({ question: questionText, topic, correct, options, type: "choice" });
   }
 
   if (questions.length === 0) {
@@ -107,7 +112,8 @@ function questionsForStudent(parsedQuestions) {
   return parsedQuestions.map((q, idx) => ({
     idx,
     question: q.question,
-    options: shuffle(q.options),
+    type: q.type || (q.options && q.options.length ? "choice" : "open"),
+    options: (q.options && q.options.length) ? shuffle(q.options) : [],
   }));
 }
 

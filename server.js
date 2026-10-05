@@ -2532,7 +2532,10 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
 
     parsed.forEach((q, idx) => {
       const studentAnswer = String(answers[idx] || "").trim();
-      const isCorrect = studentAnswer === q.correct;
+      const isOpen = q.type === "open" || !q.options || q.options.length === 0;
+      const isCorrect = isOpen
+        ? studentAnswer.toLowerCase().replace(/\s+/g, "") === String(q.correct || "").toLowerCase().replace(/\s+/g, "")
+        : studentAnswer === q.correct;
       if (!topicMap[q.topic]) topicMap[q.topic] = { total: 0, correct: 0, wrong: 0 };
       topicMap[q.topic].total++;
       if (isCorrect) { correctCount++; topicMap[q.topic].correct++; }
