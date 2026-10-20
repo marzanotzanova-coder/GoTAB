@@ -178,6 +178,72 @@ body{
 .tb-solid:hover{filter:brightness(1.09);transform:translateY(-1px);}
 .tb-ghost{background:rgba(79,70,229,.1);color:#4338ca;border:1.5px solid rgba(79,70,229,.22);}
 .tb-ghost:hover{background:rgba(79,70,229,.18);transform:translateY(-1px);}
+/* flip hint */
+.tc-flip-hint{font-size:11px;color:rgba(109,40,217,.5);font-weight:700;margin-top:-4px;}
+.flip-card-wrapper{cursor:pointer;}
+.flip-card-wrapper:hover .topic-card__title{color:#6d28d9;}
+
+/* flip-out animation */
+@keyframes cardFlipOut{
+  0%  {transform:perspective(700px) rotateY(0deg) scale(1);}
+  40% {transform:perspective(700px) rotateY(90deg) scale(0.88);}
+  100%{transform:perspective(700px) rotateY(180deg) scale(0.7);opacity:0;}
+}
+.flip-card-wrapper.is-flipping{
+  animation:cardFlipOut .48s cubic-bezier(.55,.06,.68,.19) forwards;
+  pointer-events:none;
+}
+
+/* ── Сандар панелі ── */
+@keyframes panelFlipIn{
+  0%  {transform:perspective(700px) rotateY(-90deg);opacity:0;}
+  100%{transform:perspective(700px) rotateY(0deg);opacity:1;}
+}
+#sanddarPanel{
+  animation:panelFlipIn .42s .08s cubic-bezier(.22,.61,.36,1) both;
+  background:rgba(255,255,255,.97);border-radius:24px;
+  padding:28px 24px;
+  box-shadow:0 20px 60px rgba(109,40,217,.12);
+  border:1px solid #ede9fe;
+}
+.sp-back{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(109,40,217,.08);border:none;border-radius:10px;
+  color:#6d28d9;font-size:13px;font-weight:700;cursor:pointer;
+  padding:8px 14px;margin-bottom:22px;transition:background .15s;
+}
+.sp-back:hover{background:rgba(109,40,217,.15);}
+.sp-title{
+  font-size:30px;font-weight:900;text-align:center;
+  background:linear-gradient(135deg,#7c3aed,#6366f1);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-bottom:22px;
+}
+.subtopic-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:800px){.subtopic-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:500px){.subtopic-grid{grid-template-columns:1fr;}}
+.subtopic-card{
+  background:linear-gradient(145deg,#faf5ff,#f3e8ff);
+  border:1.5px solid #ddd6fe;border-radius:20px;
+  padding:20px 16px;display:flex;flex-direction:column;gap:9px;
+  box-shadow:0 4px 18px rgba(109,40,217,.08);
+}
+.subtopic-card__title{
+  font-size:14px;font-weight:800;color:#3b0764;text-align:center;
+  line-height:1.45;padding-bottom:12px;
+  border-bottom:1.5px solid rgba(124,58,237,.12);margin-bottom:2px;
+  min-height:48px;display:flex;align-items:center;justify-content:center;
+}
+.subtopic-btn{
+  width:100%;padding:10px;border:none;border-radius:11px;
+  font-size:13px;font-weight:800;cursor:pointer;
+  transition:transform .15s,filter .15s;
+}
+.subtopic-btn:hover{transform:translateY(-1px);filter:brightness(1.07);}
+.sb-video{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 4px 12px rgba(79,70,229,.28);}
+.sb-extra{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;box-shadow:0 4px 12px rgba(13,148,136,.22);}
+.sb-task {background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;box-shadow:0 4px 12px rgba(217,119,6,.22);}
+.sb-test {background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.2);}
 /* ---- end topic cards ---- */
 .quiz-box{background:#fff;border-radius:24px;max-width:700px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
 .quiz-mhdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid rgba(47,107,255,.1);position:sticky;top:0;background:#fff;border-radius:24px 24px 0 0;z-index:1;}
@@ -263,191 +329,98 @@ body{
   </aside>
 
   <main class="content">
-    <div class="subject-hero">Алгебра</div>
-    <div class="topics-grid">
 
-      <!-- 1: Диагностика -->
-      <div class="topic-card tc-blue">
-        <div class="tc-icon tc-icon--blue">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-            <rect x="8" y="2" width="8" height="4" rx="1"/>
-            <polyline points="9 12 11 14 15 10"/>
-          </svg>
+    <!-- ── Негізгі мазмұн ── -->
+    <div id="mainContent">
+      <div class="subject-hero">Алгебра</div>
+      <div class="topics-grid">
+
+        <div class="topic-card tc-blue">
+          <div class="topic-card__label">Диагностика</div>
+          <div class="topic-card__btns">
+            <button class="topic-btn tb-solid">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Диагностикалық тест
+            </button>
+            <button class="topic-btn tb-ghost">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="14" width="4" height="8" rx="1"/><rect x="9" y="9" width="4" height="13" rx="1"/><rect x="16" y="4" width="4" height="18" rx="1"/></svg>
+              Нәтиже
+            </button>
+          </div>
         </div>
-        <div class="topic-card__label">Диагностика</div>
-        <div class="topic-card__btns">
-          <button class="topic-btn tb-solid">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-            Диагностика тест
-          </button>
-          <button class="topic-btn tb-ghost">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="14" width="4" height="8" rx="1"/><rect x="9" y="9" width="4" height="13" rx="1"/><rect x="16" y="4" width="4" height="18" rx="1"/></svg>
-            Нәтиже
-          </button>
+
+        <div class="topic-card tc-purple flip-card-wrapper" id="sanddarCard">
+          <div class="topic-card__title">Сандар</div>
+          <div class="tc-flip-hint">Басу →</div>
         </div>
+
+        <div class="topic-card tc-teal">
+          <div class="topic-card__title">Көпмүшелер</div>
+          <div class="topic-card__title topic-card__title--sm">Теңдеулер</div>
+          <div class="topic-card__title topic-card__title--sm">Теңдеулер жүйесі</div>
+        </div>
+
+        <div class="topic-card tc-amber">
+          <div class="topic-card__title">Теңсіздіктер</div>
+        </div>
+
+        <div class="topic-card tc-rose">
+          <div class="topic-card__title">Мәселе есептер</div>
+        </div>
+
       </div>
 
-      <!-- 2: Сандар -->
-      <div class="topic-card tc-purple">
-        <div class="tc-icon tc-icon--purple">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
-            <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Сандар</div>
+      <div class="topics-grid-6">
+        <div class="topic-card tc-sky"><div class="topic-card__title">Функция</div></div>
+        <div class="topic-card tc-emerald"><div class="topic-card__title">Прогрессия</div></div>
+        <div class="topic-card tc-orange"><div class="topic-card__title">Тригонометриялық функциялар</div></div>
+        <div class="topic-card tc-violet"><div class="topic-card__title">Көрсеткіштік және логарифмдік функциялар</div></div>
+        <div class="topic-card tc-cyan"><div class="topic-card__title">Туынды</div></div>
+        <div class="topic-card tc-fuchsia"><div class="topic-card__title">Алғашқы функция және интеграл</div></div>
       </div>
 
-      <!-- 3: Көпмүшелер / Теңдеулер -->
-      <div class="topic-card tc-teal">
-        <div class="tc-icon tc-icon--teal">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/>
-            <path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Көпмүшелер</div>
-        <div class="topic-card__title topic-card__title--sm">Теңдеулер</div>
-        <div class="topic-card__title topic-card__title--sm">Теңдеулер жүйесі</div>
+      <div class="subject-hero subject-hero--geo">Геометрия</div>
+      <div class="topics-grid-3">
+        <div class="topic-card tc-peach"><div class="topic-card__title">Планиметрия</div></div>
+        <div class="topic-card tc-slate"><div class="topic-card__title">Аналитикалық геометрия және векторлық алгебра элементтері</div></div>
+        <div class="topic-card tc-lime"><div class="topic-card__title">Стереометрия</div></div>
       </div>
-
-      <!-- 4: Теңсіздіктер -->
-      <div class="topic-card tc-amber">
-        <div class="tc-icon tc-icon--amber">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <line x1="5" y1="8" x2="19" y2="8"/><line x1="5" y1="16" x2="19" y2="16"/>
-            <line x1="19" y1="5" x2="5" y2="19"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Теңсіздіктер</div>
-      </div>
-
-      <!-- 5: Мәселе есептер -->
-      <div class="topic-card tc-rose">
-        <div class="tc-icon tc-icon--rose">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 5 11.9V17H7v-3.1A7 7 0 0 1 12 2z"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Мәселе есептер</div>
-      </div>
-
     </div>
 
-    <div class="topics-grid-6">
+    <!-- ── Сандар панелі ── -->
+    <div id="sanddarPanel" style="display:none">
+      <button class="sp-back" id="sanddarBack">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Артқа
+      </button>
+      <div class="sp-title">Натурал сандар</div>
+      <div class="subtopic-grid">
 
-      <!-- 6: Функция -->
-      <div class="topic-card tc-sky">
-        <div class="tc-icon tc-icon--sky">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/>
-            <line x1="8.5" y1="12" x2="15.5" y2="12"/>
-            <polyline points="13 9.5 15.5 12 13 14.5"/>
-          </svg>
+        <div class="subtopic-card">
+          <div class="subtopic-card__title">Натурал сандар ұғымы</div>
+          <button class="subtopic-btn sb-video">Видео</button>
+          <button class="subtopic-btn sb-extra">Қосымша</button>
+          <button class="subtopic-btn sb-task">Тапсырма</button>
+          <button class="subtopic-btn sb-test">Тест</button>
         </div>
-        <div class="topic-card__title">Функция</div>
-      </div>
 
-      <!-- 7: Прогрессия -->
-      <div class="topic-card tc-emerald">
-        <div class="tc-icon tc-icon--emerald">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="4,18 4,14 8,14 8,10 12,10 12,6 16,6 16,4 20,4"/>
-          </svg>
+        <div class="subtopic-card">
+          <div class="subtopic-card__title">Натурал санды жай көбейткіштерге жіктеу</div>
+          <button class="subtopic-btn sb-video">Видео</button>
+          <button class="subtopic-btn sb-extra">Қосымша</button>
+          <button class="subtopic-btn sb-task">Тапсырма</button>
+          <button class="subtopic-btn sb-test">Тест</button>
         </div>
-        <div class="topic-card__title">Прогрессия</div>
-      </div>
 
-      <!-- 8: Тригонометриялық функциялар -->
-      <div class="topic-card tc-orange">
-        <div class="tc-icon tc-icon--orange">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <path d="M2 12 C4.5 5,7.5 5,10 12 S15.5 19,18 12 S21 5,22 12"/>
-          </svg>
+        <div class="subtopic-card">
+          <div class="subtopic-card__title">Жұп және тақ сандар</div>
+          <button class="subtopic-btn sb-video">Видео</button>
+          <button class="subtopic-btn sb-extra">Қосымша</button>
+          <button class="subtopic-btn sb-task">Тапсырма</button>
+          <button class="subtopic-btn sb-test">Тест</button>
         </div>
-        <div class="topic-card__title">Тригонометриялық функциялар</div>
+
       </div>
-
-      <!-- 9: Көрсеткіштік және логарифмдік функциялар -->
-      <div class="topic-card tc-violet">
-        <div class="tc-icon tc-icon--violet">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="3,20 22,20"/><polyline points="3,3 3,20"/>
-            <path d="M5 18 Q8 18 10 14 Q13 8 16 6 Q18 5 20 4"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Көрсеткіштік және логарифмдік функциялар</div>
-      </div>
-
-      <!-- 10: Туынды -->
-      <div class="topic-card tc-cyan">
-        <div class="tc-icon tc-icon--cyan">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
-            <path d="M3 18 Q7 18 10 13 Q14 6 20 5"/>
-            <line x1="7" y1="17" x2="16" y2="7"/>
-            <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Туынды</div>
-      </div>
-
-      <!-- 11: Алғашқы функция және интеграл -->
-      <div class="topic-card tc-fuchsia">
-        <div class="tc-icon tc-icon--fuchsia">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
-            <path d="M14 3c-1.2 0-2 .9-2 2V19c0 1.1-.8 2-2 2"/>
-            <circle cx="15" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
-            <circle cx="9" cy="20.5" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Алғашқы функция және интеграл</div>
-      </div>
-
-    </div>
-
-    <div class="subject-hero subject-hero--geo">Геометрия</div>
-
-    <div class="topics-grid-3">
-
-      <!-- 12: Планиметрия -->
-      <div class="topic-card tc-peach">
-        <div class="tc-icon tc-icon--peach">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 3 22 20 2 20"/>
-            <line x1="12" y1="3" x2="12" y2="20"/>
-            <line x1="7" y1="13" x2="17" y2="13"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Планиметрия</div>
-      </div>
-
-      <!-- 13: Аналитикалық геометрия және векторлық алгебра элементтері -->
-      <div class="topic-card tc-slate">
-        <div class="tc-icon tc-icon--slate">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="21" x2="3" y2="3"/>
-            <polyline points="19 21 21 21 21 19"/><polyline points="3 5 3 3 5 3"/>
-            <line x1="7" y1="18" x2="15" y2="9"/>
-            <polyline points="13 9 15 9 15 11"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Аналитикалық геометрия және векторлық алгебра элементтері</div>
-      </div>
-
-      <!-- 14: Стереометрия -->
-      <div class="topic-card tc-lime">
-        <div class="tc-icon tc-icon--lime">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M3 8l9-5 9 5v8l-9 5-9-5z"/>
-            <line x1="3" y1="8" x2="12" y2="13"/>
-            <line x1="21" y1="8" x2="12" y2="13"/>
-            <line x1="12" y1="13" x2="12" y2="21"/>
-          </svg>
-        </div>
-        <div class="topic-card__title">Стереометрия</div>
-      </div>
-
     </div>
 
   </main>
@@ -711,6 +684,26 @@ function wireNavButtons(){
   role=String(sessionUser.role||"student"); isAdmin=role==="admin"; isPreview=isAdmin&&!!previewStudentId;
   effectiveStudentId=isPreview?String(previewStudentId):String(sessionUser.studentId||"");
   fillSidebar(); wireNavButtons();
+
+  // Сандар card flip
+  const sanddarCard = document.getElementById('sanddarCard');
+  const sanddarPanel = document.getElementById('sanddarPanel');
+  const mainContent  = document.getElementById('mainContent');
+
+  sanddarCard.addEventListener('click', function() {
+    sanddarCard.classList.add('is-flipping');
+    setTimeout(() => {
+      mainContent.style.display  = 'none';
+      sanddarPanel.style.display = 'block';
+    }, 420);
+  });
+
+  document.getElementById('sanddarBack').addEventListener('click', function() {
+    sanddarPanel.style.display = 'none';
+    mainContent.style.display  = '';
+    sanddarCard.classList.remove('is-flipping');
+    void sanddarCard.offsetWidth; // reflow to reset animation
+  });
 })();
 </script>
 </body>
