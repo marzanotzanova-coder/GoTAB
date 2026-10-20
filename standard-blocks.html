@@ -137,6 +137,21 @@ body{
 .tc-violet {background:linear-gradient(145deg,#f5f3ff,#ede9fe);border:1.5px solid #c4b5fd;}
 .tc-cyan   {background:linear-gradient(145deg,#ecfeff,#cffafe);border:1.5px solid #a5f3fc;}
 .tc-fuchsia{background:linear-gradient(145deg,#fdf4ff,#fae8ff);border:1.5px solid #f0abfc;}
+.tc-peach  {background:linear-gradient(145deg,#fff5ee,#ffeedd);border:1.5px solid #ffcc9a;}
+.tc-slate  {background:linear-gradient(145deg,#f8fafc,#eef2f8);border:1.5px solid #b8c8dc;}
+.tc-lime   {background:linear-gradient(145deg,#f7fee7,#ecfccb);border:1.5px solid #bef264;}
+.tc-icon--fuchsia{background:rgba(162,28,175,.12);  color:#a21caf;}
+.tc-icon--peach  {background:rgba(194,65,12,.12);   color:#c2410c;}
+.tc-icon--slate  {background:rgba(55,65,81,.1);     color:#374151;}
+.tc-icon--lime   {background:rgba(101,163,13,.14);  color:#65a30d;}
+.subject-hero--geo{
+  background:linear-gradient(135deg,#059669,#0d9488,#0891b2);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  margin-top:10px;
+}
+.topics-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:900px){.topics-grid-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.topics-grid-3{grid-template-columns:1fr;}}
 
 /* Icon circle */
 .tc-icon{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -387,6 +402,50 @@ body{
           </svg>
         </div>
         <div class="topic-card__title">Алғашқы функция және интеграл</div>
+      </div>
+
+    </div>
+
+    <div class="subject-hero subject-hero--geo">Геометрия</div>
+
+    <div class="topics-grid-3">
+
+      <!-- 12: Планиметрия -->
+      <div class="topic-card tc-peach">
+        <div class="tc-icon tc-icon--peach">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 3 22 20 2 20"/>
+            <line x1="12" y1="3" x2="12" y2="20"/>
+            <line x1="7" y1="13" x2="17" y2="13"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Планиметрия</div>
+      </div>
+
+      <!-- 13: Аналитикалық геометрия және векторлық алгебра элементтері -->
+      <div class="topic-card tc-slate">
+        <div class="tc-icon tc-icon--slate">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="21" x2="21" y2="21"/><line x1="3" y1="21" x2="3" y2="3"/>
+            <polyline points="19 21 21 21 21 19"/><polyline points="3 5 3 3 5 3"/>
+            <line x1="7" y1="18" x2="15" y2="9"/>
+            <polyline points="13 9 15 9 15 11"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Аналитикалық геометрия және векторлық алгебра элементтері</div>
+      </div>
+
+      <!-- 14: Стереометрия -->
+      <div class="topic-card tc-lime">
+        <div class="tc-icon tc-icon--lime">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 8l9-5 9 5v8l-9 5-9-5z"/>
+            <line x1="3" y1="8" x2="12" y2="13"/>
+            <line x1="21" y1="8" x2="12" y2="13"/>
+            <line x1="12" y1="13" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Стереометрия</div>
       </div>
 
     </div>
