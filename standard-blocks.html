@@ -114,6 +114,9 @@ body{
 .topics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
 @media(max-width:1100px){.topics-grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:640px){.topics-grid{grid-template-columns:1fr 1fr;}}
+.topics-grid-6{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
+@media(max-width:1100px){.topics-grid-6{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:640px){.topics-grid-6{grid-template-columns:1fr 1fr;}}
 .topic-card{
   border-radius:22px;padding:22px 16px;min-height:180px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
@@ -128,6 +131,12 @@ body{
 .tc-teal  {background:linear-gradient(145deg,#f0fdf9,#ccfbf1);border:1.5px solid #99f6e4;}
 .tc-amber {background:linear-gradient(145deg,#fffbeb,#fef3c7);border:1.5px solid #fde68a;}
 .tc-rose  {background:linear-gradient(145deg,#fff1f2,#ffe4e6);border:1.5px solid #fecdd3;}
+.tc-sky    {background:linear-gradient(145deg,#f0f9ff,#e0f2fe);border:1.5px solid #bae6fd;}
+.tc-emerald{background:linear-gradient(145deg,#ecfdf5,#d1fae5);border:1.5px solid #6ee7b7;}
+.tc-orange {background:linear-gradient(145deg,#fff7ed,#ffedd5);border:1.5px solid #fed7aa;}
+.tc-violet {background:linear-gradient(145deg,#f5f3ff,#ede9fe);border:1.5px solid #c4b5fd;}
+.tc-cyan   {background:linear-gradient(145deg,#ecfeff,#cffafe);border:1.5px solid #a5f3fc;}
+.tc-fuchsia{background:linear-gradient(145deg,#fdf4ff,#fae8ff);border:1.5px solid #f0abfc;}
 
 /* Icon circle */
 .tc-icon{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
@@ -135,7 +144,13 @@ body{
 .tc-icon--purple{background:rgba(124,58,237,.13); color:#7c3aed;}
 .tc-icon--teal  {background:rgba(13,148,136,.13); color:#0d9488;}
 .tc-icon--amber {background:rgba(217,119,6,.14);  color:#b45309;}
-.tc-icon--rose  {background:rgba(225,29,72,.12);  color:#e11d48;}
+.tc-icon--rose   {background:rgba(225,29,72,.12);   color:#e11d48;}
+.tc-icon--sky    {background:rgba(2,132,199,.12);   color:#0284c7;}
+.tc-icon--emerald{background:rgba(5,150,105,.13);   color:#059669;}
+.tc-icon--orange {background:rgba(234,88,12,.13);   color:#ea580c;}
+.tc-icon--violet {background:rgba(109,40,217,.13);  color:#6d28d9;}
+.tc-icon--cyan   {background:rgba(8,145,178,.13);   color:#0891b2;}
+.tc-icon--fuchsia{background:rgba(162,28,175,.12);  color:#a21caf;}
 
 .topic-card__label{font-size:10px;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.9px;}
 .topic-card__title{font-size:17px;font-weight:900;color:#1e1b4b;text-align:center;line-height:1.35;}
@@ -304,6 +319,78 @@ body{
       </div>
 
     </div>
+
+    <div class="topics-grid-6">
+
+      <!-- 6: Функция -->
+      <div class="topic-card tc-sky">
+        <div class="tc-icon tc-icon--sky">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="12" r="2.5"/>
+            <line x1="8.5" y1="12" x2="15.5" y2="12"/>
+            <polyline points="13 9.5 15.5 12 13 14.5"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Функция</div>
+      </div>
+
+      <!-- 7: Прогрессия -->
+      <div class="topic-card tc-emerald">
+        <div class="tc-icon tc-icon--emerald">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4,18 4,14 8,14 8,10 12,10 12,6 16,6 16,4 20,4"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Прогрессия</div>
+      </div>
+
+      <!-- 8: Тригонометриялық функциялар -->
+      <div class="topic-card tc-orange">
+        <div class="tc-icon tc-icon--orange">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M2 12 C4.5 5,7.5 5,10 12 S15.5 19,18 12 S21 5,22 12"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Тригонометриялық функциялар</div>
+      </div>
+
+      <!-- 9: Көрсеткіштік және логарифмдік функциялар -->
+      <div class="topic-card tc-violet">
+        <div class="tc-icon tc-icon--violet">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3,20 22,20"/><polyline points="3,3 3,20"/>
+            <path d="M5 18 Q8 18 10 14 Q13 8 16 6 Q18 5 20 4"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Көрсеткіштік және логарифмдік функциялар</div>
+      </div>
+
+      <!-- 10: Туынды -->
+      <div class="topic-card tc-cyan">
+        <div class="tc-icon tc-icon--cyan">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <path d="M3 18 Q7 18 10 13 Q14 6 20 5"/>
+            <line x1="7" y1="17" x2="16" y2="7"/>
+            <circle cx="12" cy="11" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Туынды</div>
+      </div>
+
+      <!-- 11: Алғашқы функция және интеграл -->
+      <div class="topic-card tc-fuchsia">
+        <div class="tc-icon tc-icon--fuchsia">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+            <path d="M14 3c-1.2 0-2 .9-2 2V19c0 1.1-.8 2-2 2"/>
+            <circle cx="15" cy="3.5" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="9" cy="20.5" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="topic-card__title">Алғашқы функция және интеграл</div>
+      </div>
+
+    </div>
+
   </main>
 </div>
 
