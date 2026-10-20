@@ -106,37 +106,48 @@ body{
 @media(max-width:600px){.pageTitle{font-size:20px;}.block-container{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}#viewerModal{padding:0;align-items:flex-end;}#viewerBox{width:100%;height:92vh;border-radius:20px 20px 0 0;}}
 /* ---- Алгебра hero & topic cards ---- */
 .subject-hero{
-  font-size:38px;font-weight:900;text-align:center;
-  background:linear-gradient(135deg,#2F6BFF,#20C9FF,#1DE9B6);
+  font-size:40px;font-weight:900;text-align:center;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed,#a21caf);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  padding:24px 0 8px;letter-spacing:-.5px;
+  padding:28px 0 10px;letter-spacing:-.5px;
 }
-.topics-grid{
-  display:grid;
-  grid-template-columns:repeat(5,1fr);
-  gap:14px;
-}
+.topics-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;}
 @media(max-width:1100px){.topics-grid{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:640px){.topics-grid{grid-template-columns:1fr 1fr;}}
 .topic-card{
-  background:rgba(255,255,255,0.93);border-radius:20px;
-  padding:20px 14px;min-height:160px;
-  box-shadow:0 8px 24px rgba(90,120,255,.09);
-  border:1px solid rgba(255,255,255,.85);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  transition:transform .18s,box-shadow .18s;
+  border-radius:22px;padding:22px 16px;min-height:180px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;
+  transition:transform .2s,box-shadow .2s;
+  box-shadow:0 4px 20px rgba(0,0,0,.07);
 }
-.topic-card:hover{transform:translateY(-3px);box-shadow:0 14px 36px rgba(90,120,255,.16);}
-.topic-card--diag{background:linear-gradient(135deg,rgba(47,107,255,.07),rgba(29,233,182,.05));border:1.5px solid rgba(47,107,255,.15);}
-.topic-card__label{font-size:11px;font-weight:800;color:#2F6BFF;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
-.topic-card__title{font-size:18px;font-weight:900;color:#14213D;text-align:center;line-height:1.3;}
-.topic-card__title--sm{font-size:13px;font-weight:700;color:#6B7280;text-align:center;}
-.topic-card__btns{display:flex;flex-direction:column;gap:8px;width:100%;}
-.topic-btn{width:100%;padding:11px 10px;border:none;border-radius:12px;font-size:13px;font-weight:800;cursor:pointer;transition:transform .15s,filter .15s;}
-.topic-btn--primary{background:linear-gradient(135deg,#2F6BFF,#20C9FF);color:#fff;box-shadow:0 6px 18px rgba(47,107,255,.28);}
-.topic-btn--primary:hover{filter:brightness(1.08);transform:translateY(-1px);}
-.topic-btn--result{background:rgba(29,233,182,.12);color:#059669;border:1.5px solid rgba(29,233,182,.3);}
-.topic-btn--result:hover{background:rgba(29,233,182,.22);transform:translateY(-1px);}
+.topic-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.13);}
+
+/* Pastel color variants */
+.tc-blue  {background:linear-gradient(145deg,#eef2ff,#e0e7ff);border:1.5px solid #c7d2fe;}
+.tc-purple{background:linear-gradient(145deg,#faf5ff,#f3e8ff);border:1.5px solid #ddd6fe;}
+.tc-teal  {background:linear-gradient(145deg,#f0fdf9,#ccfbf1);border:1.5px solid #99f6e4;}
+.tc-amber {background:linear-gradient(145deg,#fffbeb,#fef3c7);border:1.5px solid #fde68a;}
+.tc-rose  {background:linear-gradient(145deg,#fff1f2,#ffe4e6);border:1.5px solid #fecdd3;}
+
+/* Icon circle */
+.tc-icon{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tc-icon--blue  {background:rgba(79,70,229,.13);  color:#4f46e5;}
+.tc-icon--purple{background:rgba(124,58,237,.13); color:#7c3aed;}
+.tc-icon--teal  {background:rgba(13,148,136,.13); color:#0d9488;}
+.tc-icon--amber {background:rgba(217,119,6,.14);  color:#b45309;}
+.tc-icon--rose  {background:rgba(225,29,72,.12);  color:#e11d48;}
+
+.topic-card__label{font-size:10px;font-weight:800;color:#6366f1;text-transform:uppercase;letter-spacing:.9px;}
+.topic-card__title{font-size:17px;font-weight:900;color:#1e1b4b;text-align:center;line-height:1.35;}
+.topic-card__title--sm{font-size:12.5px;font-weight:700;color:#6b7280;text-align:center;margin-top:-4px;}
+
+/* Buttons */
+.topic-card__btns{display:flex;flex-direction:column;gap:9px;width:100%;margin-top:4px;}
+.topic-btn{width:100%;padding:11px 10px;border:none;border-radius:12px;font-size:12.5px;font-weight:800;cursor:pointer;transition:transform .15s,filter .15s;display:flex;align-items:center;justify-content:center;gap:7px;}
+.tb-solid{background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;box-shadow:0 6px 16px rgba(79,70,229,.32);}
+.tb-solid:hover{filter:brightness(1.09);transform:translateY(-1px);}
+.tb-ghost{background:rgba(79,70,229,.1);color:#4338ca;border:1.5px solid rgba(79,70,229,.22);}
+.tb-ghost:hover{background:rgba(79,70,229,.18);transform:translateY(-1px);}
 /* ---- end topic cards ---- */
 .quiz-box{background:#fff;border-radius:24px;max-width:700px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
 .quiz-mhdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid rgba(47,107,255,.1);position:sticky;top:0;background:#fff;border-radius:24px 24px 0 0;z-index:1;}
@@ -225,29 +236,70 @@ body{
     <div class="subject-hero">Алгебра</div>
     <div class="topics-grid">
 
-      <div class="topic-card topic-card--diag">
+      <!-- 1: Диагностика -->
+      <div class="topic-card tc-blue">
+        <div class="tc-icon tc-icon--blue">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+            <rect x="8" y="2" width="8" height="4" rx="1"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+        </div>
         <div class="topic-card__label">Диагностика</div>
         <div class="topic-card__btns">
-          <button class="topic-btn topic-btn--primary">📝 Диагностика тест</button>
-          <button class="topic-btn topic-btn--result">📊 Нәтиже</button>
+          <button class="topic-btn tb-solid">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+            Диагностика тест
+          </button>
+          <button class="topic-btn tb-ghost">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="14" width="4" height="8" rx="1"/><rect x="9" y="9" width="4" height="13" rx="1"/><rect x="16" y="4" width="4" height="18" rx="1"/></svg>
+            Нәтиже
+          </button>
         </div>
       </div>
 
-      <div class="topic-card">
+      <!-- 2: Сандар -->
+      <div class="topic-card tc-purple">
+        <div class="tc-icon tc-icon--purple">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/>
+            <line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/>
+          </svg>
+        </div>
         <div class="topic-card__title">Сандар</div>
       </div>
 
-      <div class="topic-card">
+      <!-- 3: Көпмүшелер / Теңдеулер -->
+      <div class="topic-card tc-teal">
+        <div class="tc-icon tc-icon--teal">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H7a2 2 0 0 0-2 2v5a2 2 0 0 1-2 2 2 2 0 0 1 2 2v5c0 1.1.9 2 2 2h1"/>
+            <path d="M16 3h1a2 2 0 0 1 2 2v5a2 2 0 0 0 2 2 2 2 0 0 0-2 2v5a2 2 0 0 1-2 2h-1"/>
+          </svg>
+        </div>
         <div class="topic-card__title">Көпмүшелер</div>
         <div class="topic-card__title topic-card__title--sm">Теңдеулер</div>
         <div class="topic-card__title topic-card__title--sm">Теңдеулер жүйесі</div>
       </div>
 
-      <div class="topic-card">
+      <!-- 4: Теңсіздіктер -->
+      <div class="topic-card tc-amber">
+        <div class="tc-icon tc-icon--amber">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="5" y1="8" x2="19" y2="8"/><line x1="5" y1="16" x2="19" y2="16"/>
+            <line x1="19" y1="5" x2="5" y2="19"/>
+          </svg>
+        </div>
         <div class="topic-card__title">Теңсіздіктер</div>
       </div>
 
-      <div class="topic-card">
+      <!-- 5: Мәселе есептер -->
+      <div class="topic-card tc-rose">
+        <div class="tc-icon tc-icon--rose">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 5 11.9V17H7v-3.1A7 7 0 0 1 12 2z"/>
+          </svg>
+        </div>
         <div class="topic-card__title">Мәселе есептер</div>
       </div>
 
