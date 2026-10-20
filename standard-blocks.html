@@ -32,12 +32,31 @@ body{
 .pillRow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
 .pill{font-size:12px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.85);border:1px solid rgba(47,107,255,.18);color:#2F6BFF;font-weight:800;}
 .avatarHint{font-size:11px;color:var(--muted);margin-top:8px;}
-.nav{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;}
-.navBtn{display:flex;align-items:center;gap:10px;padding:12px 16px;border:1.5px solid rgba(47,107,255,.1);border-radius:16px;font-size:14px;font-weight:700;cursor:pointer;text-align:left;transition:all 0.18s;background:rgba(255,255,255,.85);color:var(--text);}
-.navBtn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(47,107,255,.12);}
-.navBtn.active{background:linear-gradient(90deg,#2F6BFF 0%,#20C9FF 60%,#1DE9B6 100%);color:white;border-color:transparent;box-shadow:0 8px 22px rgba(47,107,255,.28);}
-.navBtn.danger{color:#ef4444;border-color:rgba(239,68,68,.2);}
-.navBtn.danger:hover{background:rgba(239,68,68,.05);}
+.nav{display:flex;flex-direction:column;gap:3px;margin-bottom:14px;}
+.navBtn{
+  display:flex;align-items:center;gap:11px;
+  padding:10px 13px;border:none;border-radius:13px;
+  font-size:13px;font-weight:600;cursor:pointer;text-align:left;
+  transition:background .16s,color .16s;
+  background:transparent;color:#6b7280;width:100%;
+  position:relative;overflow:hidden;
+}
+.navBtn:hover{background:rgba(47,107,255,.07);color:#2F6BFF;}
+.navBtn.active{
+  background:linear-gradient(135deg,rgba(47,107,255,.13),rgba(32,201,255,.08));
+  color:#2F6BFF;font-weight:700;
+}
+.navBtn.active::after{
+  content:'';position:absolute;left:0;top:18%;bottom:18%;
+  width:3px;border-radius:0 3px 3px 0;
+  background:linear-gradient(180deg,#2F6BFF,#1DE9B6);
+}
+.navBtn .ni{width:18px;height:18px;flex-shrink:0;transition:opacity .16s;}
+.navBtn:not(.active):not(:hover) .ni{opacity:.55;}
+.navBtn.danger{color:#9ca3af;margin-top:6px;}
+.navBtn.danger:hover{background:rgba(239,68,68,.07);color:#ef4444;}
+.navBtn.danger .ni{opacity:.5;}
+.navBtn.danger:hover .ni{opacity:1;}
 .sidebarMountain{margin-top:auto;padding-top:14px;text-align:center;}
 .content{display:flex;flex-direction:column;gap:16px;}
 .adminBadge{display:none;background:linear-gradient(90deg,#2F6BFF,#20C9FF);color:white;padding:8px 20px;border-radius:999px;font-size:13px;font-weight:800;width:fit-content;box-shadow:0 4px 14px rgba(47,107,255,.28);align-items:center;gap:8px;}
@@ -318,10 +337,34 @@ body{
       <div class="avatarHint" data-i18n="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
     </div>
     <div class="nav">
-      <button class="navBtn active" id="navCourse" data-i18n="btnCourse">📚 Курсқа өту</button>
-      <button class="navBtn" id="navAdmin" style="display:none">🛠 Admin панель</button>
-      <button class="navBtn" id="navRefresh" data-i18n="btnRefresh">🔄 Жаңарту</button>
-      <button class="navBtn danger" id="navLogout" data-i18n="btnLogout">🚪 Шығу</button>
+      <button class="navBtn active" id="navCourse">
+        <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+          <rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>
+        </svg>
+        Курсқа өту
+      </button>
+      <button class="navBtn" id="navAdmin" style="display:none">
+        <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Admin панель
+      </button>
+      <button class="navBtn" id="navRefresh">
+        <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/>
+          <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Жаңарту
+      </button>
+      <button class="navBtn danger" id="navLogout">
+        <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        Шығу
+      </button>
     </div>
     <div class="sidebarMountain">
       <img src="images/mountain.png" alt="" style="width:100%;max-width:200px;mix-blend-mode:screen;">
