@@ -1,592 +1,722 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>GoTAB • Student Dashboard</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>GoTAB • Студент кабинеті</title>
   <style>
     :root{
-      --text:#14213D;
-      --muted:#6B7280;
-      --brand1:#2F6BFF;
-      --brand2:#20C9FF;
-      --mint:#1DE9B6;
+      --primary:#2563EB;
+      --navy:#101F49;
+      --navy2:#162260;
+      --cyan:#20C9F3;
+      --turq:#20D6C7;
+      --bg:#F5F9FF;
+      --text:#17244D;
+      --muted:#5A7094;
       --good:#22c55e;
       --warn:#f59e0b;
       --bad:#ef4444;
-      --shadow: 0 10px 40px rgba(90,120,255,0.08);
-      --radius: 28px;
+      --sw:240px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family: Arial, sans-serif;
-      color:var(--text);
-      background: linear-gradient(135deg, #fafcff 0%, #f6f3ff 35%, #eefcff 70%, #f8fffc 100%);
-      min-height:100vh;
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',Arial,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
 
-    .app{
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 18px;
-      display:grid;
-      grid-template-columns: 300px 1fr;
-      gap: 16px;
-    }
+    /* SIDEBAR */
+    .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sw);background:var(--navy);display:flex;flex-direction:column;z-index:200;overflow:hidden;}
+    .sb-logo{padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .sb-logo-txt{font-size:22px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:2px;}
+    .sb-logo-txt .go{color:var(--cyan);}
+    .sb-logo-txt .tab{color:var(--turq);}
+    .sb-logo-sub{font-size:11px;color:rgba(255,255,255,.38);margin-top:3px;}
+    .sb-profile{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.07);}
+    .sb-profile-row{display:flex;align-items:center;gap:10px;}
+    .sb-av{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--primary),var(--cyan));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:15px;overflow:hidden;cursor:pointer;flex-shrink:0;background-size:cover;background-position:center;background-repeat:no-repeat;}
+    .sb-av img{width:100%;height:100%;object-fit:cover;display:none;}
+    .sb-pname{font-size:13px;font-weight:700;color:white;line-height:1.2;}
+    .sb-pmeta{font-size:11px;color:rgba(255,255,255,.38);margin-top:1px;}
+    .sb-pills{display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;}
+    .sb-pill{font-size:10px;padding:3px 8px;border-radius:999px;background:rgba(32,201,243,.13);border:1px solid rgba(32,201,243,.22);color:var(--cyan);font-weight:700;}
+    .sb-nav{flex:1;padding:10px 8px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;}
+    .sb-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:11px;color:rgba(255,255,255,.5);font-size:13px;font-weight:600;cursor:pointer;transition:.16s;border:none;background:transparent;text-align:left;width:100%;}
+    .sb-item:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.82);}
+    .sb-item.active{background:rgba(37,99,235,.32);color:white;}
+    .sb-item svg{flex-shrink:0;}
+    .sb-divider{height:1px;background:rgba(255,255,255,.07);margin:5px 0;}
+    .sb-item.adm{background:rgba(139,92,246,.14);color:rgba(196,181,253,.75);border:1px solid rgba(139,92,246,.18);}
+    .sb-item.adm:hover{background:rgba(139,92,246,.24);}
+    .sb-item.dng{color:rgba(252,165,165,.65);}
+    .sb-item.dng:hover{background:rgba(239,68,68,.1);color:rgba(252,165,165,.88);}
+    .sb-hint{padding:6px 14px;font-size:10px;color:rgba(255,255,255,.28);line-height:1.4;}
+    .sb-wave{height:72px;overflow:hidden;flex-shrink:0;}
+    .sb-wave svg{width:100%;height:100%;}
 
-    .sidebar{
-      position: sticky;
-      top: 14px;
-      align-self:start;
-      background: rgba(255,255,255,0.92);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      overflow-x: hidden;
-      border: 1px solid rgba(255,255,255,0.8);
-      display: flex;
-      flex-direction: column;
-    }
+    /* MAIN */
+    .main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-width:0;}
+    .topbar{background:white;border-bottom:1px solid rgba(37,99,235,.07);padding:11px 26px;display:flex;align-items:center;justify-content:space-between;gap:14px;position:sticky;top:0;z-index:100;}
+    .tb-search{display:flex;align-items:center;gap:7px;background:var(--bg);border:1px solid rgba(37,99,235,.11);border-radius:10px;padding:7px 13px;flex:1;max-width:340px;}
+    .tb-search input{border:none;background:transparent;font-size:13px;color:var(--text);outline:none;flex:1;}
+    .tb-right{display:flex;align-items:center;gap:10px;}
+    .tb-lang select{border:1px solid rgba(37,99,235,.12);border-radius:8px;padding:5px 9px;background:var(--bg);font-size:12px;font-weight:600;color:var(--text);cursor:pointer;outline:none;}
+    .tb-av{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--primary),var(--cyan));display:flex;align-items:center;justify-content:center;color:white;font-weight:900;font-size:12px;cursor:pointer;overflow:hidden;}
 
-    .content{display:flex;flex-direction:column;gap:16px;}
+    /* PAGE */
+    .page{padding:22px 26px;display:flex;flex-direction:column;gap:18px;}
 
-    .brand{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-    .logo{ display:none; }
-    .brandTitle{line-height:1.1;}
-    .brandTitle .name{
-      font-weight: 900;font-size: 22px;letter-spacing:-0.5px;
-      display:flex;align-items:center;gap:4px;
-    }
-    .brandTitle .name .logo-go{
-      background: linear-gradient(135deg, #2F6BFF, #20C9FF);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    }
-    .brandTitle .name .logo-tab{
-      background: linear-gradient(135deg, #20C9FF, #1DE9B6);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-    }
-    .brandTitle .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+    /* HERO */
+    .hero{background:linear-gradient(120deg,var(--navy) 0%,#162979 55%,#1a3a8f 100%);border-radius:18px;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:18px;overflow:hidden;position:relative;}
+    .hero::before{content:"";position:absolute;right:170px;top:-50px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(32,201,243,.15),transparent 65%);}
+    .hero::after{content:"";position:absolute;right:-30px;bottom:-30px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(32,214,199,.13),transparent 65%);}
+    .hero-text{position:relative;z-index:1;}
+    .hero-greet{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:5px;font-weight:600;}
+    .hero-name{font-size:24px;font-weight:900;color:white;line-height:1.15;margin-bottom:10px;}
+    .hero-name span{background:linear-gradient(90deg,var(--cyan),var(--turq));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .hero-badges{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+    .hero-badge{font-size:11px;padding:4px 11px;border-radius:999px;font-weight:700;background:rgba(32,201,243,.18);border:1px solid rgba(32,201,243,.3);color:var(--cyan);}
+    .hero-badge.gr{background:rgba(32,214,199,.18);border-color:rgba(32,214,199,.3);color:var(--turq);}
+    .hero-cta{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:11px;background:linear-gradient(90deg,var(--primary),var(--cyan));color:white;font-weight:700;font-size:13px;border:none;cursor:pointer;box-shadow:0 8px 22px rgba(37,99,235,.28);transition:.18s;}
+    .hero-cta:hover{transform:translateY(-1px);box-shadow:0 12px 26px rgba(37,99,235,.36);}
+    .hero-img{position:relative;z-index:1;height:100px;width:auto;opacity:.82;mix-blend-mode:screen;flex-shrink:0;}
 
-    .profile{
-      background: linear-gradient(135deg, rgba(47,107,255,.08), rgba(29,233,182,.06));
-      border-radius: 18px;padding: 14px;
-      border: 1px solid rgba(47,107,255,.12);
-    }
-    .profileTop{display:flex;align-items:center;gap:12px;}
-    .avatar{
-      width:46px;height:46px;border-radius:16px;
-      background: linear-gradient(135deg, #2F6BFF, #20C9FF);
-      display:flex;align-items:center;justify-content:center;
-      color:white;font-weight:900;
-      box-shadow: 0 8px 20px rgba(47,107,255,.22);
-      overflow:hidden;
-      cursor:pointer;
-      position:relative;
-    }
-    .avatar img{width:100%;height:100%;object-fit:cover;display:block;}
-    .avatarHint{font-size:11px;color:var(--muted);margin-top:8px;}
+    /* TWO-COL */
+    .two-col{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;}
 
-    .pinfo .pname{font-weight:900;color:var(--text);}
-    .pinfo .pmeta{font-size:12px;color:var(--muted);margin-top:2px}
-    .pillRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
-    .pill{
-      font-size:12px;padding:6px 10px;border-radius:999px;
-      background: rgba(255,255,255,.85);
-      border: 1px solid rgba(47,107,255,.18);
-      color:#2F6BFF;font-weight:800;
-    }
+    /* CARDS */
+    .card{background:white;border-radius:18px;padding:18px;box-shadow:0 4px 18px rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.08);}
 
-    .nav{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
-    .nav button{
-      width:100%;padding: 12px 14px;border:0;border-radius: 16px;
-      background: rgba(255,255,255,0.85);
-      cursor:pointer;text-align:left;font-weight:700;color:var(--text);
-      transition:.2s;border: 1px solid rgba(47,107,255,.10);
-      font-size: 14px;
-    }
-    .nav button:hover{transform: translateY(-1px); box-shadow: 0 8px 18px rgba(47,107,255,.10);}
-    .nav #goCourseBtn{
-      background: linear-gradient(90deg, #2F6BFF, #20C9FF, #1DE9B6);
-      color:white;border:0;
-      box-shadow: 0 8px 22px rgba(47,107,255,.24);
-    }
-    .nav .mutebtn{background: rgba(255,255,255,.85);color:var(--text);}
-    .nav .danger{
-      background: rgba(239,68,68,.08);
-      border: 1px solid rgba(239,68,68,.18);
-      color:#7f1d1d;
-    }
+    /* MATH LAB */
+    .lab-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;gap:12px;}
+    .lab-title{font-size:14px;font-weight:900;color:var(--text);}
+    .lab-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+    .lab-tabs{display:flex;gap:5px;flex-shrink:0;}
+    .lab-tab{padding:5px 13px;border-radius:8px;font-size:12px;font-weight:700;border:1px solid rgba(37,99,235,.14);background:transparent;color:var(--muted);cursor:pointer;transition:.14s;}
+    .lab-tab.active{background:var(--primary);color:white;border-color:var(--primary);}
+    .lab-formula{background:linear-gradient(135deg,rgba(37,99,235,.05),rgba(32,201,243,.05));border:1px solid rgba(37,99,235,.11);border-radius:11px;padding:12px 16px;text-align:center;font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px;font-family:Georgia,serif;letter-spacing:.5px;}
+    .lab-graph{position:relative;background:var(--bg);border-radius:13px;border:1px solid rgba(37,99,235,.09);overflow:hidden;margin-bottom:14px;}
+    #mathSvg{display:block;width:100%;height:260px;}
+    .lab-sliders{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
+    .sl-row{display:flex;align-items:center;gap:10px;}
+    .sl-lbl{width:72px;font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;}
+    .sl-lbl b{background:linear-gradient(90deg,var(--primary),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .sl-row input[type=range]{flex:1;height:4px;accent-color:var(--primary);cursor:pointer;}
+    .sl-val{width:34px;text-align:center;font-size:12px;font-weight:800;color:var(--primary);flex-shrink:0;}
+    .lab-zoom{display:flex;gap:5px;justify-content:flex-end;margin-bottom:12px;}
+    .zm-btn{width:26px;height:26px;border-radius:7px;border:1px solid rgba(37,99,235,.16);background:white;font-size:13px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--primary);transition:.13s;}
+    .zm-btn:hover{background:var(--primary);color:white;}
+    .lab-panel{display:none;}
+    .lab-panel.active{display:block;}
+    .lab-table table{width:100%;border-collapse:collapse;font-size:12px;}
+    .lab-table th{background:rgba(37,99,235,.05);padding:6px 8px;text-align:center;font-weight:700;color:var(--text);}
+    .lab-table td{padding:5px 8px;text-align:center;border-bottom:1px solid rgba(37,99,235,.05);}
+    .lab-table tr:last-child td{border-bottom:none;}
+    .prop-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:var(--bg);border-radius:9px;border:1px solid rgba(37,99,235,.07);font-size:12px;margin-bottom:5px;}
+    .prop-k{font-weight:700;color:var(--muted);}
+    .prop-v{font-weight:900;color:var(--primary);}
 
-    /* Sidebar mountain illustration */
-    .sidebarMountain{
-      margin-top: 16px;
-      opacity: 0.85;
-      text-align: center;
-    }
-    .sidebarMountain img{
-      display: block;
-      width: 100%;
-      height: auto;
-      max-width: 100%;
-      mix-blend-mode: screen;
-    }
+    /* MODULE PLAN */
+    .mp-title{font-size:13px;font-weight:900;margin-bottom:12px;color:var(--text);}
+    .mp-item{display:flex;align-items:center;gap:9px;padding:9px 8px;border-radius:11px;margin-bottom:4px;cursor:pointer;transition:.14s;}
+    .mp-item:hover{background:var(--bg);}
+    .mp-item.cur{background:rgba(37,99,235,.07);}
+    .mp-dot{width:30px;height:30px;border-radius:9px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;}
+    .mp-dot.dn{background:rgba(34,197,94,.14);color:#15803d;}
+    .mp-dot.cur{background:rgba(37,99,235,.14);color:var(--primary);}
+    .mp-dot.lk{background:rgba(90,112,148,.09);color:var(--muted);}
+    .mp-info{flex:1;min-width:0;}
+    .mp-nm{font-size:12px;font-weight:700;color:var(--text);}
+    .mp-sb{font-size:10px;color:var(--muted);margin-top:1px;}
+    .mp-tag{font-size:10px;padding:2px 7px;border-radius:999px;font-weight:700;flex-shrink:0;}
+    .mp-tag.dn{background:rgba(34,197,94,.11);color:#15803d;}
+    .mp-tag.cur{background:rgba(37,99,235,.11);color:var(--primary);}
+    .mp-tag.lk{background:rgba(90,112,148,.08);color:var(--muted);}
 
-    .topbar{
-      display:flex;align-items:flex-start;justify-content:space-between;gap:12px;
-      background: linear-gradient(135deg, rgba(47,107,255,.08) 0%, rgba(32,201,255,.06) 50%, rgba(29,233,182,.06) 100%);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 22px;
-      border: 1px solid rgba(255,255,255,0.8);
-      overflow:hidden;position:relative;
-    }
-    .topbar:before{
-      content:"";position:absolute;width:260px;height:260px;right:-80px;top:-130px;
-      background: radial-gradient(circle, rgba(47,107,255,.14), transparent 60%);
-    }
-    .topText{position:relative;z-index:1}
-    .hello{font-size: 13px;color: var(--muted);margin-bottom: 4px;font-weight:700;}
-    .headline{font-size: 24px;font-weight: 900;margin:0;letter-spacing:-.3px;color:var(--text);}
-    .headline span{color:#2F6BFF;}
-    .desc{margin-top: 6px;color: var(--muted);font-size: 13px;max-width: 480px;}
+    /* SECTION TITLE */
+    .sec-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .sec-title::after{content:"";flex:1;height:1px;background:rgba(37,99,235,.09);}
 
-    .quick{
-      position:relative;z-index:1;
-      display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;align-items:flex-start;
-    }
-    .qbtn{
-      border:0;cursor:pointer;border-radius: 14px;padding: 10px 14px;font-weight:700;font-size:13px;
-      background: linear-gradient(90deg, #2F6BFF, #20C9FF, #1DE9B6);
-      color:white;box-shadow: 0 8px 22px rgba(47,107,255,.22);transition:.2s;
-    }
-    .qbtn:hover{transform: translateY(-1px)}
-    .qbtn.secondary{
-      background: rgba(255,255,255,.9);
-      color:#2F6BFF;border: 1.5px solid rgba(47,107,255,.2);
-      box-shadow:none;
-    }
+    /* EXPERIMENT */
+    .exp-card{background:white;border-radius:18px;padding:18px;box-shadow:0 4px 18px rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.08);display:flex;align-items:flex-start;gap:16px;}
+    .exp-cv{background:linear-gradient(135deg,#0f1a3d,#1a2a5e);border-radius:13px;overflow:hidden;flex-shrink:0;width:200px;height:134px;display:flex;align-items:center;justify-content:center;}
+    .exp-info{flex:1;}
+    .exp-title{font-size:13px;font-weight:900;color:var(--text);margin-bottom:5px;}
+    .exp-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;}
+    .exp-param{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px;}
+    .exp-param label{color:var(--muted);font-weight:600;min-width:72px;}
+    .exp-param input[type=range]{flex:1;accent-color:var(--primary);}
+    .exp-param .ev{font-weight:800;color:var(--primary);min-width:32px;}
+    .exp-btns{display:flex;gap:7px;margin-top:8px;}
+    .exp-btn{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:700;border:none;cursor:pointer;transition:.14s;}
+    .exp-btn.pr{background:linear-gradient(90deg,var(--primary),var(--cyan));color:white;}
+    .exp-btn.sc{background:var(--bg);border:1px solid rgba(37,99,235,.16);color:var(--primary);}
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px;
-    }
+    /* MODELS */
+    .models-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+    .model-card{background:white;border-radius:15px;overflow:hidden;box-shadow:0 4px 14px rgba(37,99,235,.05);border:1px solid rgba(37,99,235,.08);cursor:pointer;transition:.18s;}
+    .model-card:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(37,99,235,.11);}
+    .model-thumb{height:110px;overflow:hidden;background:linear-gradient(135deg,#0f1a3d,#162979);display:flex;align-items:center;justify-content:center;position:relative;}
+    .model-thumb canvas{display:block;}
+    .model-ov{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(16,31,73,.65));}
+    .model-info{padding:10px 12px;}
+    .model-nm{font-size:12px;font-weight:800;color:var(--text);}
+    .model-sb{font-size:11px;color:var(--muted);margin-top:2px;}
 
-    .card{
-      background: rgba(255,255,255,0.92);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      border: 1px solid rgba(255,255,255,0.8);
-      overflow:hidden;
-      position:relative;
-      opacity:0;
-      transform: translateY(20px);
-      animation: cardFadeUp .6s ease forwards;
-    }
+    /* TOPICS */
+    .topics-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+    .topic-chip{background:white;border-radius:13px;padding:12px 14px;box-shadow:0 2px 8px rgba(37,99,235,.04);border:1px solid rgba(37,99,235,.08);display:flex;align-items:center;gap:11px;cursor:pointer;transition:.14s;}
+    .topic-chip:hover{border-color:rgba(37,99,235,.22);box-shadow:0 4px 14px rgba(37,99,235,.09);}
+    .topic-icon{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,rgba(37,99,235,.11),rgba(32,201,243,.11));display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+    .topic-nm{font-size:12px;font-weight:700;color:var(--text);}
+    .topic-sb{font-size:11px;color:var(--muted);}
 
-    @keyframes cardFadeUp{
-      from{ opacity:0; transform: translateY(20px); }
-      to{ opacity:1; transform: translateY(0); }
-    }
+    /* PROFILE ACTIONS */
+    .prof-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px;}
+    .pa-btn{padding:8px 14px;border-radius:9px;border:none;background:linear-gradient(90deg,var(--primary),var(--cyan));color:white;font-weight:700;font-size:12px;cursor:pointer;transition:.14s;}
+    .pa-btn:hover{opacity:.88;}
+    .pa-link{padding:8px 14px;border-radius:9px;border:1px solid rgba(37,99,235,.18);color:var(--primary);font-weight:700;font-size:12px;text-decoration:none;transition:.14s;}
+    .pa-link:hover{background:rgba(37,99,235,.06);}
 
-    .grid .card:nth-child(1){animation-delay:0.05s;}
-    .grid .card:nth-child(2){animation-delay:0.1s;}
-    .grid .card:nth-child(3){animation-delay:0.15s;}
-    .grid .card:nth-child(4){animation-delay:0.2s;}
-    .grid .card:nth-child(5){animation-delay:0.25s;}
-    .grid .card:nth-child(6){animation-delay:0.3s;}
-    .grid .card:nth-child(7){animation-delay:0.35s;}
-
-    .cardTitle{font-weight: 900;margin:0 0 12px 0;font-size: 14px;color:var(--text);}
-    .muted{color:var(--muted); font-size:12px}
-
-    .kpi{display:flex; gap:12px; flex-wrap:wrap;}
-    .kpiBox{
-      flex: 1 1 120px;
-      background: rgba(255,255,255,.85);
-      border: 1px solid rgba(47,107,255,.10);
-      border-radius: 18px;
-      padding: 12px;
-    }
-    .kpiVal{font-size: 22px;font-weight: 900;margin: 4px 0 2px 0;color:var(--text);}
-    .kpiLab{font-size:12px;color:var(--muted);font-weight:700}
-
-    .barWrap{
-      margin-top: 10px;background: rgba(47,107,255,.08);
-      border-radius: 999px;height: 10px;overflow:hidden;
-      border: 1px solid rgba(47,107,255,.10);
-    }
-    .bar{
-      height: 100%;width: 0%;
-      background: linear-gradient(90deg, #2F6BFF, #20C9FF, #1DE9B6);
-      border-radius: 999px;transition: width .4s ease;
-    }
-
-    .list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
-    .row{
-      display:flex;justify-content:space-between;align-items:center;gap:10px;
-      padding: 12px;border-radius: 16px;
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(47,107,255,.08);
-    }
-    .rowLeft{display:flex;flex-direction:column;min-width:0;}
-    .rowTitle{font-weight:800;font-size:13px;color:var(--text);}
-    .rowSub{
-      font-size:12px;color:var(--muted);margin-top:2px;
-      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-      max-width: 420px;
-    }
-    #notifications .rowSub{
-      white-space: normal;
-      overflow: visible;
-      text-overflow: unset;
-      max-width: none;
-      line-height: 1.45;
-      word-break: break-word;
-    }
-    #notifications .row{ align-items: flex-start; }
-
-    .feedbackCard{
-      border-left:4px solid #2F6BFF;
-      background: rgba(47,107,255,.04);
-    }
-    .feedbackQuote{ font-style: italic; margin-top:6px; }
-    .feedbackCard .rowSub{
-      white-space: normal; overflow: visible; text-overflow: unset;
-      max-width: none; line-height: 1.45; word-break: break-word;
-    }
-
-    .badge{
-      font-size:12px;font-weight:800;padding: 7px 12px;border-radius: 999px;
-      border: 1px solid rgba(0,0,0,.06);
-      background: rgba(34,197,94,.12);
-      color:#14532d;white-space:nowrap;
-    }
-    .badge.warn{background: rgba(245,158,11,.14); color:#7c2d12}
-    .badge.bad{background: rgba(239,68,68,.14); color:#7f1d1d}
-    .badge.neutral{background: rgba(47,107,255,.10); color:#2F6BFF}
-
-    .checklist{margin-top:10px;display:flex;flex-direction:column;gap:8px;}
-    .checkItem{
-      display:flex;align-items:center;gap:10px;
-      padding: 10px 14px;border-radius: 14px;
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(47,107,255,.08);
-    }
-    .checkItem input{width:18px;height:18px;accent-color:#2F6BFF;cursor:default;opacity:1;}
-
-    .sparkWrap{
-      display:flex;gap:14px;align-items:center;margin-top:10px;
-      padding: 12px;border-radius: 16px;
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(47,107,255,.08);
-    }
-    canvas{width:170px;height:54px;border-radius:12px;background:rgba(47,107,255,.05);border:1px solid rgba(47,107,255,.10)}
-
-    /* Support / Profile card */
-    .supportCard{
-      background: linear-gradient(90deg, #3B2AB8 0%, #2F6BFF 45%, #1DE9B6 100%) !important;
-      border: none !important;
-    }
-    .supportCard .cardTitle{ color: rgba(255,255,255,0.85) !important; }
-
-    .supportRow{
-      display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;
-    }
-    .supportRow a{
-      text-decoration:none;
-      display:inline-flex;align-items:center;justify-content:center;gap:6px;
-      padding:10px 14px;border-radius:14px;
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.28);
-      color:white;font-weight:700;font-size:13px;
-      transition: background 0.18s;
-    }
-    .supportRow a:hover{ background: rgba(255,255,255,.28); }
-    .supportRow a.primary{
-      background: rgba(255,255,255,.28);
-      color:white;border: 1px solid rgba(255,255,255,.4);
-    }
-
-    .compactList{
-      max-height: 220px;
-      overflow:auto;
-      padding-right: 4px;
-    }
-
-    .goalBox{
-      display:none;
-      margin-top:10px;
-      padding: 12px;
-      border-radius: 16px;
-      background: rgba(255,255,255,.8);
-      border: 1px solid rgba(47,107,255,.10);
-    }
-    .goalBox label{font-size:12px;color:var(--muted);font-weight:700;display:block;margin-bottom:6px}
-    .goalBox select{
-      width:100%;padding:10px 12px;border-radius:12px;
-      border: 1px solid rgba(47,107,255,.18);
-      background: rgba(255,255,255,.92);font-weight:700;cursor:pointer;
-    }
-    .goalBox .muted{margin-top:8px}
-
-    @media (max-width: 980px){
-      .app{grid-template-columns: 1fr; padding: 12px; gap: 12px;}
-      .sidebar{position:relative; top:auto;}
-      .quick{justify-content:flex-start;}
-      .rowSub{max-width: 100%;}
-      .grid{grid-template-columns: 1fr; gap: 12px;}
-      .grid > .card{grid-column: span 1 !important;}
-      .topbar{flex-direction: column; align-items: stretch; padding: 16px;}
-      .headline{font-size: 20px;}
-      .desc{font-size: 12px; max-width: 100%;}
-      .quick{width: 100%; gap: 8px;}
-      .qbtn, .qbtn.secondary{width: 100%; text-align: center;}
-      .kpi{flex-direction: column;}
-      .kpiBox{flex: 1 1 auto; width: 100%;}
-      .sparkWrap{flex-direction: column; align-items: stretch;}
-      canvas{width: 100% !important; max-width: 100%; height: 64px;}
-      .row{align-items: flex-start; flex-direction: column;}
-      .badge{align-self: flex-start;}
-      .supportRow{flex-direction: column;}
-      .supportRow a{width: 100%;}
-      .pillRow{flex-direction: column; align-items: stretch;}
-      .pill{width: 100%; text-align: center;}
-      .sidebarMountain{display:none;}
-    }
-
-    @media (max-width: 560px){
-      body{padding: 0;}
-      .app{padding: 10px; gap: 10px;}
-      .sidebar, .topbar, .card{padding: 12px; border-radius: 20px;}
-      .headline{font-size: 18px;}
-      .brandTitle .name{font-size: 18px;}
-      .cardTitle{font-size: 13px;}
-      .rowTitle{font-size: 12px;}
-      .rowSub{font-size: 11px; white-space: normal; overflow: visible; text-overflow: unset;}
-      .kpiVal{font-size: 18px;}
-      .avatar{width: 42px; height: 42px; border-radius: 14px;}
-    }
-    .lang-wrap {
-      position: fixed;
-      top: 14px;
-      right: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 12px;
-      background: rgba(255,255,255,0.92);
-      border-radius: 18px;
-      border: 1px solid rgba(90,120,255,0.14);
-      box-shadow: 0 4px 14px rgba(90,120,255,0.08);
-      z-index: 100;
-    }
-    .lang-wrap select {
-      border: none;
-      background: transparent;
-      font-size: 13px;
-      font-weight: 600;
-      color: #14213D;
-      cursor: pointer;
-      outline: none;
+    /* RESPONSIVE */
+    @media(max-width:1100px){.two-col{grid-template-columns:1fr;}.models-grid{grid-template-columns:repeat(2,1fr);}}
+    @media(max-width:768px){
+      :root{--sw:0px;}
+      .sidebar{transform:translateX(-240px);width:240px;transition:.25s;}
+      .sidebar.open{transform:translateX(0);}
+      .main{margin-left:0;}
+      .page{padding:14px;}
+      .hero{padding:18px;}.hero-img{display:none;}
+      .models-grid{grid-template-columns:1fr;}
+      .exp-card{flex-direction:column;}.exp-cv{width:100%;height:120px;}
+      .topbar{padding:9px 14px;}
     }
   </style>
 </head>
 <body>
 
-<div class="lang-wrap">
-  🌐
-  <select id="langSelect">
-    <option value="kk">Қазақша</option>
-    <option value="ru">Русский</option>
-  </select>
-</div>
+<!-- SIDEBAR -->
+<aside class="sidebar" id="mainSidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-txt"><span class="go">Go</span><span class="tab">TAB</span></div>
+    <div class="sb-logo-sub" data-i18n="dashSub">Студент Кабинеті</div>
+  </div>
 
-<div class="app">
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brandTitle">
-        <div class="name"><img src="images/logo.png" alt="GoTAB" style="height:120px;width:auto;mix-blend-mode:multiply;"></div>
-        <div class="sub" data-i18n="dashSub">Студент Кабинеті</div>
+  <div class="sb-profile">
+    <div class="sb-profile-row">
+      <div class="sb-av" id="avatar">
+        <span id="avatarLetter">G</span>
+        <img id="avatarImg" alt="">
+      </div>
+      <div>
+        <div class="sb-pname" id="pname">Оқушы</div>
+        <div class="sb-pmeta" id="pmeta">ID: —</div>
       </div>
     </div>
+    <div class="sb-pills">
+      <span class="sb-pill" id="pillPkg">Пакет: —</span>
+      <span class="sb-pill" id="pillRole">—</span>
+    </div>
+    <input type="file" id="avatarFile" accept="image/*" style="display:none;">
+  </div>
 
-    <div class="profile">
-      <div class="profileTop">
-        <div class="avatar" id="avatar" title="Фото қою үшін бас">
-          <span id="avatarLetter">G</span>
-          <img id="avatarImg" alt="" style="display:none;">
+  <nav class="sb-nav">
+    <button class="sb-item active" id="goCourseBtn" data-i18n="btnCourse">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Басты бет
+    </button>
+    <button class="sb-item" id="navLessons" onclick="document.getElementById('goCourseBtn').click()">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Менің сабақтарым
+    </button>
+    <button class="sb-item" onclick="scrollTo2({id:'lab-section'})">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Практика
+    </button>
+    <button class="sb-item" onclick="scrollTo2({id:'prof-section'})">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Профиль
+    </button>
+    <div class="sb-divider"></div>
+    <button class="sb-item adm" id="goAdminBtn" style="display:none;">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Admin панель
+    </button>
+    <button class="sb-item" id="refreshBtn" data-i18n="btnRefresh">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Жаңарту
+    </button>
+    <button class="sb-item dng" id="logoutBtn" data-i18n="btnLogout">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Шығу
+    </button>
+  </nav>
+
+  <div class="sb-hint" id="hintText"></div>
+
+  <div class="sb-wave">
+    <svg viewBox="0 0 240 72" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,36 C40,8 80,64 120,36 C160,8 200,64 240,36 L240,72 L0,72 Z" fill="rgba(32,201,243,.1)"/>
+      <path d="M0,50 C50,22 100,68 150,46 C185,32 215,56 240,46 L240,72 L0,72 Z" fill="rgba(37,99,235,.07)"/>
+    </svg>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <header class="topbar">
+    <div class="tb-search">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5A7094" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" placeholder="Тақырып іздеу...">
+    </div>
+    <div class="tb-right">
+      <div class="tb-lang">
+        <select id="langSelect">
+          <option value="kk">Қазақша</option>
+          <option value="ru">Русский</option>
+        </select>
+      </div>
+      <div class="tb-av" id="tbAvMini">G</div>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-text">
+        <div class="hero-greet" id="hello">Сәлем 👋</div>
+        <div class="hero-name">GoTAB — <span id="heroSpan">Математика зертханасы</span></div>
+        <div class="hero-badges">
+          <span class="hero-badge" id="heroPkgBadge">Пакет жүктелуде...</span>
+          <span class="hero-badge gr" id="heroGradeBadge">— сынып</span>
         </div>
-        <div class="pinfo">
-          <div class="pname" id="pname">Оқушы</div>
-          <div class="pmeta" id="pmeta">ID: —</div>
+        <button class="hero-cta" id="heroCourseBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Курсқа өту
+        </button>
+      </div>
+      <img src="images/trophy.png" alt="" class="hero-img">
+    </section>
+
+    <!-- MATH LAB + MODULE PLAN -->
+    <div class="two-col" id="lab-section">
+      <div class="card">
+        <div class="lab-head">
+          <div>
+            <div class="lab-title">🔬 Интерактивті Математика Зертханасы</div>
+            <div class="lab-sub">Квадраттық функция: f(x) = ax² + bx + c</div>
+          </div>
+          <div class="lab-tabs">
+            <button class="lab-tab active" onclick="switchTab('graph',this)">Формула</button>
+            <button class="lab-tab" onclick="switchTab('table',this)">Кесте</button>
+            <button class="lab-tab" onclick="switchTab('props',this)">Қасиеттер</button>
+          </div>
         </div>
-      </div>
-      <div class="pillRow">
-        <div class="pill" id="pillPkg">Пакет: —</div>
-        <div class="pill" id="pillRole">Role: —</div>
-      </div>
-      <div class="avatarHint" data-i18n="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
-      <input type="file" id="avatarFile" accept="image/*" style="display:none;">
-    </div>
 
-    <div class="nav">
-      <!-- ✅ ТЕК 1 БАТЫРМА -->
-      <button id="goCourseBtn" data-i18n="btnCourse">📚 Курсқа өту</button>
+        <div class="lab-formula" id="labFormula">f(x) = x²</div>
 
-      <button class="mutebtn" id="goAdminBtn" style="display:none;">🛠 Admin панель</button>
-      <button class="mutebtn" id="refreshBtn" data-i18n="btnRefresh">🔄 Жаңарту</button>
-      <button class="danger" id="logoutBtn" data-i18n="btnLogout">🚪 Шығу</button>
-    </div>
-
-    <div style="margin-top:10px" class="muted" id="hintText"></div>
-
-    <div class="sidebarMountain">
-      <img src="images/mountain.png" alt="">
-    </div>
-  </aside>
-
-  <main class="content">
-    <section class="topbar">
-      <div class="topText">
-        <div class="hello" id="hello">Сәлем 👋</div>
-        <h1 class="headline" data-i18n="headline">Бұл сенің жеке кабинетің.</h1>
-        <div class="desc" data-i18n="headlineDesc">
-          Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.
+        <div class="lab-graph">
+          <svg id="mathSvg" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#2563EB"/>
+                <stop offset="100%" stop-color="#20C9F3"/>
+              </linearGradient>
+            </defs>
+            <g id="svgGrid"></g>
+            <line id="axX" x1="0" y1="130" x2="500" y2="130" stroke="rgba(37,99,235,.28)" stroke-width="1.2"/>
+            <line id="axY" x1="250" y1="0" x2="250" y2="260" stroke="rgba(37,99,235,.28)" stroke-width="1.2"/>
+            <text x="488" y="126" font-size="10" fill="rgba(37,99,235,.45)" font-family="Inter,Arial">x</text>
+            <text x="255" y="12" font-size="10" fill="rgba(37,99,235,.45)" font-family="Inter,Arial">y</text>
+            <path id="mathCurve" fill="none" stroke="url(#cg)" stroke-width="2.4" stroke-linecap="round"/>
+            <circle id="vxDot" r="5" fill="#2563EB" opacity="0"/>
+          </svg>
         </div>
+
+        <div class="lab-sliders">
+          <div class="sl-row">
+            <div class="sl-lbl"><b>a</b> = <span id="aV">1.0</span></div>
+            <input type="range" id="slA" min="-3" max="3" step="0.1" value="1">
+            <span class="sl-val" id="aDis">1.0</span>
+          </div>
+          <div class="sl-row">
+            <div class="sl-lbl"><b>b</b> = <span id="bV">0.0</span></div>
+            <input type="range" id="slB" min="-5" max="5" step="0.1" value="0">
+            <span class="sl-val" id="bDis">0.0</span>
+          </div>
+          <div class="sl-row">
+            <div class="sl-lbl"><b>c</b> = <span id="cV">0.0</span></div>
+            <input type="range" id="slC" min="-5" max="5" step="0.1" value="0">
+            <span class="sl-val" id="cDis">0.0</span>
+          </div>
+        </div>
+
+        <div class="lab-zoom">
+          <button class="zm-btn" onclick="chgZoom(-1)">−</button>
+          <button class="zm-btn" onclick="chgZoom(1)">+</button>
+          <button class="zm-btn" onclick="rstZoom()" title="Қалпына келтіру">⟳</button>
+        </div>
+
+        <div class="lab-panel active" id="panel-graph"></div>
+        <div class="lab-panel" id="panel-table"><div class="lab-table" id="labTbl"></div></div>
+        <div class="lab-panel" id="panel-props"><div id="labProps"></div></div>
       </div>
 
-      <div class="quick" style="display:flex;align-items:center;gap:12px;">
-        <img src="images/trophy.png" alt="Trophy" style="height:120px;width:auto;mix-blend-mode:screen;">
-        <button class="qbtn secondary" id="openDashboardInfo">ℹ️ Info</button>
+      <!-- MODULE PLAN -->
+      <div class="card">
+        <div class="mp-title">📋 Модуль жоспары</div>
+        <div id="mpList"></div>
+      </div>
+    </div>
+
+    <!-- PARABOLIC MOTION -->
+    <section>
+      <div class="sec-title">🧪 Эксперимент</div>
+      <div class="exp-card">
+        <div class="exp-cv">
+          <canvas id="parabolaCanvas" width="200" height="134"></canvas>
+        </div>
+        <div class="exp-info">
+          <div class="exp-title">Параболалық қозғалыс</div>
+          <div class="exp-desc">Снарядтың траекториясын зерттеңіз. Бастапқы жылдамдық пен бұрышты реттеп, физика заңдарын байқаңыз.</div>
+          <div class="exp-param">
+            <label>Жылдамдық</label>
+            <input type="range" id="expV" min="10" max="50" value="30">
+            <span class="ev" id="expVV">30</span>
+          </div>
+          <div class="exp-param">
+            <label>Бұрыш (°)</label>
+            <input type="range" id="expA" min="10" max="80" value="45">
+            <span class="ev" id="expAV">45</span>
+          </div>
+          <div class="exp-btns">
+            <button class="exp-btn pr" id="expPlayBtn" onclick="togglePar()">▶ Бастау</button>
+            <button class="exp-btn sc" onclick="resetPar()">↺ Қайта</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <section class="grid">
-      <!-- Today plan -->
-      <div class="card" style="grid-column: span 7;">
-        <div class="cardTitle" data-i18n="todayPlan">🗓 Бүгінгі жоспар</div>
-        <div style="margin-bottom:12px">
-          <label for="topicInput" style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" data-i18n="todayLabel">Бүгін қай тақырыпты оқитыныңды жаз</label>
-          <textarea id="topicInput" rows="3" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." data-i18n-placeholder="todayPh" style="width:100%;padding:10px 12px;border-radius:14px;border:1px solid rgba(124,58,237,.18);background:rgba(255,255,255,.85);font-size:13px;resize:vertical;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;line-height:1.5;"></textarea>
-        </div>
-        <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-          <div class="badge neutral" id="todayBadge">0/4</div>
-        </div>
-
-        <div class="checklist" id="todayChecklist"></div>
-
-        <div class="muted" style="margin-top:10px;font-size:11px" data-i18n="todayNote">
-          * Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.
-        </div>
-      </div>
-
-      <!-- Analytics -->
-      <div class="card" style="grid-column: span 5;">
-        <div class="cardTitle" data-i18n="analytics">📈 Аналитика</div>
-
-        <div class="kpi">
-          <div class="kpiBox">
-            <div class="kpiVal" id="kpiAvg">0</div>
-            <div class="kpiLab" data-i18n="kpiAvgLab">Орташа баға</div>
+    <!-- MODELS -->
+    <section>
+      <div class="sec-title">🧩 Интерактивті модельдер</div>
+      <div class="models-grid">
+        <div class="model-card" onclick="document.getElementById('goCourseBtn').click()">
+          <div class="model-thumb">
+            <canvas id="mc1" width="280" height="110"></canvas>
+            <div class="model-ov"></div>
           </div>
-          <div class="kpiBox">
-            <div class="kpiVal" id="kpiDone">0/30</div>
-            <div class="kpiLab" data-i18n="kpiDoneLab">Бағаланған сабақ</div>
-          </div>
-          <div class="kpiBox">
-            <div class="kpiVal" id="kpiGoal">0%</div>
-            <div class="kpiLab" data-i18n="kpiGoalLab">Жалпы прогресс</div>
+          <div class="model-info">
+            <div class="model-nm">Квадраттық функция</div>
+            <div class="model-sb">f(x) = ax² + bx + c параболасы</div>
           </div>
         </div>
-
-        <div class="barWrap" aria-label="progressbar">
-          <div class="bar" id="progressBar"></div>
-        </div>
-
-        <div class="sparkWrap">
-          <div style="flex:1">
-            <div class="rowTitle" style="margin-bottom:4px" data-i18n="last10">Соңғы 10 баға</div>
-            <div class="muted" id="sparkHint">Мини-график (sparkline)</div>
+        <div class="model-card" onclick="document.getElementById('goCourseBtn').click()">
+          <div class="model-thumb">
+            <canvas id="mc2" width="280" height="110"></canvas>
+            <div class="model-ov"></div>
           </div>
-          <canvas id="spark" width="170" height="54"></canvas>
-        </div>
-      </div>
-
-
-      <!-- Recent grades + feedback -->
-      <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle" data-i18n="recentGrades">🏅 Соңғы бағалар</div>
-        <div class="list" id="recentGrades"></div>
-      </div>
-
-      <!-- Achievements -->
-      <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle" data-i18n="achievements">🏆 Жетістіктер</div>
-        <div class="list compactList" id="achievements"></div>
-
-      </div>
-
-      <!-- Notifications -->
-      <div class="card" style="grid-column: span 6;">
-        <div class="cardTitle" data-i18n="notifications">🔔 Хабарламалар</div>
-        <div class="muted" data-i18n="notifNote">Жаңа баға/файл/мақсат — осында шығады.</div>
-        <div class="list compactList" id="notifications"></div>
-      </div>
-
-      <div class="card" style="grid-column: span 6;" id="feedbackCard">
-        <div class="cardTitle" id="feedbackCardTitle">💬 Мұғалім пікірі</div>
-
-        <!-- Student view: teacher block-feedback (unchanged) -->
-        <div id="teacherFbSection">
-          <div id="feedbackList" class="list"></div>
-        </div>
-
-        <!-- Student compose: write to teacher (hidden in preview/admin) -->
-        <div id="studentComposeWrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(47,107,255,.08)">
-          <div style="font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" id="myMsgsLbl">Менің хабарламаларым</div>
-          <div id="studentSentList" class="list" style="max-height:100px;overflow:auto;margin-bottom:8px"></div>
-          <div style="display:flex;gap:8px;align-items:flex-end;margin-top:4px">
-            <textarea id="studentMsgInput" rows="2" style="flex:1;padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.16);background:rgba(255,255,255,.9);font-size:13px;font-family:inherit;resize:none;outline:none;color:var(--text)"></textarea>
-            <button id="studentMsgSendBtn" style="padding:10px 14px;border:none;border-radius:12px;background:linear-gradient(90deg,#2F6BFF,#1DE9B6);color:white;font-weight:800;font-size:13px;cursor:pointer;flex-shrink:0">Жіберу</button>
-          </div>
-          <div id="studentMsgStatus" style="font-size:11px;color:var(--good);margin-top:4px;min-height:14px"></div>
-        </div>
-
-        <!-- Admin Preview: student messages + reply (hidden for students/admin) -->
-        <div id="adminPreviewWrap" style="display:none">
-          <div id="conversationList" class="list" style="max-height:200px;overflow:auto;margin-bottom:10px"></div>
-          <div style="padding-top:10px;border-top:1px solid rgba(47,107,255,.08)">
-            <div style="display:flex;gap:8px;align-items:flex-end">
-              <textarea id="adminReplyInput" rows="2" style="flex:1;padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.16);background:rgba(255,255,255,.9);font-size:13px;font-family:inherit;resize:none;outline:none;color:var(--text)"></textarea>
-              <button id="adminReplyBtn" style="padding:10px 14px;border:none;border-radius:12px;background:linear-gradient(90deg,#2F6BFF,#1DE9B6);color:white;font-weight:800;font-size:13px;cursor:pointer;flex-shrink:0">Жауап</button>
-            </div>
-            <div id="adminReplyStatus" style="font-size:11px;color:var(--good);margin-top:4px;min-height:14px"></div>
+          <div class="model-info">
+            <div class="model-nm">Геометриялық құралдар</div>
+            <div class="model-sb">Фигуралар мен аудандар</div>
           </div>
         </div>
-      </div>
-
-      <!-- Profile / Support -->
-      <div class="card supportCard" style="grid-column: span 12;">
-        <div class="cardTitle" data-i18n="profileSupport">👤 Профиль және қолдау</div>
-
-        <div class="supportRow">
-          <a class="primary" href="#" id="openCourseFromProfile" data-i18n="btnCourse">📚 Курсқа өту</a>
-          <a href="#" id="copyStudentIdBtn" data-i18n="copyIdBtn">🧾 Student ID көшіру</a>
-          <a href="https://t.me/" target="_blank" rel="noopener">💬 Telegram</a>
-          <a href="https://wa.me/77055894347" target="_blank" rel="noopener">🟢 WhatsApp</a>
-          <a href="#" id="instagramBtn" target="_blank" rel="noopener">📸 Instagram</a>
-        </div>
-
-        <div id="copySuccessMsg" style="display:none;margin-top:8px;font-size:12px;color:var(--good);font-weight:800" data-i18n="copiedMsg">
-          Student ID көшірілді ✅
+        <div class="model-card" onclick="document.getElementById('goCourseBtn').click()">
+          <div class="model-thumb">
+            <canvas id="mc3" width="280" height="110"></canvas>
+            <div class="model-ov"></div>
+          </div>
+          <div class="model-info">
+            <div class="model-nm">Параметрлерді зерттеу</div>
+            <div class="model-sb">Функция трансформациялары</div>
+          </div>
         </div>
       </div>
     </section>
-  </main>
+
+    <!-- RECENT TOPICS + PROFILE -->
+    <section id="prof-section">
+      <div class="sec-title">📚 Соңғы тақырыптар</div>
+      <div class="topics-grid">
+        <div class="topic-chip"><div class="topic-icon">∫</div><div><div class="topic-nm">Квадраттық функция</div><div class="topic-sb">7-сынып • Алгебра</div></div></div>
+        <div class="topic-chip"><div class="topic-icon">△</div><div><div class="topic-nm">Теңдеулер жүйесі</div><div class="topic-sb">8-сынып • Алгебра</div></div></div>
+        <div class="topic-chip"><div class="topic-icon">π</div><div><div class="topic-nm">Тригонометрия</div><div class="topic-sb">9-сынып • Алгебра</div></div></div>
+        <div class="topic-chip"><div class="topic-icon">⊿</div><div><div class="topic-nm">Параллелограмм</div><div class="topic-sb">8-сынып • Геометрия</div></div></div>
+      </div>
+      <div class="prof-actions">
+        <button class="pa-btn" onclick="document.getElementById('goCourseBtn').click()">📚 Курсқа өту</button>
+        <a href="#" class="pa-link" id="copyStudentIdBtn">🧾 Student ID</a>
+        <a href="https://wa.me/77055894347" target="_blank" rel="noopener" class="pa-link">🟢 WhatsApp</a>
+        <a href="#" class="pa-link" id="instagramBtn" target="_blank" rel="noopener">📸 Instagram</a>
+        <a href="#" class="pa-link" id="openCourseFromProfile">📖 Курс</a>
+      </div>
+      <div id="copySuccessMsg" style="display:none;margin-top:6px;font-size:12px;color:var(--good);font-weight:800;">Student ID көшірілді ✅</div>
+    </section>
+
+  </div><!-- /page -->
+</div><!-- /main -->
+
+<!-- HIDDEN COMPAT — keeps all DOM IDs the original JS writes to -->
+<div style="display:none" aria-hidden="true">
+  <textarea id="topicInput"></textarea>
+  <div id="todayBadge"></div>
+  <div id="todayChecklist"></div>
+  <div id="kpiAvg"></div>
+  <div id="kpiDone"></div>
+  <div id="kpiGoal"></div>
+  <div id="progressBar"></div>
+  <canvas id="spark" width="170" height="54"></canvas>
+  <div id="sparkHint"></div>
+  <div id="recentGrades"></div>
+  <div id="achievements"></div>
+  <div id="notifications"></div>
+  <div id="feedbackList"></div>
+  <div id="feedbackCardTitle"></div>
+  <div id="teacherFbSection"></div>
+  <div id="studentComposeWrap">
+    <div id="myMsgsLbl"></div>
+    <div id="studentSentList"></div>
+    <textarea id="studentMsgInput"></textarea>
+    <button id="studentMsgSendBtn"></button>
+    <div id="studentMsgStatus"></div>
+  </div>
+  <div id="adminPreviewWrap">
+    <div id="conversationList"></div>
+    <textarea id="adminReplyInput"></textarea>
+    <button id="adminReplyBtn"></button>
+    <div id="adminReplyStatus"></div>
+  </div>
+  <div id="profileLine"></div>
+  <div id="profileSub"></div>
+  <span id="netBadge"></span>
+  <button id="openDashboardInfo"></button>
+  <div id="uploadStatuses"></div>
 </div>
+
+<!-- NEW UI JS -->
+<script>
+function scrollTo2(o){var e=document.getElementById(o.id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'});}
+
+// Lang select
+(function(){
+  var ls=document.getElementById('langSelect');
+  if(!ls)return;
+  ls.value=localStorage.getItem('lang')||'kk';
+  ls.addEventListener('change',function(){localStorage.setItem('lang',ls.value);window.location.reload();});
+})();
+
+// Hero course btn — delegates to goCourseBtn after it is wired by original JS
+document.getElementById('heroCourseBtn').addEventListener('click',function(){
+  document.getElementById('goCourseBtn').click();
+});
+
+// ===== MATH LAB =====
+var labZoom=1, labA=1, labB=0, labC=0;
+
+function updateLab(){
+  labA=parseFloat(document.getElementById('slA').value);
+  labB=parseFloat(document.getElementById('slB').value);
+  labC=parseFloat(document.getElementById('slC').value);
+  var a=labA,b=labB,c=labC;
+  document.getElementById('aV').textContent=a.toFixed(1);
+  document.getElementById('bV').textContent=b.toFixed(1);
+  document.getElementById('cV').textContent=c.toFixed(1);
+  document.getElementById('aDis').textContent=a.toFixed(1);
+  document.getElementById('bDis').textContent=b.toFixed(1);
+  document.getElementById('cDis').textContent=c.toFixed(1);
+  // Formula string
+  var f='f(x) = ';
+  if(a!==0){f+=(a===1?'':(a===-1?'-':a.toFixed(1)))+'x²';}
+  if(b>0){f+=' + '+(b===1?'':b.toFixed(1))+'x';}
+  else if(b<0){f+=' − '+(b===-1?'':Math.abs(b).toFixed(1))+'x';}
+  if(c>0){f+=' + '+c.toFixed(1);}
+  else if(c<0){f+=' − '+Math.abs(c).toFixed(1);}
+  if(a===0&&b===0){f='f(x) = '+c.toFixed(1);}
+  document.getElementById('labFormula').textContent=f;
+  drawCurve(a,b,c);
+  buildTable(a,b,c);
+  buildProps(a,b,c);
+}
+
+function drawCurve(a,b,c){
+  var W=500,H=260,cx=250,cy=130,sc=28*labZoom;
+  var grid=document.getElementById('svgGrid');
+  grid.innerHTML='';
+  var ns='http://www.w3.org/2000/svg';
+  for(var xi=-8;xi<=8;xi++){
+    var px=cx+xi*sc;
+    var gl=document.createElementNS(ns,'line');
+    gl.setAttribute('x1',px);gl.setAttribute('y1',0);gl.setAttribute('x2',px);gl.setAttribute('y2',H);
+    gl.setAttribute('stroke','rgba(37,99,235,.07)');gl.setAttribute('stroke-width','0.5');
+    grid.appendChild(gl);
+    if(xi!==0){var gt=document.createElementNS(ns,'text');gt.setAttribute('x',px-4);gt.setAttribute('y',cy+13);gt.setAttribute('font-size','8');gt.setAttribute('fill','rgba(37,99,235,.35)');gt.setAttribute('font-family','Inter,Arial');gt.textContent=xi;grid.appendChild(gt);}
+  }
+  for(var yi=-4;yi<=4;yi++){
+    var py=cy+yi*sc;
+    var yl=document.createElementNS(ns,'line');
+    yl.setAttribute('x1',0);yl.setAttribute('y1',py);yl.setAttribute('x2',W);yl.setAttribute('y2',py);
+    yl.setAttribute('stroke','rgba(37,99,235,.07)');yl.setAttribute('stroke-width','0.5');
+    grid.appendChild(yl);
+    if(yi!==0){var yt=document.createElementNS(ns,'text');yt.setAttribute('x',cx+3);yt.setAttribute('y',py+3);yt.setAttribute('font-size','8');yt.setAttribute('fill','rgba(37,99,235,.35)');yt.setAttribute('font-family','Inter,Arial');yt.textContent=-yi;grid.appendChild(yt);}
+  }
+  var xS=-W/(2*sc)-1,xE=W/(2*sc)+1,steps=240,dx=(xE-xS)/steps,d='';
+  for(var i=0;i<=steps;i++){var xv=xS+i*dx,yv=a*xv*xv+b*xv+c,ppx=cx+xv*sc,ppy=cy-yv*sc;d+=(i===0?'M ':' L ')+ppx.toFixed(2)+' '+ppy.toFixed(2);}
+  document.getElementById('mathCurve').setAttribute('d',d);
+  var dot=document.getElementById('vxDot');
+  if(a!==0){var vx=-b/(2*a),vy=a*vx*vx+b*vx+c;dot.setAttribute('cx',(cx+vx*sc).toFixed(2));dot.setAttribute('cy',(cy-vy*sc).toFixed(2));dot.setAttribute('opacity','1');}
+  else{dot.setAttribute('opacity','0');}
+}
+
+function buildTable(a,b,c){
+  var xs=[-4,-3,-2,-1,0,1,2,3,4],h='<table><tr><th>x</th>';
+  xs.forEach(function(x){h+='<th>'+x+'</th>';});
+  h+='</tr><tr><th>f(x)</th>';
+  xs.forEach(function(x){h+='<td>'+(a*x*x+b*x+c).toFixed(1)+'</td>';});
+  h+='</tr></table>';
+  document.getElementById('labTbl').innerHTML=h;
+}
+
+function buildProps(a,b,c){
+  var ps=[];
+  if(a!==0){
+    var vx=-b/(2*a),vy=a*vx*vx+b*vx+c,disc=b*b-4*a*c;
+    var dir=a>0?'Жоғары (минимум)':'Төмен (максимум)';
+    var roots=disc<0?'Нақты тамырлар жоқ':disc===0?'x = '+(-b/(2*a)).toFixed(2):'x₁='+( (-b+Math.sqrt(disc))/(2*a) ).toFixed(2)+', x₂='+( (-b-Math.sqrt(disc))/(2*a) ).toFixed(2);
+    ps=[['Ашылу бағыты',dir],['Төбе нүктесі','('+vx.toFixed(2)+', '+vy.toFixed(2)+')'],['Симметрия осі','x = '+vx.toFixed(2)],['Дискриминант','D = '+disc.toFixed(2)],['Тамырлар',roots],['OY-мен қиылысу','y = '+c.toFixed(2)]];
+  }else{ps=[['Функция түрі','Сызықтық (a=0)'],['f(x)',b.toFixed(1)+'x + '+c.toFixed(1)]];}
+  document.getElementById('labProps').innerHTML=ps.map(function(p){return'<div class="prop-row"><span class="prop-k">'+p[0]+'</span><span class="prop-v">'+p[1]+'</span></div>';}).join('');
+}
+
+function switchTab(tab,btn){
+  document.querySelectorAll('.lab-tab').forEach(function(t){t.classList.remove('active');});
+  btn.classList.add('active');
+  document.querySelectorAll('.lab-panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('panel-'+tab).classList.add('active');
+}
+
+function chgZoom(d){labZoom=Math.max(0.4,Math.min(3,labZoom+d*0.2));drawCurve(labA,labB,labC);}
+function rstZoom(){labZoom=1;drawCurve(labA,labB,labC);}
+
+document.getElementById('slA').addEventListener('input',updateLab);
+document.getElementById('slB').addEventListener('input',updateLab);
+document.getElementById('slC').addEventListener('input',updateLab);
+updateLab();
+
+// ===== PARABOLA EXPERIMENT =====
+var parT=0,parRun=false,parRaf=null;
+
+function drawParFrame(){
+  var cv=document.getElementById('parabolaCanvas'),ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  var g=9.8,v0=parseFloat(document.getElementById('expV').value),ang=parseFloat(document.getElementById('expA').value)*Math.PI/180;
+  var vx=v0*Math.cos(ang),vy0=v0*Math.sin(ang),sc=Math.min(W,H)*0.016,baseY=H-10;
+  ctx.clearRect(0,0,W,H);
+  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0a1628');bg.addColorStop(1,'#1a2a5e');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(32,201,243,.28)';ctx.lineWidth=0.8;ctx.beginPath();ctx.moveTo(0,baseY);ctx.lineTo(W,baseY);ctx.stroke();
+  var tMax=2*vy0/g;
+  ctx.strokeStyle='rgba(32,201,243,.18)';ctx.lineWidth=0.8;ctx.setLineDash([3,3]);ctx.beginPath();
+  var st=false;
+  for(var tt=0;tt<=tMax+0.05;tt+=0.04){
+    var ppx=5+vx*tt*sc,ppy=baseY-(vy0*tt*sc-0.5*g*tt*tt*sc);
+    if(ppy>baseY)break;
+    if(!st){ctx.moveTo(ppx,ppy);st=true;}else ctx.lineTo(ppx,ppy);
+  }
+  ctx.stroke();ctx.setLineDash([]);
+  var px=5+vx*parT*sc,py=baseY-(vy0*parT*sc-0.5*g*parT*parT*sc);
+  if(py<=baseY){
+    var gr=ctx.createRadialGradient(px,py,0,px,py,8);gr.addColorStop(0,'rgba(32,201,243,.85)');gr.addColorStop(1,'transparent');
+    ctx.fillStyle=gr;ctx.beginPath();ctx.arc(px,py,8,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#20C9F3';ctx.beginPath();ctx.arc(px,py,3.5,0,Math.PI*2);ctx.fill();
+  }
+}
+
+function togglePar(){
+  var btn=document.getElementById('expPlayBtn');
+  if(parRun){parRun=false;cancelAnimationFrame(parRaf);btn.textContent='▶ Жалғастыру';}
+  else{
+    parRun=true;btn.textContent='⏸ Тоқтату';
+    var g=9.8,v0=parseFloat(document.getElementById('expV').value),ang=parseFloat(document.getElementById('expA').value)*Math.PI/180;
+    var vy0=v0*Math.sin(ang),tMax=2*vy0/g;
+    (function step(){parT+=0.035;drawParFrame();if(parT>=tMax+0.05){parRun=false;btn.textContent='▶ Бастау';return;}parRaf=requestAnimationFrame(step);})();
+  }
+}
+function resetPar(){cancelAnimationFrame(parRaf);parRun=false;parT=0;document.getElementById('expPlayBtn').textContent='▶ Бастау';drawParFrame();}
+document.getElementById('expV').addEventListener('input',function(){document.getElementById('expVV').textContent=this.value;if(!parRun)drawParFrame();});
+document.getElementById('expA').addEventListener('input',function(){document.getElementById('expAV').textContent=this.value;if(!parRun)drawParFrame();});
+resetPar();
+
+// ===== MODEL THUMBNAILS =====
+function drawMC1(){
+  var c=document.getElementById('mc1');if(!c)return;
+  var ctx=c.getContext('2d'),W=c.width,H=c.height;
+  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0f1a3d');bg.addColorStop(1,'#162979');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=0.6;
+  ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();
+  var gr=ctx.createLinearGradient(0,0,W,0);gr.addColorStop(0,'#2563EB');gr.addColorStop(1,'#20C9F3');
+  ctx.strokeStyle=gr;ctx.lineWidth=2.2;ctx.beginPath();
+  for(var x=0;x<=W;x++){var xv=(x-W/2)/26,yv=0.8*xv*xv-1.5,py=H/2-yv*26;if(x===0)ctx.moveTo(x,py);else ctx.lineTo(x,py);}
+  ctx.stroke();
+}
+function drawMC2(){
+  var c=document.getElementById('mc2');if(!c)return;
+  var ctx=c.getContext('2d'),W=c.width,H=c.height;
+  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0f1a3d');bg.addColorStop(1,'#162979');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='rgba(32,214,199,.75)';ctx.lineWidth=1.8;ctx.beginPath();ctx.arc(W/2,H/2,32,0,Math.PI*2);ctx.stroke();
+  ctx.strokeStyle='rgba(32,201,243,.6)';ctx.lineWidth=1.4;ctx.beginPath();
+  ctx.moveTo(W/2,H/2-32);ctx.lineTo(W/2+32*Math.cos(7*Math.PI/6),H/2-32*Math.sin(7*Math.PI/6));ctx.lineTo(W/2+32*Math.cos(11*Math.PI/6),H/2-32*Math.sin(11*Math.PI/6));ctx.closePath();ctx.stroke();
+  ctx.strokeStyle='rgba(255,255,255,.15)';ctx.lineWidth=0.8;ctx.strokeRect(W/2-42,H/2+36,84,20);
+}
+function drawMC3(){
+  var c=document.getElementById('mc3');if(!c)return;
+  var ctx=c.getContext('2d'),W=c.width,H=c.height;
+  var bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0f1a3d');bg.addColorStop(1,'#162979');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  [[2,'rgba(37,99,235,.65)'],[1,'rgba(32,201,243,.8)'],[0.5,'rgba(32,214,199,.7)']].forEach(function(p){
+    ctx.strokeStyle=p[1];ctx.lineWidth=1.4;ctx.beginPath();
+    for(var x=0;x<=W;x++){var xv=(x-W/2)/24,yv=p[0]*xv*xv-2,py=H/2-yv*20;if(x===0)ctx.moveTo(x,py);else ctx.lineTo(x,py);}
+    ctx.stroke();
+  });
+}
+drawMC1();drawMC2();drawMC3();
+
+// ===== MODULE PLAN =====
+function renderMP(cur){
+  var list=document.getElementById('mpList');if(!list)return;
+  var html='';
+  for(var i=1;i<=8;i++){
+    var dn=i<cur,is=i===cur;
+    var dc=dn?'dn':is?'cur':'lk',ic=dn?'✓':is?String(i):'—';
+    var tc=dn?'dn':is?'cur':'lk',tt=dn?'✓':is?'▶':'🔒';
+    var sub=dn?'Аяқталды':is?'Үстінде':'Жабық';
+    html+='<div class="mp-item'+(is?' cur':'')+'"><div class="mp-dot '+dc+'">'+ic+'</div><div class="mp-info"><div class="mp-nm">Сабақ '+i+'</div><div class="mp-sb">'+sub+'</div></div><span class="mp-tag '+tc+'">'+tt+'</span></div>';
+  }
+  list.innerHTML=html;
+}
+renderMP(1);
+
+// ===== HERO SYNC (updates after original JS fills profile) =====
+(function(){
+  var pkgEl=document.getElementById('pillPkg');
+  if(!pkgEl)return;
+  var obs=new MutationObserver(function(){
+    var pkg=(pkgEl.textContent||'').replace('Пакет: ','').trim();
+    var badge=document.getElementById('heroPkgBadge');
+    if(badge&&pkg&&pkg!=='—')badge.textContent=pkg;
+    var meta=(document.getElementById('pmeta')||{}).textContent||'';
+    var gr=document.getElementById('heroGradeBadge');
+    if(gr&&meta){var m=meta.match(/(\d+)\s*сынып/);if(m)gr.textContent=m[1]+'-сынып';}
+    // Also mirror avatar letter to topbar mini
+    var av=(document.getElementById('avatar')||{});
+    var letter=(av.textContent||'G').trim().slice(0,1)||'G';
+    var tb=document.getElementById('tbAvMini');if(tb)tb.textContent=letter;
+  });
+  obs.observe(pkgEl,{childList:true,characterData:true,subtree:true});
+  // Also watch pname for hero span
+  var pn=document.getElementById('pname');
+  if(pn){obs.observe(pn,{childList:true,characterData:true,subtree:true});}
+})();
+</script>
 
 <script src="lang.js"></script>
 <script>
@@ -597,7 +727,7 @@ const GOTAB_INSTAGRAM_URL = "PUT_INSTAGRAM_LINK_HERE";
   // =========================================================
   // 0) ADMIN PREVIEW
   // =========================================================
- 
+
 const params = new URLSearchParams(window.location.search);
 const previewStudentId = params.get("previewStudentId");
 
@@ -639,7 +769,7 @@ let email = "";
   effectiveGrade = Number(sessionUser.grade || 5);
   init();
 })();
- 
+
 
   // =========================================================
   // 1.5) EFFECTIVE PROFILE VARS  ✅ MUST be BEFORE helpers
@@ -1032,6 +1162,10 @@ window.pingStreakServer = pingStreakServer;
     }
 
     setHelloText();
+
+    // Update hero grade badge
+    const grBadge = document.getElementById("heroGradeBadge");
+    if(grBadge && effectiveGrade) grBadge.textContent = effectiveGrade + "-сынып";
   }
 
   // =========================================================
@@ -1099,7 +1233,7 @@ window.pingStreakServer = pingStreakServer;
     }
   });
 }
-    
+
 
     const infoBtn = document.getElementById("openDashboardInfo");
     if(infoBtn){
@@ -1166,7 +1300,7 @@ window.pingStreakServer = pingStreakServer;
 
   return [5];
 }
- 
+
   async function renderKpiAndSpark(){
   const serverProg = await fetchServerProgress();
 
@@ -1238,6 +1372,10 @@ window.pingStreakServer = pingStreakServer;
     subject: x.subject,
     blockNumber: x.blockNumber
   }));
+
+  // Update module plan with real lesson progress
+  const nextLesson = getNextLesson(progressValues);
+  if(typeof renderMP === 'function') renderMP(nextLesson);
 
   return { avg, progressValues, grades, totalBlocks, gradedCount: cnt, serverProg };
 }
@@ -1351,7 +1489,6 @@ function renderTodayPlan(progressValues, activityData){
   items.forEach(it=>{
     const row = document.createElement("div");
     row.className = "checkItem";
-    // Use server activity data when available; fall back to localStorage
     const isChecked = activityData ? !!activityData[it.k] : plan.items[it.k];
     row.innerHTML = `
       <input type="checkbox" ${isChecked ? "checked":""} disabled />
@@ -1393,14 +1530,14 @@ function renderTodayPlan(progressValues, activityData){
   async function fetchServerProgress(){
   const sid = effectiveStudentId;
   if(!sid) return {};
-  
+
   const res = await fetch(
   `/api/progress/summary?studentId=${encodeURIComponent(sid)}&course=${encodeURIComponent(getPkgAPI())}`,
   {
     credentials:"include",
     cache:"no-store"
   }
-); 
+);
 
   const data = await res.json().catch(()=>null);
   return (data && data.ok && data.data) ? data.data : {};
@@ -1513,8 +1650,6 @@ function renderTodayPlan(progressValues, activityData){
   }
 
   function getMonthlyCompletedLessons(serverProg){
-    // placeholder: filters by grade > 0 as proxy for completion
-    // when per-date tracking is added, filter by current month here
     if(!serverProg) return 0;
     return Object.values(serverProg).filter(item => Number(item?.grade ?? 0) > 0).length;
   }
@@ -1724,7 +1859,6 @@ function initFeedbackCard() {
     if (replyBtn)   replyBtn.textContent   = _tL.sendBtn || "Жіберу";
 
     loadConversation();
-    // Poll for new student messages every 12 seconds in admin preview
     const _adminMsgPoll = setInterval(() => {
       if (document.getElementById("conversationList")) loadConversation();
     }, 12000);
@@ -1770,7 +1904,6 @@ function initFeedbackCard() {
     if (msgInput)  msgInput.placeholder     = _tL.msgPhStudent || "Мұғалімге жазыңыз...";
 
     loadConversation();
-    // Poll for new messages every 12 seconds while card is visible
     const _msgPollInterval = setInterval(() => {
       if (document.getElementById("studentComposeWrap")) loadConversation();
     }, 12000);
@@ -1809,9 +1942,8 @@ function initFeedbackCard() {
 // 14) Init
 // =========================================================
 async function init(){
-  await loadStudentInfoIfPreview(); // ✅ алдымен package анықталсын
+  await loadStudentInfoIfPreview();
 
-  // ✅ migrate AFTER package is final
   migrateOldKeyToNew("progressValues");
   migrateOldKeyToNew("feedback");
   migrateOldKeyToNew("uploadCount");
@@ -1867,7 +1999,7 @@ window.__dash = {
 // 15) Checklist auto-refresh
 // =========================================================
 async function refreshChecklist() {
-  if (isAdmin && !isPreview) return; // pure admin view has no checklist
+  if (isAdmin && !isPreview) return;
   try {
     const activityData = isPreview
       ? await getStudentActivityForPreview()
@@ -1894,12 +2026,12 @@ async function refreshChecklist() {
   } catch (_) {}
 }
 
-// Refresh when student switches back to this tab (after completing actions on blocks page)
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) refreshChecklist();
 });
-// Polling fallback every 30 seconds
 setInterval(refreshChecklist, 30000);
 
 })();
 </script>
+</body>
+</html>
