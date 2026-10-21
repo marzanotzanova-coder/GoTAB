@@ -175,6 +175,32 @@
     .pa-link{padding:8px 14px;border-radius:9px;border:1px solid rgba(37,99,235,.18);color:var(--primary);font-weight:700;font-size:12px;text-decoration:none;transition:.14s;}
     .pa-link:hover{background:rgba(37,99,235,.06);}
 
+    /* TODAY PLAN CARD */
+    .today-card{background:linear-gradient(135deg,var(--navy) 0%,#162979 60%,#1a3a8f 100%);border-radius:18px;overflow:hidden;box-shadow:0 6px 24px rgba(37,99,235,.18);}
+    .today-head{padding:18px 22px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.08);}
+    .today-head-left{flex:1;}
+    .today-title-txt{font-size:15px;font-weight:900;color:white;}
+    .today-topic-area{margin-top:4px;}
+    .today-topic-area textarea{width:100%;padding:7px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);font-size:12px;resize:none;font-family:inherit;color:white;outline:none;line-height:1.45;box-sizing:border-box;}
+    .today-topic-area textarea::placeholder{color:rgba(255,255,255,.35);}
+    .today-badge-wrap{flex-shrink:0;}
+    .today-progress-badge{font-size:13px;font-weight:900;padding:8px 14px;border-radius:999px;background:rgba(32,201,243,.18);border:1px solid rgba(32,201,243,.3);color:var(--cyan);}
+    .today-steps{padding:14px 22px 16px;display:flex;flex-direction:column;gap:10px;}
+    .today-step{display:flex;align-items:center;gap:14px;}
+    .step-circle{width:28px;height:28px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,.25);background:transparent;display:flex;align-items:center;justify-content:center;transition:.3s;}
+    .step-circle.done{background:linear-gradient(135deg,var(--cyan),var(--turq));border-color:transparent;}
+    .step-circle.done::after{content:"✓";font-size:13px;font-weight:900;color:white;}
+    .step-label{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);transition:.2s;}
+    .step-label.done{color:white;}
+    .today-note-txt{padding:0 22px 14px;font-size:11px;color:rgba(255,255,255,.3);}
+    #todayBadge{font-size:13px!important;font-weight:900!important;padding:8px 14px!important;border-radius:999px!important;background:rgba(32,201,243,.18)!important;border:1px solid rgba(32,201,243,.3)!important;color:var(--cyan)!important;white-space:nowrap;}
+    /* hide old-style checkItem (used by original JS renderer) */
+    #todayChecklist .checkItem{background:transparent!important;border:none!important;padding:0!important;gap:14px!important;}
+    #todayChecklist .checkItem input[type=checkbox]{-webkit-appearance:none;appearance:none;width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.25);background:transparent;flex-shrink:0;cursor:default;transition:.3s;}
+    #todayChecklist .checkItem input[type=checkbox]:checked{background:linear-gradient(135deg,#20C9F3,#20D6C7);border-color:transparent;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-size:60%;background-repeat:no-repeat;background-position:center;}
+    #todayChecklist .checkItem div{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);}
+    #todayChecklist .checkItem:has(input:checked) div{color:white;}
+
     /* RESPONSIVE */
     @media(max-width:1100px){.two-col{grid-template-columns:1fr;}.models-grid{grid-template-columns:repeat(2,1fr);}}
     @media(max-width:768px){
@@ -362,17 +388,20 @@
     </div>
 
     <!-- БҮГІНГІ ЖОСПАР -->
-    <div class="card" style="max-width:100%">
-      <div style="font-weight:900;font-size:14px;margin-bottom:12px;color:var(--text)" data-i18n="todayPlan">🗓 Бүгінгі жоспар</div>
-      <div style="margin-bottom:12px">
-        <label for="topicInput" style="display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px" data-i18n="todayLabel">Бүгін қай тақырыпты оқитыныңды жаз</label>
-        <textarea id="topicInput" rows="3" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." style="width:100%;padding:10px 12px;border-radius:12px;border:1px solid rgba(37,99,235,.16);background:rgba(255,255,255,.9);font-size:13px;resize:vertical;font-family:inherit;color:var(--text);outline:none;box-sizing:border-box;line-height:1.5;"></textarea>
+    <div class="today-card">
+      <div class="today-head">
+        <div class="today-head-left">
+          <div class="today-title-txt">🗓 Бүгінгі жоспар</div>
+          <div class="today-topic-area">
+            <textarea id="topicInput" rows="2" placeholder="Бүгінгі тақырыпты жаз..." data-i18n-placeholder="todayPh"></textarea>
+          </div>
+        </div>
+        <div class="today-badge-wrap">
+          <div class="today-progress-badge" id="todayBadge">0/4</div>
+        </div>
       </div>
-      <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
-        <div id="todayBadge" style="font-size:12px;font-weight:800;padding:6px 12px;border-radius:999px;background:rgba(37,99,235,.1);color:var(--primary);border:1px solid rgba(37,99,235,.18)">0/4</div>
-      </div>
-      <div id="todayChecklist" style="display:flex;flex-direction:column;gap:8px;"></div>
-      <div style="margin-top:10px;font-size:11px;color:var(--muted)" data-i18n="todayNote">* Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.</div>
+      <div class="today-steps" id="todayChecklist"></div>
+      <div class="today-note-txt">* Қадамдар автоматты белгіленеді — видео, тапсырма, сынақ, ЖИ</div>
     </div>
 
     <!-- profile action IDs kept for JS compat, rendered invisibly below -->
