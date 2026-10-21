@@ -432,24 +432,7 @@
       </div>
     </section>
 
-    <!-- RECENT TOPICS + PROFILE -->
-    <section id="prof-section">
-      <div class="sec-title">📚 Соңғы тақырыптар</div>
-      <div class="topics-grid">
-        <div class="topic-chip"><div class="topic-icon">∫</div><div><div class="topic-nm">Квадраттық функция</div><div class="topic-sb">7-сынып • Алгебра</div></div></div>
-        <div class="topic-chip"><div class="topic-icon">△</div><div><div class="topic-nm">Теңдеулер жүйесі</div><div class="topic-sb">8-сынып • Алгебра</div></div></div>
-        <div class="topic-chip"><div class="topic-icon">π</div><div><div class="topic-nm">Тригонометрия</div><div class="topic-sb">9-сынып • Алгебра</div></div></div>
-        <div class="topic-chip"><div class="topic-icon">⊿</div><div><div class="topic-nm">Параллелограмм</div><div class="topic-sb">8-сынып • Геометрия</div></div></div>
-      </div>
-      <div class="prof-actions">
-        <button class="pa-btn" onclick="document.getElementById('goCourseBtn').click()">📚 Курсқа өту</button>
-        <a href="#" class="pa-link" id="copyStudentIdBtn">🧾 Student ID</a>
-        <a href="https://wa.me/77055894347" target="_blank" rel="noopener" class="pa-link">🟢 WhatsApp</a>
-        <a href="#" class="pa-link" id="instagramBtn" target="_blank" rel="noopener">📸 Instagram</a>
-        <a href="#" class="pa-link" id="openCourseFromProfile">📖 Курс</a>
-      </div>
-      <div id="copySuccessMsg" style="display:none;margin-top:6px;font-size:12px;color:var(--good);font-weight:800;">Student ID көшірілді ✅</div>
-    </section>
+    <!-- profile action IDs kept for JS compat, rendered invisibly below -->
 
   </div><!-- /page -->
 </div><!-- /main -->
@@ -489,6 +472,10 @@
   <span id="netBadge"></span>
   <button id="openDashboardInfo"></button>
   <div id="uploadStatuses"></div>
+  <a href="#" id="copyStudentIdBtn"></a>
+  <a href="#" id="instagramBtn"></a>
+  <a href="#" id="openCourseFromProfile"></a>
+  <div id="copySuccessMsg"></div>
 </div>
 
 <!-- NEW UI JS -->
