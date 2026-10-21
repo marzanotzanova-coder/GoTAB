@@ -2751,13 +2751,15 @@ app.post("/api/student/mark-video-watched", requireStudent, async (req, res) => 
 async function queryStudentActivity(studentId) {
   const key = sbKey();
   const h = { apikey: key, Authorization: `Bearer ${key}` };
+  const todayStr   = new Date().toISOString().slice(0, 10);          // "YYYY-MM-DD"
+  const todayStart = `${todayStr}T00:00:00.000Z`;
   const [sigR, progR, quizR, aiR] = await Promise.all([
-    // Primary: explicit activity signals
-    fetch(`${SUPABASE_URL}/rest/v1/notifications?select=type&student_id=eq.${encodeURIComponent(studentId)}&type=in.(act_watched,act_uploaded,act_tested,act_ai,daily_watch)&limit=20`, { headers: h }),
-    // Fallback: actual tables
-    fetch(`${SUPABASE_URL}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&limit=100`, { headers: h }),
-    fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
-    fetch(`${SUPABASE_URL}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&limit=1`, { headers: h }),
+    // Primary: explicit activity signals — today only
+    fetch(`${SUPABASE_URL}/rest/v1/notifications?select=type&student_id=eq.${encodeURIComponent(studentId)}&type=in.(act_watched,act_uploaded,act_tested,act_ai,daily_watch)&created_at=gte.${todayStart}&limit=20`, { headers: h }),
+    // Fallback: actual tables — today only
+    fetch(`${SUPABASE_URL}/rest/v1/progress?select=status&student_id=eq.${encodeURIComponent(studentId)}&updated_at=gte.${todayStart}&limit=100`, { headers: h }),
+    fetch(`${SUPABASE_URL}/rest/v1/quiz_attempts?select=id&student_id=eq.${encodeURIComponent(studentId)}&created_at=gte.${todayStart}&limit=1`, { headers: h }),
+    fetch(`${SUPABASE_URL}/rest/v1/ai_daily_usage?select=id&student_id=eq.${encodeURIComponent(studentId)}&date=eq.${todayStr}&limit=1`, { headers: h }),
   ]);
   const [sigRows, progRows, quizRows, aiRows] = await Promise.all([
     sigR.json().catch(() => []),
