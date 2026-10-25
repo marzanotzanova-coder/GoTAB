@@ -219,6 +219,53 @@
       .exp-card{flex-direction:column;}.exp-cv{width:100%;height:120px;}
       .topbar{padding:9px 14px;}
     }
+
+    /* ── VISUAL REDESIGN: АҚ SIDEBAR + ЖАҢА ДИЗАЙН ── */
+    .sidebar{background:#fff!important;border-right:1px solid #e2e8f4;}
+    .sb-logo{padding:18px 18px 10px;border-bottom:none!important;}
+    .sb-logo-img{height:30px;display:block;}
+    .sb-logo-sub{font-size:11px!important;color:#94a3b8!important;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-top:10px;padding-left:0;}
+    .sb-profile{background:#f8fafc;border:1px solid #e2e8f4;border-radius:14px;margin:0 10px 14px;padding:14px!important;border-bottom:none!important;}
+    .sb-av{border-radius:50%!important;width:44px!important;height:44px!important;font-size:18px!important;}
+    .sb-pname{color:#0f172a!important;font-size:14px!important;}
+    .sb-pmeta{color:#94a3b8!important;}
+    .sb-pills{margin-top:10px!important;}
+    .sb-pill{background:#1a56db!important;border:none!important;color:#fff!important;font-size:11px!important;}
+    .sb-pill:last-child{background:transparent!important;border:1.5px solid #1a56db!important;color:#1a56db!important;}
+    .sb-nav{padding:4px 10px!important;}
+    .sb-item{color:#334155!important;font-size:13px!important;}
+    .sb-item:hover{background:#f0f4fb!important;color:#1a56db!important;}
+    .sb-item.active{background:linear-gradient(135deg,#22c55e,#06b6d4)!important;color:#fff!important;border:none!important;}
+    .sb-item.adm{background:rgba(139,92,246,.08)!important;color:#7c3aed!important;border:1px solid rgba(139,92,246,.2)!important;}
+    .sb-item.dng{color:#dc2626!important;}
+    .sb-item.dng:hover{background:#fff5f5!important;color:#dc2626!important;}
+    .sb-divider{background:#e2e8f4!important;}
+    .sb-hint{color:#94a3b8!important;font-size:10px!important;}
+    .sb-wave{display:none!important;}
+    .sb-mountain{padding:10px 10px 0;margin-top:auto;}
+    .sb-mountain img{width:100%;display:block;border-radius:12px;}
+    /* topbar жасырамыз */
+    .topbar{display:none!important;}
+    .main{padding-top:0!important;}
+    /* hero — ашық градиент */
+    .hero{background:linear-gradient(120deg,#eef2ff 0%,#f0f9ff 100%)!important;border:1px solid #c7d7fc!important;box-shadow:none!important;}
+    .hero::before,.hero::after{display:none!important;}
+    .hero-greet{color:#64748b!important;}
+    .hero-name{color:#0f172a!important;font-size:22px!important;}
+    .hero-name span{background:linear-gradient(90deg,#1a56db,#0ea5e9)!important;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .hero-badge{background:rgba(37,99,235,.1)!important;border-color:rgba(37,99,235,.2)!important;color:#1a56db!important;}
+    .hero-badge.gr{background:rgba(8,145,178,.1)!important;border-color:rgba(8,145,178,.2)!important;color:#0891b2!important;}
+    .hero-img{mix-blend-mode:normal!important;opacity:1!important;height:120px!important;}
+    /* today-card */
+    .today-card{background:#fff!important;border:1px solid #e2e8f4!important;box-shadow:0 2px 8px rgba(26,86,219,.05)!important;}
+    .today-title-txt{color:#0f172a!important;}
+    .today-note-txt{color:#94a3b8!important;}
+    #todayChecklist .checkItem::before{border-color:#dde5f4!important;}
+    #todayChecklist .checkItem div{color:#334155!important;font-weight:600!important;}
+    #todayChecklist .checkItem:has(input:checked) div{color:#0f172a!important;}
+    .today-progress-badge{background:#dcfce7!important;color:#16a34a!important;}
+    /* cards */
+    .card{border:1px solid #e2e8f4!important;box-shadow:0 2px 8px rgba(26,86,219,.05)!important;}
   </style>
 </head>
 <body>
@@ -226,7 +273,7 @@
 <!-- SIDEBAR -->
 <aside class="sidebar" id="mainSidebar">
   <div class="sb-logo">
-    <div class="sb-logo-txt"><span class="go">Go</span><span class="tab">TAB</span></div>
+    <img src="images/logo_wordmark.png" alt="GoTAB" class="sb-logo-img">
     <div class="sb-logo-sub" data-i18n="dashSub">Студент Кабинеті</div>
   </div>
 
@@ -282,11 +329,9 @@
 
   <div class="sb-hint" id="hintText"></div>
 
-  <div class="sb-wave">
-    <svg viewBox="0 0 240 72" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,36 C40,8 80,64 120,36 C160,8 200,64 240,36 L240,72 L0,72 Z" fill="rgba(32,201,243,.1)"/>
-      <path d="M0,50 C50,22 100,68 150,46 C185,32 215,56 240,46 L240,72 L0,72 Z" fill="rgba(37,99,235,.07)"/>
-    </svg>
+  <div class="sb-wave"></div>
+  <div class="sb-mountain">
+    <img src="images/mountain.png" alt="">
   </div>
 </aside>
 
