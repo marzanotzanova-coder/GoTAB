@@ -266,6 +266,50 @@
     .today-progress-badge{background:#dcfce7!important;color:#16a34a!important;}
     /* cards */
     .card{border:1px solid #e2e8f4!important;box-shadow:0 2px 8px rgba(26,86,219,.05)!important;}
+
+    /* ── ROW / BADGE (makeRow output) ── */
+    .row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-radius:13px;background:rgba(37,99,235,.03);border:1px solid rgba(37,99,235,.08);margin-bottom:8px;}
+    .rowLeft{display:flex;flex-direction:column;flex:1;min-width:0;}
+    .rowTitle{font-weight:800;font-size:13px;color:var(--text);}
+    .rowSub{font-size:12px;color:var(--muted);margin-top:2px;}
+    .muted{color:var(--muted);font-size:12px;}
+    .badge{padding:5px 13px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(37,99,235,.1);color:#1a56db;border:1px solid rgba(37,99,235,.16);white-space:nowrap;flex-shrink:0;}
+    .badge.warn{background:rgba(245,158,11,.12);color:#b45309;border-color:rgba(245,158,11,.25);}
+    .badge.bad{background:rgba(239,68,68,.1);color:#dc2626;border-color:rgba(239,68,68,.18);}
+    .badge.neutral{background:rgba(90,112,148,.09);color:var(--muted);border-color:rgba(90,112,148,.14);}
+    .feedbackCard{background:rgba(124,58,237,.04)!important;border-color:rgba(124,58,237,.14)!important;}
+    .feedbackQuote{font-style:italic;}
+    /* ── DASHBOARD CARD HEAD ── */
+    .dash-card-head{font-size:14px;font-weight:900;color:var(--text);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+    /* ── COLUMNS ── */
+    .col-left,.col-right{display:flex;flex-direction:column;gap:16px;}
+    /* ── ANALYTICS KPI ── */
+    .kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+    .kpi-val{font-size:26px;font-weight:900;color:var(--text);}
+    .kpi-lbl{font-size:12px;color:var(--muted);margin-top:3px;}
+    .kpi-pct-row{margin-bottom:6px;}
+    .kpi-pct{font-size:22px;font-weight:900;color:var(--text);margin-right:7px;}
+    .kpi-progress-lbl{font-size:12px;color:var(--muted);}
+    /* ── PROGRESS BAR ── */
+    .progress-track{height:8px;background:rgba(37,99,235,.1);border-radius:999px;overflow:hidden;margin-bottom:14px;}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#22c55e,#06b6d4);border-radius:999px;width:0;transition:.4s;}
+    /* ── SPARK ── */
+    .spark-lbl{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;margin-top:2px;}
+    .spark-hint-txt{font-size:11px;color:var(--muted);margin-top:3px;}
+    /* ── TEACHER FEEDBACK LABEL ── */
+    .teacher-fb-lbl{font-size:12px;font-weight:700;color:var(--muted);margin-top:14px;margin-bottom:6px;padding-top:12px;border-top:1px solid #f1f5f9;}
+    /* ── TODAY PLAN FIXES FOR WHITE BG ── */
+    .plan-sublbl{font-size:12px;color:var(--muted);margin-bottom:6px;margin-top:3px;}
+    .today-topic-area textarea{color:#334155!important;background:#f8fafc!important;border:1px solid #e2e8f4!important;}
+    .today-topic-area textarea::placeholder{color:#94a3b8!important;}
+    .today-head{border-bottom:1px solid #f1f5f9!important;}
+    #todayChecklist .checkItem{background:#f8fafc!important;border-color:#e2e8f4!important;}
+    /* ── BOTTOM BAR ── */
+    .btm-bar{background:linear-gradient(120deg,#1e2d6b 0%,#2a3d8a 100%);padding:14px 22px;display:flex;align-items:center;gap:14px;margin-left:var(--sw);flex-wrap:wrap;}
+    .btm-btn{display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.82);font-size:13px;font-weight:700;text-decoration:none;padding:8px 16px;border-radius:10px;background:rgba(255,255,255,.08);transition:.14s;border:1px solid rgba(255,255,255,.1);cursor:pointer;flex-shrink:0;}
+    .btm-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
+    .btm-copy-ok{font-size:12px;color:#4ade80;font-weight:800;flex-shrink:0;}
+    @media(max-width:768px){.btm-bar{margin-left:0;}.btm-btn{font-size:11px;padding:6px 10px;}}
   </style>
 </head>
 <body>
@@ -274,7 +318,8 @@
 <aside class="sidebar" id="mainSidebar">
   <div class="sb-logo">
     <img src="images/logo_wordmark.png" alt="GoTAB" class="sb-logo-img">
-    <div class="sb-logo-sub" data-i18n="dashSub">Студент Кабинеті</div>
+    <div style="font-size:13px;font-weight:800;color:#0f172a;margin-top:8px;letter-spacing:-.2px;">GoTAB</div>
+    <div class="sb-logo-sub">Student Dashboard</div>
   </div>
 
   <div class="sb-profile">
@@ -298,19 +343,7 @@
   <nav class="sb-nav">
     <button class="sb-item active" id="goCourseBtn" data-i18n="btnCourse">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-      Басты бет
-    </button>
-    <button class="sb-item" id="navLessons" onclick="document.getElementById('goCourseBtn').click()">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Менің сабақтарым
-    </button>
-    <button class="sb-item" onclick="scrollTo2({id:'lab-section'})">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Практика
-    </button>
-    <button class="sb-item" onclick="scrollTo2({id:'prof-section'})">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-      Профиль
+      Курсқа өту
     </button>
     <div class="sb-divider"></div>
     <button class="sb-item adm" id="goAdminBtn" style="display:none;">
@@ -327,7 +360,7 @@
     </button>
   </nav>
 
-  <div class="sb-hint" id="hintText"></div>
+  <div class="sb-hint" id="hintText">* Аватарды бас — өз фотоңды таңда</div>
 
   <div class="sb-wave"></div>
   <div class="sb-mountain">
@@ -358,119 +391,99 @@
     <!-- HERO -->
     <section class="hero">
       <div class="hero-text">
-        <div class="hero-greet" id="hello">Сәлем 👋</div>
-        <div class="hero-name">GoTAB — <span id="heroSpan">Математика зертханасы</span></div>
-        <div class="hero-badges">
-          <span class="hero-badge" id="heroPkgBadge">Пакет жүктелуде...</span>
-          <span class="hero-badge gr" id="heroGradeBadge">— сынып</span>
-        </div>
-        <button class="hero-cta" id="heroCourseBtn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          Курсқа өту
-        </button>
+        <div class="hero-greet" id="hello">Сәлем, оқушы! 👋</div>
+        <div class="hero-name">Бұл сенің <span id="heroSpan">жеке кабинетің.</span></div>
+        <div style="font-size:13px;color:#64748b;margin-top:8px;line-height:1.5;max-width:380px">Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.</div>
+        <!-- Hidden compat: pkg/grade badges still updated by JS -->
+        <span id="heroPkgBadge" style="display:none"></span>
+        <span id="heroGradeBadge" style="display:none"></span>
+        <button id="heroCourseBtn" style="display:none"></button>
       </div>
       <img src="images/trophy.png" alt="" class="hero-img">
     </section>
 
-    <!-- MATH LAB -->
-    <div id="lab-section">
-      <div class="card">
-        <div class="lab-head">
-          <div>
-            <div class="lab-title">🔬 Интерактивті Математика Зертханасы</div>
-            <div class="lab-sub">Квадраттық функция: f(x) = ax² + bx + c</div>
+    <!-- TWO-COL DASHBOARD -->
+    <div class="two-col">
+
+      <!-- LEFT COLUMN -->
+      <div class="col-left">
+
+        <!-- БҮГІНГІ ЖОСПАР -->
+        <div class="today-card" style="border-radius:18px;overflow:hidden;">
+          <div class="today-head">
+            <div class="today-head-left">
+              <div class="today-title-txt">📅 Бүгінгі жоспар</div>
+              <div class="plan-sublbl">Бүгін қай тақырыпты оқитыныңды жаз</div>
+              <div class="today-topic-area">
+                <textarea id="topicInput" rows="4" placeholder="Мысалы: Рационал сандар, теңдеулер, үшбұрыштар..." data-i18n-placeholder="todayPh"></textarea>
+              </div>
+            </div>
+            <div class="today-badge-wrap">
+              <div class="today-progress-badge" id="todayBadge">0/4</div>
+            </div>
           </div>
-          <div class="lab-tabs">
-            <button class="lab-tab active" onclick="switchTab('graph',this)">Формула</button>
-            <button class="lab-tab" onclick="switchTab('table',this)">Кесте</button>
-            <button class="lab-tab" onclick="switchTab('props',this)">Қасиеттер</button>
-          </div>
+          <div class="today-steps" id="todayChecklist"></div>
+          <div class="today-note-txt">* Барлық тапсырманы толық орындағаннан кейін ғана белгі қойыңыз.</div>
         </div>
 
-        <div class="lab-formula" id="labFormula">f(x) = x²</div>
-
-        <div class="lab-graph">
-          <svg id="mathSvg" viewBox="0 0 500 260" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#2563EB"/>
-                <stop offset="100%" stop-color="#20C9F3"/>
-              </linearGradient>
-            </defs>
-            <g id="svgGrid"></g>
-            <line id="axX" x1="0" y1="130" x2="500" y2="130" stroke="rgba(37,99,235,.28)" stroke-width="1.2"/>
-            <line id="axY" x1="250" y1="0" x2="250" y2="260" stroke="rgba(37,99,235,.28)" stroke-width="1.2"/>
-            <text x="488" y="126" font-size="10" fill="rgba(37,99,235,.45)" font-family="Inter,Arial">x</text>
-            <text x="255" y="12" font-size="10" fill="rgba(37,99,235,.45)" font-family="Inter,Arial">y</text>
-            <path id="mathCurve" fill="none" stroke="url(#cg)" stroke-width="2.4" stroke-linecap="round"/>
-            <circle id="vxDot" r="5" fill="#2563EB" opacity="0"/>
-          </svg>
+        <!-- СОҢҒЫ БАҒАЛАР -->
+        <div class="card">
+          <div class="dash-card-head">🏆 Соңғы бағалар</div>
+          <div id="recentGrades"></div>
         </div>
 
-        <div class="lab-sliders">
-          <div class="sl-row">
-            <div class="sl-lbl"><b>a</b> = <span id="aV">1.0</span></div>
-            <input type="range" id="slA" min="-3" max="3" step="0.1" value="1">
-            <span class="sl-val" id="aDis">1.0</span>
+        <!-- ХАБАРЛАМАЛАР -->
+        <div class="card">
+          <div class="dash-card-head">🔔 Хабарламалар</div>
+          <div class="muted" style="margin-bottom:10px;">Жаңа бағдар/файл/мақсат — осында шығады.</div>
+          <div id="notifications"></div>
+        </div>
+
+      </div><!-- /col-left -->
+
+      <!-- RIGHT COLUMN -->
+      <div class="col-right">
+
+        <!-- АНАЛИТИКА -->
+        <div class="card">
+          <div class="dash-card-head">📈 Аналитика</div>
+          <div class="kpi-grid">
+            <div>
+              <div class="kpi-val" id="kpiAvg">0</div>
+              <div class="kpi-lbl">Орташа баға</div>
+            </div>
+            <div>
+              <div class="kpi-val" id="kpiDone">0/50</div>
+              <div class="kpi-lbl">Бараллаған сабақ</div>
+            </div>
           </div>
-          <div class="sl-row">
-            <div class="sl-lbl"><b>b</b> = <span id="bV">0.0</span></div>
-            <input type="range" id="slB" min="-5" max="5" step="0.1" value="0">
-            <span class="sl-val" id="bDis">0.0</span>
+          <div class="kpi-pct-row">
+            <span class="kpi-pct" id="kpiGoal">0%</span>
+            <span class="kpi-progress-lbl">Жалпы progress</span>
           </div>
-          <div class="sl-row">
-            <div class="sl-lbl"><b>c</b> = <span id="cV">0.0</span></div>
-            <input type="range" id="slC" min="-5" max="5" step="0.1" value="0">
-            <span class="sl-val" id="cDis">0.0</span>
-          </div>
+          <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
+          <div class="spark-lbl">Соңғы 10 баға</div>
+          <canvas id="spark" width="170" height="54"></canvas>
+          <div class="spark-hint-txt" id="sparkHint">Баға аз — графикик кейін шығады</div>
         </div>
 
-        <div class="lab-zoom">
-          <button class="zm-btn" onclick="chgZoom(-1)">−</button>
-          <button class="zm-btn" onclick="chgZoom(1)">+</button>
-          <button class="zm-btn" onclick="rstZoom()" title="Қалпына келтіру">⟳</button>
+        <!-- ЖЕТІСТІКТЕР -->
+        <div class="card">
+          <div class="dash-card-head">⭐ Жетістіктер</div>
+          <div id="achievements"></div>
+          <div class="teacher-fb-lbl">💬 Мұғалім пікірі</div>
+          <div id="feedbackList"></div>
         </div>
 
-        <div class="lab-panel active" id="panel-graph"></div>
-        <div class="lab-panel" id="panel-table"><div class="lab-table" id="labTbl"></div></div>
-        <div class="lab-panel" id="panel-props"><div id="labProps"></div></div>
-      </div>
-    </div>
+      </div><!-- /col-right -->
 
-    <!-- БҮГІНГІ ЖОСПАР -->
-    <div class="today-card">
-      <div class="today-head">
-        <div class="today-head-left">
-          <div class="today-title-txt">🗓 Бүгінгі жоспар</div>
-          <div class="today-topic-area">
-            <textarea id="topicInput" rows="2" placeholder="Бүгінгі тақырыпты жаз..." data-i18n-placeholder="todayPh"></textarea>
-          </div>
-        </div>
-        <div class="today-badge-wrap">
-          <div class="today-progress-badge" id="todayBadge">0/4</div>
-        </div>
-      </div>
-      <div class="today-steps" id="todayChecklist"></div>
-      <div class="today-note-txt">* Қадамдар автоматты белгіленеді — видео, тапсырма, сынақ, ЖИ</div>
-    </div>
-
-    <!-- profile action IDs kept for JS compat, rendered invisibly below -->
+    </div><!-- /two-col -->
 
   </div><!-- /page -->
 </div><!-- /main -->
 
-<!-- HIDDEN COMPAT — keeps all DOM IDs the original JS writes to -->
+<!-- HIDDEN COMPAT — JS DOM IDs not shown in main UI -->
 <div style="display:none" aria-hidden="true">
-  <div id="kpiAvg"></div>
-  <div id="kpiDone"></div>
-  <div id="kpiGoal"></div>
-  <div id="progressBar"></div>
-  <canvas id="spark" width="170" height="54"></canvas>
-  <div id="sparkHint"></div>
-  <div id="recentGrades"></div>
-  <div id="achievements"></div>
-  <div id="notifications"></div>
-  <div id="feedbackList"></div>
   <div id="feedbackCardTitle"></div>
   <div id="teacherFbSection"></div>
   <div id="studentComposeWrap">
@@ -491,10 +504,28 @@
   <span id="netBadge"></span>
   <button id="openDashboardInfo"></button>
   <div id="uploadStatuses"></div>
-  <a href="#" id="copyStudentIdBtn"></a>
-  <a href="#" id="instagramBtn"></a>
   <a href="#" id="openCourseFromProfile"></a>
-  <div id="copySuccessMsg"></div>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="btm-bar">
+  <a href="#" id="copyStudentIdBtn" class="btm-btn">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+    Student ID көшіру
+  </a>
+  <span class="btm-copy-ok" id="copySuccessMsg" style="display:none">✅ Көшірілді!</span>
+  <a href="https://t.me/gotab_kz" class="btm-btn" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+    Telegram
+  </a>
+  <a href="https://wa.me/77055894347" class="btm-btn" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    WhatsApp +77055894347
+  </a>
+  <a href="#" id="instagramBtn" class="btm-btn" target="_blank" rel="noopener">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+    Instagram
+  </a>
 </div>
 
 <!-- NEW UI JS -->
@@ -509,10 +540,8 @@ function scrollTo2(o){var e=document.getElementById(o.id);if(e)e.scrollIntoView(
   ls.addEventListener('change',function(){localStorage.setItem('lang',ls.value);window.location.reload();});
 })();
 
-// Hero course btn — delegates to goCourseBtn after it is wired by original JS
-document.getElementById('heroCourseBtn').addEventListener('click',function(){
-  document.getElementById('goCourseBtn').click();
-});
+// Hero course btn — no-op (button is hidden, sidebar goCourseBtn handles navigation)
+(function(){ var b=document.getElementById('heroCourseBtn'); if(b) b.addEventListener('click',function(){ var g=document.getElementById('goCourseBtn'); if(g) g.click(); }); })();
 
 // ===== MATH LAB =====
 var labZoom=1, labA=1, labB=0, labC=0;
@@ -601,10 +630,7 @@ function switchTab(tab,btn){
 function chgZoom(d){labZoom=Math.max(0.4,Math.min(3,labZoom+d*0.2));drawCurve(labA,labB,labC);}
 function rstZoom(){labZoom=1;drawCurve(labA,labB,labC);}
 
-document.getElementById('slA').addEventListener('input',updateLab);
-document.getElementById('slB').addEventListener('input',updateLab);
-document.getElementById('slC').addEventListener('input',updateLab);
-updateLab();
+(function(){ var a=document.getElementById('slA'),b=document.getElementById('slB'),c=document.getElementById('slC'); if(a&&b&&c){ a.addEventListener('input',updateLab); b.addEventListener('input',updateLab); c.addEventListener('input',updateLab); updateLab(); } })();
 
 // ===== PARABOLA EXPERIMENT =====
 var parT=0,parRun=false,parRaf=null;
@@ -645,9 +671,7 @@ function togglePar(){
   }
 }
 function resetPar(){cancelAnimationFrame(parRaf);parRun=false;parT=0;document.getElementById('expPlayBtn').textContent='▶ Бастау';drawParFrame();}
-document.getElementById('expV').addEventListener('input',function(){document.getElementById('expVV').textContent=this.value;if(!parRun)drawParFrame();});
-document.getElementById('expA').addEventListener('input',function(){document.getElementById('expAV').textContent=this.value;if(!parRun)drawParFrame();});
-resetPar();
+(function(){ var v=document.getElementById('expV'),a=document.getElementById('expA'); if(v) v.addEventListener('input',function(){var el=document.getElementById('expVV');if(el)el.textContent=this.value;if(!parRun)drawParFrame();}); if(a) a.addEventListener('input',function(){var el=document.getElementById('expAV');if(el)el.textContent=this.value;if(!parRun)drawParFrame();}); if(document.getElementById('parabolaCanvas')) resetPar(); })();
 
 // ===== MODEL THUMBNAILS =====
 function drawMC1(){
