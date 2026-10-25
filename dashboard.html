@@ -465,7 +465,7 @@
           </div>
           <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
           <div class="spark-lbl">Соңғы 10 баға</div>
-          <canvas id="spark" width="170" height="54"></canvas>
+          <canvas id="spark" width="260" height="80" style="width:100%;display:block;margin-top:6px;border-radius:8px;"></canvas>
           <div class="spark-hint-txt" id="sparkHint">Баға аз — графикик кейін шығады</div>
         </div>
 
@@ -1051,13 +1051,18 @@ function getNextLesson(progressValues){
 // ================= STREAK (SERVER) =================
 async function pingStreakServer(){
   if(!effectiveStudentId) return { ok:false };
-  if(isPreview) return { ok:false };
-
   const dayKey = new Date().toISOString().slice(0,10);
-
   try{
+    if(isPreview){
+      // Read-only in preview — don't write today's visit for another student
+      const r = await fetch(`/api/streak/get?studentId=${encodeURIComponent(effectiveStudentId)}&dayKey=${dayKey}`, {
+        credentials:"include", cache:"no-store"
+      });
+      return await r.json();
+    }
     const r = await fetch("/api/streak/ping", {
       method:"POST",
+      credentials:"include",
       headers:{ "Content-Type":"application/json" },
       body: JSON.stringify({ studentId: effectiveStudentId, dayKey })
     });
@@ -1404,7 +1409,18 @@ window.pingStreakServer = pingStreakServer;
     });
 
   const last10 = sortedGrades.slice(-10).map(x => Number(x.grade || 0));
-  drawSparkline(last10);
+  // Defer draw until layout is painted so container width is correct
+  requestAnimationFrame(() => {
+    drawSparkline(last10);
+    // Also redraw on resize
+    window.__sparkData = last10;
+  });
+  if(!window.__sparkResizeWired){
+    window.__sparkResizeWired = true;
+    window.addEventListener("resize", () => {
+      if(window.__sparkData) drawSparkline(window.__sparkData);
+    });
+  }
 
   const progressValues = {};
   sortedGrades.forEach((x, idx) => {
@@ -1430,47 +1446,114 @@ window.pingStreakServer = pingStreakServer;
     const hint = document.getElementById("sparkHint");
     if(!c) return;
 
-    const isMobile = window.innerWidth <= 560;
-    const cssW = isMobile ? 260 : 170;
-    const cssH = isMobile ? 64 : 54;
+    // Fill the card width dynamically
+    const container = c.parentElement;
+    const cssW = container ? Math.max(160, container.clientWidth - 32) : 260;
+    const cssH = 80;
     const dpr = window.devicePixelRatio || 1;
-    c.style.width = cssW + "px"; c.style.height = cssH + "px";
-    c.width = Math.floor(cssW * dpr); c.height = Math.floor(cssH * dpr);
+    c.style.width = cssW + "px";
+    c.style.height = cssH + "px";
+    c.style.display = "block";
+    c.width = Math.floor(cssW * dpr);
+    c.height = Math.floor(cssH * dpr);
 
     const ctx = c.getContext("2d");
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0,0,cssW,cssH);
+    ctx.clearRect(0, 0, cssW, cssH);
 
     if(!values || values.length < 2){
-      if(hint) hint.textContent = "Баға аз — график кейін шығады";
+      ctx.font = "12px system-ui, sans-serif";
+      ctx.fillStyle = "rgba(100,116,139,.7)";
+      ctx.textAlign = "center";
+      ctx.fillText("Баға аз — график кейін шығады", cssW/2, cssH/2 + 4);
+      if(hint) hint.textContent = "";
       return;
     }
 
-    const pad = 6, W = cssW, H = cssH;
-    const min = Math.min(...values);
-    const max = Math.max(...values);
+    const padL = 8, padR = 8, padT = 10, padB = 22;
+    const W = cssW, H = cssH;
+    const drawW = W - padL - padR;
+    const drawH = H - padT - padB;
 
-    ctx.lineWidth = 1.5;
-    ctx.strokeStyle = "rgba(124,58,237,.22)";
-    ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad); ctx.stroke();
+    const rawMin = Math.min(...values);
+    const rawMax = Math.max(...values);
+    // Clamp display range so a single flat line still shows nicely
+    const min = Math.max(0, rawMin - 5);
+    const max = Math.min(100, rawMax + 5);
+    const range = max - min || 1;
 
-    ctx.lineWidth = 2.6;
-    ctx.strokeStyle = "rgba(124,58,237,.95)";
+    const xOf = idx => padL + (idx / (values.length - 1)) * drawW;
+    const yOf = v  => padT + (1 - (v - min) / range) * drawH;
+
+    // Horizontal grid lines at 25/50/75/100
+    ctx.lineWidth = 0.8;
+    ctx.strokeStyle = "rgba(100,116,139,.12)";
+    ctx.setLineDash([3, 4]);
+    [25, 50, 75, 100].forEach(g => {
+      if(g < min || g > max) return;
+      const gy = yOf(g);
+      ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(W - padR, gy); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    // Gradient fill under line
+    const grad = ctx.createLinearGradient(0, padT, 0, padT + drawH);
+    grad.addColorStop(0, "rgba(34,197,94,.22)");
+    grad.addColorStop(1, "rgba(34,197,94,0)");
     ctx.beginPath();
-    values.forEach((v, idx)=>{
-      const x = pad + (idx/(values.length-1))*(W-2*pad);
-      const y = pad + (1 - ((v-min)/((max-min) || 1)))*(H-2*pad);
-      if(idx===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    values.forEach((v, i) => {
+      const x = xOf(i), y = yOf(v);
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    });
+    ctx.lineTo(xOf(values.length - 1), padT + drawH);
+    ctx.lineTo(xOf(0), padT + drawH);
+    ctx.closePath();
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Main line
+    ctx.lineWidth = 2.2;
+    ctx.strokeStyle = "#22c55e";
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      const x = xOf(i), y = yOf(v);
+      if(i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
     });
     ctx.stroke();
 
-    const lv = values[values.length-1];
-    const lx = W - pad;
-    const ly = pad + (1 - ((lv-min)/((max-min) || 1)))*(H-2*pad);
+    // Dots + value labels
+    values.forEach((v, i) => {
+      const x = xOf(i), y = yOf(v);
+      const isLast = i === values.length - 1;
+      ctx.fillStyle = isLast ? "#16a34a" : "#4ade80";
+      ctx.beginPath(); ctx.arc(x, y, isLast ? 4.5 : 3, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(x, y, isLast ? 4.5 : 3, 0, Math.PI * 2); ctx.stroke();
 
-    ctx.fillStyle = "rgba(168,85,247,.98)";
-    ctx.beginPath(); ctx.arc(lx, ly, 3.8, 0, Math.PI*2); ctx.fill();
-    if(hint) hint.textContent = "Соңғы баға: " + lv + "/100";
+      // Label above last dot or on hover (just show last + first + every other for clarity)
+      if(isLast || i === 0 || (values.length <= 6) || (i % 2 === 0 && values.length <= 10)){
+        ctx.font = "bold 9px system-ui, sans-serif";
+        ctx.fillStyle = isLast ? "#15803d" : "rgba(71,85,105,.9)";
+        ctx.textAlign = "center";
+        ctx.fillText(String(v), x, y - 6);
+      }
+    });
+
+    // X-axis lesson labels (1 … N)
+    ctx.font = "9px system-ui, sans-serif";
+    ctx.fillStyle = "rgba(100,116,139,.7)";
+    ctx.textAlign = "center";
+    const step = values.length <= 10 ? 1 : Math.ceil(values.length / 8);
+    for(let i = 0; i < values.length; i += step){
+      ctx.fillText(String(i + 1), xOf(i), H - 5);
+    }
+
+    const lv = values[values.length - 1];
+    const avg2 = Math.round(values.reduce((a,b)=>a+b,0) / values.length);
+    if(hint) hint.textContent = `Соңғы баға: ${lv}/100 · Орт: ${avg2}/100`;
   }
 
   // =========================================================
@@ -1747,7 +1830,9 @@ function renderTodayPlan(progressValues, activityData){
     }
 
     try{
-      const res = await fetch(`/api/notifications?studentId=${encodeURIComponent(effectiveStudentId)}`);
+      const res = await fetch(`/api/notifications?studentId=${encodeURIComponent(effectiveStudentId)}`, {
+        credentials:"include", cache:"no-store"
+      });
       const data = await res.json().catch(()=>null);
       const list = (data && data.ok && Array.isArray(data.list)) ? data.list : [];
 
