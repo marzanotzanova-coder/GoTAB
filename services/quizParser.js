@@ -90,7 +90,7 @@ function parseQuiz(rawText) {
       continue;
     }
 
-    const options = [correct, ...variants].filter((v, i, a) => a.indexOf(v) === i);
+    const options = shuffle([correct, ...variants].filter((v, i, a) => a.indexOf(v) === i));
 
     if (options.length < 2) { errors.push(`Сұрақ №${qNum}: кем дегенде 2 нұсқа керек.`); continue; }
 
