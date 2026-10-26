@@ -803,6 +803,9 @@ app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
       return res.status(500).json({ ok: false, error: "server_error" });
     }
 
+    if (pkg === "active") {
+      await pushNotif(studentId, "access_granted", "Курсқа доступ берілді! Енді курсқа кіре аласыз ✅").catch(() => {});
+    }
     return res.json({ ok: true });
   } catch (e) {
     console.error("set-student-meta error:", e);

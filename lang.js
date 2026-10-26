@@ -223,6 +223,10 @@ const i18n = {
     spBtnExtra: "Қосымша",
     spBtnTask: "Тапсырма",
     spBtnTest: "Тест",
+    spBtnGrade: "Баға қою",
+    gradeDlgTitle: "Баға қою",
+    gradeDlgSave: "Сақтау",
+    gradeDlgCancel: "Бас тарту",
   },
   ru: {
     // index
@@ -448,6 +452,10 @@ const i18n = {
     spBtnExtra: "Доп. материал",
     spBtnTask: "Задание",
     spBtnTest: "Тест",
+    spBtnGrade: "Оценка",
+    gradeDlgTitle: "Поставить оценку",
+    gradeDlgSave: "Сохранить",
+    gradeDlgCancel: "Отмена",
   }
 };
 
