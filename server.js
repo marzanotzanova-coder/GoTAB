@@ -1106,7 +1106,7 @@ if (!progSaveRes.ok) {
 }
 
 const db = readDB();
-await pushNotif(studentId, "upload", `Блок ${block}: тапсырма жүктелді ✅`);
+await pushNotif(studentId, "upload", `Сабақ ${block}: тапсырма жүктелді ✅`);
 writeDB(db);
 
     return res.json({
@@ -1530,7 +1530,7 @@ app.post("/api/progress/set", requireAdmin, async (req, res) => {
   await pushNotif(
     studentId,
     "feedback",
-    `Блок ${block}: мұғалім пікір қалдырды 💬`
+    `Сабақ ${block}: мұғалім пікір қалдырды 💬`
   );
 }
 
@@ -1538,7 +1538,7 @@ if (Number.isFinite(newGrade) && newGrade > 0 && newGrade !== oldGrade) {
   await pushNotif(
     studentId,
     "review",
-    `Блок ${block}: баға қойылды 🏅`
+    `Сабақ ${block}: баға қойылды 🏅`
   );
 }
 
