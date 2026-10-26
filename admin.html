@@ -320,39 +320,17 @@
 
     <!-- ── MATERIALS TAB ── -->
     <div id="tabMaterials">
-    <div class="sectionTitle">Курстар</div>
-    <div class="courseCards">
-      <a href="base-blocks.html" class="courseCard courseCard-base"><span class="cc-icon">📗</span>База</a>
-      <a href="standard-blocks.html" class="courseCard courseCard-std"><span class="cc-icon">📘</span>Стандарт</a>
-      <a href="premium-blocks.html" class="courseCard courseCard-prem"><span class="cc-icon">📙</span>Премиум</a>
-    </div>
     <div class="sectionTitle" data-i18n="uploadTitle">📦 Материал жүктеу</div>
     <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
 
-    <div class="row">
-      <div class="rowLeft">
-        <div class="rowTitle" data-i18n="courseLabel">Курс</div>
-        <div class="rowSub" data-i18n="courseSub">База / Стандарт / Премиум</div>
-      </div>
-    </div>
-    <select id="course-select">
-      <option value="baza">База</option>
-      <option value="standart">Стандарт</option>
-      <option value="premium">Премиум</option>
-    </select>
-
     <select id="grade-select" onchange="updateSubjectOptions()">
-<option value="5">5 сынып</option>
-<option value="6">6 сынып</option>
-<option value="7">7 сынып</option>
-<option value="8">8 сынып</option>
-<option value="9">9 сынып</option>
 <option value="10">10 сынып</option>
 <option value="11">11 сынып</option>
 </select>
 
 <select id="subject-select">
-<option value="math">Математика</option>
+<option value="algebra">Алгебра</option>
+<option value="geometry">Геометрия</option>
 </select>
 <div id="subject-hint" style="font-size:12px;color:#888;margin-top:4px;margin-bottom:6px"></div>
 
@@ -447,16 +425,9 @@
     <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(47,107,255,.1)">
       <div class="sectionTitle" style="font-size:14px;margin-bottom:10px">📝 Сабақ тақырыбын өзгерту</div>
       <div class="muted" style="margin-bottom:10px">Бұрын жүктелген сабақтың тақырыбын ЖИ-ға беру үшін жаңарт</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px">
-        <select id="lt-course">
-          <option value="base">База</option>
-          <option value="standart">Стандарт</option>
-          <option value="premium">Премиум</option>
-        </select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <select id="lt-grade">
-          <option value="5">5 сынып</option><option value="6">6 сынып</option>
-          <option value="7">7 сынып</option><option value="8">8 сынып</option>
-          <option value="9">9 сынып</option><option value="10">10 сынып</option>
+          <option value="10">10 сынып</option>
           <option value="11">11 сынып</option>
         </select>
         <select id="lt-subject">
@@ -483,15 +454,8 @@
       <!-- Quiz creation form -->
       <div class="quiz-section-title">📋 Сынақты қосу / өңдеу</div>
       <div class="quiz-selects">
-        <select id="qzPackage">
-          <option value="base">База</option>
-          <option value="standart">Стандарт</option>
-          <option value="premium">Премиум</option>
-        </select>
         <select id="qzGrade">
-          <option value="5">5 сынып</option><option value="6">6 сынып</option>
-          <option value="7">7 сынып</option><option value="8">8 сынып</option>
-          <option value="9">9 сынып</option><option value="10">10 сынып</option>
+          <option value="10">10 сынып</option>
           <option value="11">11 сынып</option>
         </select>
         <select id="qzSubject">
@@ -530,8 +494,7 @@
       <!-- Attempts -->
       <div class="quiz-section-title">📊 Сынақ нәтижелері</div>
       <div class="attempts-filter">
-        <select id="filtPkg" onchange="loadAttempts()"><option value="">Барлық пакет</option><option value="base">База</option><option value="standart">Стандарт</option><option value="premium">Премиум</option></select>
-        <select id="filtGrade" onchange="loadAttempts()"><option value="">Барлық сынып</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option></select>
+        <select id="filtGrade" onchange="loadAttempts()"><option value="">Барлық сынып</option><option value="10">10</option><option value="11">11</option></select>
         <select id="filtSubject" onchange="loadAttempts()"><option value="">Барлық пән</option><option value="math">Математика</option><option value="algebra">Алгебра</option><option value="geometry">Геометрия</option></select>
         <input type="number" id="filtLesson" min="1" max="100" placeholder="Сабақ №" onchange="loadAttempts()" style="padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:12px;width:90px;background:rgba(255,255,255,.9);">
         <button class="btn ghost" style="padding:8px 12px;font-size:12px;" onclick="loadAttempts()">🔄</button>
@@ -711,21 +674,9 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
       </div>
 
     <select class="packageSelect">
-  <option value="pending" ${st.package==="pending" ? "selected" : ""}>Pending</option>
-  <option value="baza" ${st.package==="baza" || st.package==="base" ? "selected" : ""}>Baza</option>
-  <option value="standart" ${st.package==="standart" ? "selected" : ""}>Standart</option>
-  <option value="premium" ${st.package==="premium" ? "selected" : ""}>Premium</option>
+  <option value="pending" ${st.package==="pending" ? "selected" : ""}>⏳ Pending</option>
+  <option value="active" ${st.package!=="pending" ? "selected" : ""}>✅ Доступ бар</option>
 </select>
-
-<select class="gradeSelect">
-  <option value="5" ${Number(st.grade)===5 ? "selected" : ""}>5 сынып</option>
-  <option value="6" ${Number(st.grade)===6 ? "selected" : ""}>6 сынып</option>
-  <option value="7" ${Number(st.grade)===7 ? "selected" : ""}>7 сынып</option>
-  <option value="8" ${Number(st.grade)===8 ? "selected" : ""}>8 сынып</option>
-  <option value="9" ${Number(st.grade)===9 ? "selected" : ""}>9 сынып</option>
-  <option value="10" ${Number(st.grade)===10 ? "selected" : ""}>10 сынып</option>
-  <option value="11" ${Number(st.grade)===11 ? "selected" : ""}>11 сынып</option>
-</select> 
 
   <div class="studentBtns">
     <button class="btnView">Көру</button>
@@ -750,15 +701,8 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
     };
 
    const pkgSel = row.querySelector(".packageSelect");
-const gradeSel = row.querySelector(".gradeSelect");
-
-if(pkgSel && gradeSel){
-  const saveMeta = ()=>{
-    saveStudentMeta(st.studentId, pkgSel.value, gradeSel.value);
-  };
-
-  pkgSel.onchange = saveMeta;
-  gradeSel.onchange = saveMeta;
+if(pkgSel){
+  pkgSel.onchange = () => saveStudentMeta(st.studentId, pkgSel.value);
 }
 
     listBox.appendChild(row);
@@ -801,23 +745,15 @@ async function changePackage(studentId, pkgUI){
   loadStudents();
 }
 
-async function saveStudentMeta(studentId, pkgUI, gradeUI){
-  let pkg = String(pkgUI || "").toLowerCase();
-  if(pkg === "baza") pkg = "base";
-  if(pkg === "standard") pkg = "standart";
-
-  const grade = Number(gradeUI);
+async function saveStudentMeta(studentId, pkgUI){
+  const pkg = String(pkgUI || "pending").toLowerCase();
 
   const r = await fetch("/api/admin/set-student-meta", {
     method: "POST",
     headers: { "Content-Type":"application/json" },
     credentials: "include",
     cache: "no-store",
-    body: JSON.stringify({
-      studentId,
-      package: pkg,
-      grade
-    })
+    body: JSON.stringify({ studentId, package: pkg })
   });
 
   const j = await r.json().catch(()=>null);
@@ -827,7 +763,6 @@ async function saveStudentMeta(studentId, pkgUI, gradeUI){
     return;
   }
 
-  alert("Сынып пен пакет сақталды");
   loadStudents();
 }
 
@@ -958,7 +893,7 @@ if(youtubeUrl){
     headers: { "Content-Type":"application/json" },
     credentials: "include",
     body: JSON.stringify({
-      course: normCourseToApi(document.getElementById("course-select").value),
+      course: "active",
       grade,
       subject,
       blockNumber,
@@ -1003,7 +938,7 @@ docs.forEach(f =>
   cache: "no-store",
   body: JSON.stringify({
     studentId: sid,
-    course: normCourseToApi(document.getElementById("course-select").value),
+    course: "active",
     grade: grade,
     subject: subject,
     blockNumber: blockNumber,
@@ -1140,7 +1075,6 @@ function previewQuiz() {
 }
 
 async function saveQuiz() {
-  const pkg        = document.getElementById("qzPackage").value;
   const grade      = document.getElementById("qzGrade").value;
   const subject    = document.getElementById("qzSubject").value;
   const lessonNumber = document.getElementById("qzLesson").value;
@@ -1159,7 +1093,7 @@ async function saveQuiz() {
     const r = await fetch("/api/quiz/admin/save", {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ package: pkg, grade, subject, lessonNumber: Number(lessonNumber), rawText }),
+      body: JSON.stringify({ package: "active", grade, subject, lessonNumber: Number(lessonNumber), rawText }),
     });
     const j = await r.json().catch(() => null);
     if (j?.ok) {
@@ -1258,7 +1192,6 @@ async function loadQuizForEdit(id, pkg, grade, subject, lessonNumber) {
     const r = await fetch(`/api/quiz/admin/get?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}&lessonNumber=${lessonNumber}`, { credentials: "include" });
     const j = await r.json().catch(() => null);
     if (!j?.quiz) return;
-    document.getElementById("qzPackage").value    = pkg;
     document.getElementById("qzGrade").value      = grade;
     document.getElementById("qzSubject").value    = subject;
     document.getElementById("qzLesson").value     = lessonNumber;
@@ -1272,14 +1205,12 @@ async function loadQuizForEdit(id, pkg, grade, subject, lessonNumber) {
 
 async function loadAttempts() {
   const box     = document.getElementById("attemptsList");
-  const pkg     = document.getElementById("filtPkg").value;
   const grade   = document.getElementById("filtGrade").value;
   const subject = document.getElementById("filtSubject").value;
   const lesson  = document.getElementById("filtLesson").value;
   box.innerHTML = "<div class='muted'>Жүктелуде…</div>";
   try {
     let url = "/api/quiz/admin/attempts?";
-    if (pkg)     url += `package=${encodeURIComponent(pkg)}&`;
     if (grade)   url += `grade=${encodeURIComponent(grade)}&`;
     if (subject) url += `subject=${encodeURIComponent(subject)}&`;
     if (lesson)  url += `lessonNumber=${Number(lesson)}&`;
@@ -1361,7 +1292,6 @@ document.getElementById("tabBtnQuiz").addEventListener("click", function() { swi
 
 // ── Lesson title update ──
 document.getElementById("lt-save-btn").addEventListener("click", async function() {
-  const course   = document.getElementById("lt-course").value;
   const grade    = document.getElementById("lt-grade").value;
   const subject  = document.getElementById("lt-subject").value;
   const block    = parseInt(document.getElementById("lt-block").value, 10);
@@ -1377,7 +1307,7 @@ document.getElementById("lt-save-btn").addEventListener("click", async function(
     const r = await fetch("/api/admin/update-lesson-title", {
       method: "POST", credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ course, grade, subject, blockNumber: block, lessonTitle: title })
+      body: JSON.stringify({ grade, subject, blockNumber: block, lessonTitle: title })
     });
     const j = await r.json().catch(() => null);
     if (j?.ok) {
@@ -1439,15 +1369,8 @@ document.addEventListener("keydown", e => {
 
 function updateSubjectOptions() {
   const grade = Number(document.getElementById("grade-select").value);
-  const sel = document.getElementById("subject-select");
   const hint = document.getElementById("subject-hint");
-  if (grade === 5 || grade === 6) {
-    sel.innerHTML = '<option value="math">Математика</option>';
-    if (hint) hint.textContent = "5-6 сынып → тек Математика";
-  } else {
-    sel.innerHTML = '<option value="algebra">Алгебра</option><option value="geometry">Геометрия</option>';
-    if (hint) hint.textContent = `${grade} сынып → Алгебра немесе Геометрия`;
-  }
+  if (hint) hint.textContent = `${grade} сынып → Алгебра немесе Геометрия`;
 }
 updateSubjectOptions();
 

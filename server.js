@@ -741,10 +741,7 @@ app.post("/api/admin/set-package", requireAdmin, async (req, res) => {
     const studentId = String(req.body?.studentId || "").trim();
     let pkg = String(req.body?.package || "").trim().toLowerCase();
 
-    if (pkg === "baza") pkg = "base";
-    if (pkg === "standard") pkg = "standart";
-
-    if (!["pending", "base", "standart", "premium"].includes(pkg)) {
+    if (!["pending", "active"].includes(pkg)) {
       return res.status(400).json({ ok: false, error: "bad_package" });
     }
 
@@ -779,25 +776,10 @@ app.post("/api/admin/set-package", requireAdmin, async (req, res) => {
 app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
   try {
     const studentId = String(req.body?.studentId || "").trim();
-    let pkg = String(req.body?.package || "").trim().toLowerCase();
-    const grade = Number(req.body?.grade);
+    const pkg = String(req.body?.package || "pending").trim().toLowerCase();
 
-    if (pkg === "baza") pkg = "base";
-    if (pkg === "standard") pkg = "standart";
-
-    if (!["pending", "base", "standart", "premium"].includes(pkg)) {
+    if (!["pending", "active"].includes(pkg)) {
       return res.status(400).json({ ok: false, error: "bad_package" });
-    }
-
-    if (![5,6,7,8,9,10,11].includes(grade)) {
-      return res.status(400).json({ ok: false, error: "bad_grade" });
-    }
-
-    if (pkg !== "pending" && !isValidPackageGrade(pkg, grade)) {
-      return res.status(400).json({
-        ok: false,
-        error: "bad_package_grade_combo"
-      });
     }
 
     const r = await fetch(
@@ -810,10 +792,7 @@ app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
           "Content-Type": "application/json",
           Prefer: "return=representation"
         },
-        body: JSON.stringify({
-          package: pkg,
-          grade: grade
-        })
+        body: JSON.stringify({ package: pkg })
       }
     );
 
@@ -824,10 +803,7 @@ app.post("/api/admin/set-student-meta", requireAdmin, async (req, res) => {
       return res.status(500).json({ ok: false, error: "server_error" });
     }
 
-    return res.json({
-      ok: true,
-      allowedGrades: getAllowedGradesByPackage(pkg, grade)
-    });
+    return res.json({ ok: true });
   } catch (e) {
     console.error("set-student-meta error:", e);
     return res.status(500).json({ ok: false, error: "server_error" });
@@ -1371,10 +1347,6 @@ app.get("/api/progress/summary", requireAuth, async (req, res) => {
     const sessionUser = req.session?.user || null;
     const requestedStudentId = String(req.query.studentId || "");
 
-    let course = String(req.query.course || req.query.package || "").toLowerCase().trim();
-    if (course === "baza") course = "base";
-    if (course === "standard") course = "standart";
-
     const studentId =
       sessionUser?.role === "admin"
         ? requestedStudentId
@@ -1384,21 +1356,8 @@ app.get("/api/progress/summary", requireAuth, async (req, res) => {
       return res.status(400).json({ ok: false, error: "bad_input" });
     }
 
-    if (!["base", "standart", "premium"].includes(course)) {
-      course =
-        String(sessionUser?.package || "").toLowerCase() === "baza"
-          ? "base"
-          : String(sessionUser?.package || "").toLowerCase() === "standard"
-            ? "standart"
-            : String(sessionUser?.package || "").toLowerCase();
-    }
-
-    if (!["base", "standart", "premium"].includes(course)) {
-      return res.status(400).json({ ok: false, error: "bad_course" });
-    }
-
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}&course=eq.${encodeURIComponent(course)}`,
+      `${SUPABASE_URL}/rest/v1/progress?select=*&student_id=eq.${encodeURIComponent(studentId)}`,
       {
         headers: {
           apikey: SUPABASE_KEY,

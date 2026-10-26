@@ -887,16 +887,14 @@ function todayKey(){
 // localStorage pkg normalize
 function normPkgLS(p){
   const x = String(p||"").toLowerCase();
-  if(x === "base" || x === "baza") return "baza";
-  if(x === "standard" || x === "standart") return "standart";
-  if(x === "premium") return "premium";
+  if(x === "active" || x === "base" || x === "baza" || x === "standart" || x === "standard" || x === "premium") return "active";
   if(x === "pending") return "pending";
-  return "baza";
+  return "pending";
 }
 
 // server API course normalize
 function pkgApiFromLS(pkgLS){
-  return pkgLS === "baza" ? "base" : pkgLS; // standart/premium
+  return pkgLS === "active" ? "active" : "pending";
 }
 
 // ✅ package getters
@@ -988,23 +986,14 @@ function migrateOldKeyToNew(prefix){
 
 function pkgLabel(){
   const p = String(effectivePackage || "").toLowerCase();
-
   if(p === "pending") return "Күтілуде";
-  if(p === "baza" || p === "base") return "База";
-  if(p === "standart" || p === "standard") return "Стандарт";
-  if(p === "premium") return "Премиум";
-
-  return "Күтілуде";
+  return "Белсенді";
 }
 
 function coursePage(){
   const p = String(effectivePackage || "").toLowerCase();
 
-  if(p === "baza" || p === "base") return "base-blocks.html";
-  if(p === "standart" || p === "standard") return "standard-blocks.html";
-  if(p === "premium") return "premium-blocks.html";
-
-  return "base-blocks.html";
+  return "my-courses.html";
 }
 
 function makeRow(title, sub, badgeText, badgeKind){
@@ -1254,7 +1243,7 @@ window.pingStreakServer = pingStreakServer;
     const goCourseBtn = document.getElementById("goCourseBtn");
    if(goCourseBtn) goCourseBtn.addEventListener("click", ()=>{
   if(String(effectivePackage || "").toLowerCase() === "pending"){
-    alert("Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады.");
+    alert("Доступ әлі берілмеді. Төлемді растаған соң admin доступ береді.");
     return;
   }
 
@@ -1272,7 +1261,7 @@ window.pingStreakServer = pingStreakServer;
     e.preventDefault();
 
     if(String(effectivePackage || "").toLowerCase() === "pending"){
-      alert("Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады.");
+      alert("Доступ әлі берілмеді. Төлемді растаған соң admin доступ береді.");
       return;
     }
 
