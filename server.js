@@ -1392,7 +1392,7 @@ app.get("/api/progress/summary", requireAuth, async (req, res) => {
       };
     });
 
-    return res.json({ ok: true, course, data: flat });
+    return res.json({ ok: true, data: flat });
   } catch (e) {
     console.error("progress/summary error:", e);
     return res.status(500).json({ ok: false, error: "server_error" });
