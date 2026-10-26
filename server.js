@@ -656,7 +656,7 @@ app.post("/api/auth/register", registerLimiter, async (req, res) => {
       phone: phoneClean,
       email: emailClean,
       password_hash: passwordHash,
-      grade: 5,
+      grade: null,
       package: "pending",
       avatar: ""
     };
@@ -690,7 +690,7 @@ app.post("/api/auth/register", registerLimiter, async (req, res) => {
       avatar: user.avatar || ""
     };
     await pushNotif(studentId, "welcome", `Қош келдің, ${user.full_name}! Аккаунтың ашылды ✅`);
-    await pushNotif(studentId, "package", `Пакетіңіз әлі бекітілмеді. Төлем тексерілген соң курс ашылады ⏳`);
+    await pushNotif(studentId, "access", `Доступ әлі берілмеді. Admin растаған соң курсқа кіре аласың ⏳`);
 
     return res.json({
       ok: true,
