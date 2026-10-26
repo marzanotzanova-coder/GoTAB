@@ -328,16 +328,14 @@
     <div class="sectionTitle" data-i18n="uploadTitle">📦 Материал жүктеу</div>
     <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
 
-    <select id="grade-select" onchange="updateSubjectOptions()">
-<option value="10">10 сынып</option>
-<option value="11">11 сынып</option>
+<select id="topic-select" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;font-size:14px;margin-bottom:12px;">
+  <option value="1">1. Натурал сандар ұғымы</option>
+  <option value="2">2. Натурал санды жай көбейткіштерге жіктеу</option>
+  <option value="3">3. Санның бөлінгіштік белгісі</option>
+  <option value="4">4. Бірнеше натурал санның ең үлкен ортақ бөлгіші (ЕҮО-1)</option>
+  <option value="5">5. Бірнеше натурал санның ең үлкен ортақ бөлгіші (ЕҮО-2)</option>
+  <option value="6">6. Бірнеше натурал санның ең кіші ортақ еселігі</option>
 </select>
-
-<select id="subject-select">
-<option value="algebra">Алгебра</option>
-<option value="geometry">Геометрия</option>
-</select>
-<div id="subject-hint" style="font-size:12px;color:#888;margin-top:4px;margin-bottom:6px"></div>
 
 <!-- LESSON TITLE -->
 <div class="row" style="margin-top:12px;">
@@ -367,14 +365,6 @@
   placeholder="YouTube видео ссылка (https://youtu.be/... немесе watch?v=...)"
   style="width:100%;padding:8px;margin-top:8px;border-radius:8px;border:1px solid #ccc;">
     <div id="youtubePreview" style="display:none;font-size:12px;margin-top:4px;padding:6px 8px;border-radius:8px;background:rgba(47,107,255,.05);border:1px solid rgba(47,107,255,.12)"></div>
-
-    <div class="row">
-      <div class="rowLeft">
-        <div class="rowTitle" data-i18n="audiosLabel">Аудиолар</div>
-        <div class="rowSub" data-i18n="audiosFmt">mp3 / wav / etc</div>
-      </div>
-    </div>
-    <input type="file" id="audio-upload" multiple accept="audio/*">
 
     <div class="row">
       <div class="rowLeft">
@@ -409,7 +399,7 @@
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle" data-i18n="saveTitle">Сақтау</div>
-        <div class="rowSub" data-i18n="saveSub">Блок нөмірін сұрайды (1-100)</div>
+        <div class="rowSub" data-i18n="saveSub">Жоғарыдан тақырыпты таңдаңыз</div>
       </div>
       <button class="btn primary" id="save-btn" data-i18n="saveBtn">✅ Жүктеу</button>
     </div>
@@ -774,24 +764,6 @@ function escapeHtml(s){
   }[m]));
 }
 
-function getMaxBlockByGradeSubject(grade, subject){
-  const g = Number(grade);
-  const s = String(subject || "").toLowerCase().trim();
-
-  if(g === 5 || g === 6){
-    return s === "math" ? 50 : 0;
-  }
-
-  if(g === 7 || g === 8){
-    return (s === "algebra" || s === "geometry") ? 25 : 0;
-  }
-
-  if([9,10,11].includes(g)){
-    return (s === "algebra" || s === "geometry") ? 30 : 0;
-  }
-
-  return 0;
-}
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 
@@ -821,32 +793,14 @@ function getMaxBlockByGradeSubject(grade, subject){
 }
  saveBtn.addEventListener("click", async ()=>{
 
- const grade = document.getElementById("grade-select").value;
-const subject = document.getElementById("subject-select").value;
+const grade = 10;
+const subject = "algebra";
+const blockNumber = parseInt(document.getElementById("topic-select").value, 10);
 
 const lessonTitleInput = document.getElementById("lesson-title");
 const lessonTitle = String(lessonTitleInput?.value || "").trim();
 
-if (!lessonTitle) {
-  alert("Сабақ тақырыбын енгізіңіз!");
-  lessonTitleInput?.focus();
-  return;
-}
-
-const maxBlock = getMaxBlockByGradeSubject(grade, subject);
-
-let blockNumber = parseInt(
-  prompt(`Блок нөмірін енгізіңіз (1-${maxBlock}):`),
-  10
-);
-
-if(isNaN(blockNumber) || blockNumber < 1 || blockNumber > maxBlock){
-  alert(`Қате блок нөмірі! Бұл бөлім үшін 1-${maxBlock} аралығы ғана болады.`);
-  return;
-} 
-
   const videoInput = document.getElementById("video-upload");
-  const audioInput = document.getElementById("audio-upload");
   const docInput   = document.getElementById("doc-upload");
   const feedbackInput = document.getElementById("feedbackText");
   const youtubeUrl = document.getElementById("youtubeUrl").value.trim();
@@ -855,11 +809,10 @@ if(isNaN(blockNumber) || blockNumber < 1 || blockNumber > maxBlock){
   const feedbackText = String(feedbackInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
 
- const videos = Array.from(videoInput.files || []);
-const audios = Array.from(audioInput.files || []);
+const videos = Array.from(videoInput.files || []);
 const docs   = Array.from(docInput.files || []);
 
-const hasFiles = videos.length > 0 || audios.length > 0 || docs.length > 0 || !!youtubeUrl;
+const hasFiles = videos.length > 0 || docs.length > 0 || !!youtubeUrl;
 const hasFeedback = feedbackText.length > 0;
 
 const hasYoutube = youtubeUrl.length > 0;
@@ -910,10 +863,6 @@ if(youtubeUrl){
 // 📁 Қалған файлдар бұрынғыдай
 videos.forEach(f =>
   tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video", lessonTitle))
-);
-
-audios.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "audio", lessonTitle))
 );
 
 docs.forEach(f =>
@@ -1365,12 +1314,6 @@ document.addEventListener("keydown", e => {
   if (e.key === "Escape") { closeAttemptModal(); closeQuizPreviewModal(); }
 });
 
-function updateSubjectOptions() {
-  const grade = Number(document.getElementById("grade-select").value);
-  const hint = document.getElementById("subject-hint");
-  if (hint) hint.textContent = `${grade} сынып → Алгебра немесе Геометрия`;
-}
-updateSubjectOptions();
 
 async function loadAllMaterials() {
   const btn = document.getElementById("diagBtn");
