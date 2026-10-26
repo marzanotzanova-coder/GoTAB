@@ -225,6 +225,8 @@ const i18n = {
     spBtnTest: "Тест",
     spBtnGrade: "Баға қою",
     gradeDlgTitle: "Баға қою",
+    gradeDlgStudentId: "СТУДЕНТ ID",
+    gradeDlgScore: "БАҒА",
     gradeDlgSave: "Сақтау",
     gradeDlgCancel: "Бас тарту",
   },
@@ -454,6 +456,8 @@ const i18n = {
     spBtnTest: "Тест",
     spBtnGrade: "Оценка",
     gradeDlgTitle: "Поставить оценку",
+    gradeDlgStudentId: "ID СТУДЕНТА",
+    gradeDlgScore: "ОЦЕНКА",
     gradeDlgSave: "Сохранить",
     gradeDlgCancel: "Отмена",
   }
