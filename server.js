@@ -2250,13 +2250,13 @@ app.post("/api/quiz/admin/save", requireAdmin, async (req, res) => {
   try {
     const { package: pkg, grade, subject, lessonNumber, rawText } = req.body || {};
 
-    if (!pkg || !grade || !subject || !lessonNumber || !rawText) {
+    if (!pkg || !grade || !subject || lessonNumber == null || lessonNumber === "" || !rawText) {
       console.warn("[quiz/save] validation failed: missing fields", { pkg: !!pkg, grade: !!grade, subject: !!subject, lessonNumber: !!lessonNumber, rawText: !!rawText });
       return res.status(400).json({ ok: false, error: "Барлық өрістерді толтырыңыз." });
     }
 
     const ln = Number(lessonNumber);
-    if (!Number.isFinite(ln) || ln < 1) {
+    if (!Number.isFinite(ln) || ln < 0) {
       console.warn("[quiz/save] validation failed: bad lessonNumber:", lessonNumber);
       return res.status(400).json({ ok: false, error: "Сабақ нөмірі дұрыс емес." });
     }
@@ -2452,7 +2452,7 @@ app.get("/api/quiz/student", requireAuth, async (req, res) => {
   try {
     const { package: pkg, grade, subject, lessonNumber } = req.query;
     const ln = Number(lessonNumber);
-    if (!pkg || !grade || !subject || !ln) return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!pkg || !grade || !subject || lessonNumber == null || isNaN(ln)) return res.status(400).json({ ok: false, error: "bad_input" });
     const { url, key } = quizDb();
     const r = await fetch(
       `${url}/rest/v1/quizzes?select=id,lesson_number,parsed_questions&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,

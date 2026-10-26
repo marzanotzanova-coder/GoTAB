@@ -993,7 +993,7 @@ function pkgLabel(){
 function coursePage(){
   const p = String(effectivePackage || "").toLowerCase();
 
-  return "my-courses.html";
+  return "standard-blocks.html";
 }
 
 function makeRow(title, sub, badgeText, badgeKind){
@@ -1242,7 +1242,7 @@ window.pingStreakServer = pingStreakServer;
 
     const goCourseBtn = document.getElementById("goCourseBtn");
    if(goCourseBtn) goCourseBtn.addEventListener("click", ()=>{
-  if(String(effectivePackage || "").toLowerCase() === "pending"){
+  if(!isAdmin && String(effectivePackage || "").toLowerCase() === "pending"){
     alert("Доступ әлі берілмеді. Төлемді растаған соң admin доступ береді.");
     return;
   }
@@ -1260,7 +1260,7 @@ window.pingStreakServer = pingStreakServer;
   openCourseFromProfile.addEventListener("click", (e)=>{
     e.preventDefault();
 
-    if(String(effectivePackage || "").toLowerCase() === "pending"){
+    if(!isAdmin && String(effectivePackage || "").toLowerCase() === "pending"){
       alert("Доступ әлі берілмеді. Төлемді растаған соң admin доступ береді.");
       return;
     }
