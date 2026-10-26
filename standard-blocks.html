@@ -260,15 +260,14 @@ body{
 .sb-extra{background:linear-gradient(135deg,#0d9488,#14b8a6);color:#fff;box-shadow:0 4px 12px rgba(13,148,136,.22);}
 .sb-task {background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;box-shadow:0 4px 12px rgba(217,119,6,.22);}
 .sb-test {background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;box-shadow:0 4px 12px rgba(220,38,38,.2);}
-.sb-grade{background:linear-gradient(135deg,#059669,#10b981);color:#fff;box-shadow:0 4px 12px rgba(5,150,105,.22);display:none;}
-.grade-dlg-box{background:#fff;border-radius:20px;padding:28px 24px;width:280px;box-shadow:0 20px 60px rgba(0,0,0,.22);}
-.grade-dlg-title{font-size:18px;font-weight:900;color:#14213D;margin-bottom:18px;text-align:center;}
-.grade-dlg-input{width:100%;padding:14px;border:1.5px solid rgba(5,150,105,.25);border-radius:12px;font-size:22px;font-weight:800;text-align:center;outline:none;color:#059669;margin-bottom:6px;}
-.grade-dlg-input:focus{border-color:#059669;box-shadow:0 0 0 3px rgba(5,150,105,.12);}
-.grade-dlg-hint{text-align:center;font-size:12px;color:#9CA3AF;margin-bottom:16px;}
-.grade-dlg-row{display:flex;gap:10px;}
-.grade-dlg-cancel{flex:1;padding:12px;border:none;border-radius:12px;background:rgba(100,100,100,.1);font-size:13px;font-weight:700;cursor:pointer;color:#6B7280;}
-.grade-dlg-save{flex:1;padding:12px;border:none;border-radius:12px;background:linear-gradient(135deg,#059669,#10b981);color:#fff;font-size:13px;font-weight:700;cursor:pointer;}
+.stg-wrap{margin-top:4px;text-align:center;}
+.stg-val{display:inline-block;font-size:13px;font-weight:800;color:#C4C9D4;padding:2px 10px;border-radius:6px;min-width:32px;line-height:1.7;}
+.stg-val.can-edit{cursor:pointer;}
+.stg-val.can-edit:hover{background:rgba(0,0,0,.05);color:#374151;}
+.stg-val.has-grade{color:#059669;}
+.stg-input{display:none;width:58px;padding:3px 6px;border:1.5px solid rgba(55,65,81,.22);border-radius:7px;font-size:13px;font-weight:700;text-align:center;outline:none;color:#374151;background:#f9fafb;-moz-appearance:textfield;}
+.stg-input::-webkit-inner-spin-button{opacity:.6;}
+.stg-input:focus{border-color:#059669;}
 /* ---- end topic cards ---- */
 .quiz-box{background:#fff;border-radius:24px;max-width:700px;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.18);}
 .quiz-mhdr{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid rgba(47,107,255,.1);position:sticky;top:0;background:#fff;border-radius:24px 24px 0 0;z-index:1;}
@@ -451,7 +450,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(1)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="1"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
         <div class="subtopic-card">
@@ -460,7 +459,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(2)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="2"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
         <div class="subtopic-card">
@@ -469,7 +468,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(3)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="3"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
         <div class="subtopic-card">
@@ -478,7 +477,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(4)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="4"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
         <div class="subtopic-card">
@@ -487,7 +486,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(5)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="5"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
         <div class="subtopic-card">
@@ -496,7 +495,7 @@ body{
           <button class="subtopic-btn sb-extra" data-i18n="spBtnExtra">Қосымша</button>
           <button class="subtopic-btn sb-task" data-i18n="spBtnTask">Тапсырма</button>
           <button class="subtopic-btn sb-test" data-i18n="spBtnTest">Тест</button>
-          <button class="subtopic-btn sb-grade" onclick="openSubtopicGradeModal(6)" data-i18n="spBtnGrade">Баға қою</button>
+          <div class="stg-wrap" data-block="6"><span class="stg-val">—</span><input type="number" class="stg-input" min="1" max="100"></div>
         </div>
 
       </div>
@@ -540,21 +539,6 @@ body{
 
 <select id="gradeSelect" style="display:none"><option value="10">10</option><option value="11">11</option></select>
 <select id="subjectSelect" style="display:none"><option value="algebra">algebra</option><option value="geometry">geometry</option></select>
-
-<div id="gradeModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;">
-  <div class="grade-dlg-box">
-    <div class="grade-dlg-title" data-i18n="gradeDlgTitle">Баға қою</div>
-    <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:5px;letter-spacing:.4px;" data-i18n="gradeDlgStudentId">СТУДЕНТ ID</div>
-    <input type="text" id="gradeStudentId" class="grade-dlg-input" style="font-size:13px;font-weight:600;color:#14213D;margin-bottom:12px;" placeholder="st_xxxxxxxx">
-    <div style="font-size:11px;font-weight:700;color:#6B7280;margin-bottom:5px;letter-spacing:.4px;" data-i18n="gradeDlgScore">БАҒА</div>
-    <input type="number" id="gradeInput" class="grade-dlg-input" min="1" max="100" value="90">
-    <div class="grade-dlg-hint">1 – 100</div>
-    <div class="grade-dlg-row">
-      <button class="grade-dlg-cancel" onclick="document.getElementById('gradeModal').style.display='none'" data-i18n="gradeDlgCancel">Бас тарту</button>
-      <button class="grade-dlg-save" onclick="saveSubtopicGrade()" data-i18n="gradeDlgSave">Сақтау</button>
-    </div>
-  </div>
-</div>
 
 <div id="diagPickModal" style="display:none">
   <div style="background:#fff;border-radius:18px;padding:36px 28px 28px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.22);">
@@ -710,9 +694,57 @@ window.closeQuizModal=function(){document.getElementById("quizModal").style.disp
 window.openDiagModal=function(){const m=document.getElementById("diagPickModal");m.style.cssText="display:flex;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;";};
 window.startDiag=function(grade){document.getElementById("gradeSelect").value=String(grade);document.getElementById("diagPickModal").style.display="none";openQuizModal(0);};
 window.showDiagResult=function(){const raw=localStorage.getItem("diagResult_"+(effectiveStudentId||""));if(!raw){alert("Диагностикалық тест тарихы жоқ. Алдымен тест тапсырыңыз.");return;}let j;try{j=JSON.parse(raw);}catch(e){alert("Нәтиже оқылмады.");return;}document.getElementById("quizModal").style.display="flex";document.getElementById("quizHeaderTitle").textContent="📊 Диагностика нәтижесі";const t=window.goI18n[window.goLang]||window.goI18n.kk;const scoreTpl=t.quizScoreLine||"Нәтижеңіз: {correct}/{total}";document.getElementById("qsResultBig").textContent=scoreTpl.replace("{correct}",j.correctCount||0).replace("{total}",j.totalCount||0);document.getElementById("qsResultStats").innerHTML=`<div class="quiz-result-stat"><div class="rnum" style="color:#1DE9B6">${j.correctCount||0}</div><div class="rlbl">Дұрыс</div></div><div class="quiz-result-stat"><div class="rnum" style="color:#ef4444">${j.wrongCount||0}</div><div class="rlbl">Қате</div></div><div class="quiz-result-stat"><div class="rnum">${j.percentage||0}%</div><div class="rlbl">Пайыз</div></div>`;document.getElementById("qsResultMsg").textContent=j.message||"";const diagEl=document.getElementById("qsResultDiag");const detailHtml=_buildResultDetail(j);if(detailHtml){diagEl.innerHTML=detailHtml;diagEl.style.display="";}else{diagEl.style.display="none";}_setQState("result");};
-let _gradeBlock=0;
-window.openSubtopicGradeModal=function(block){_gradeBlock=block;document.getElementById("gradeInput").value=90;document.getElementById("gradeStudentId").value=effectiveStudentId||"";const m=document.getElementById("gradeModal");m.style.cssText="display:flex;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;align-items:center;justify-content:center;";setTimeout(()=>document.getElementById("gradeStudentId").focus(),50);};
-window.saveSubtopicGrade=async function(){const targetId=(document.getElementById("gradeStudentId").value.trim()||effectiveStudentId);if(!targetId){alert("Студент ID енгізіңіз");return;}const val=Number(document.getElementById("gradeInput").value);if(!val||val<1||val>100){alert("1-100 арасындағы сан енгізіңіз");return;}const gv=document.getElementById("gradeSelect").value;const sv=document.getElementById("subjectSelect").value;const btn=document.querySelector(".grade-dlg-save");if(btn){btn.disabled=true;btn.textContent="...";}try{const r=await fetch("/api/progress/set",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({studentId:targetId,grade:Number(gv),subject:sv,blockNumber:_gradeBlock,course:"standart",gradeValue:val})});const d=await r.json().catch(()=>null);if(d?.ok){document.getElementById("gradeModal").style.display="none";}else{alert(d?.error||"Сақтау қатесі");}}catch(e){alert("Желі қатесі");}finally{if(btn){btn.disabled=false;const t=window.goI18n?.[window.goLang]||{};btn.textContent=t.gradeDlgSave||"Сақтау";}}};
+function wireGradePickers(){
+  document.querySelectorAll(".stg-wrap").forEach(wrap=>{
+    const block=Number(wrap.dataset.block);
+    const valEl=wrap.querySelector(".stg-val");
+    const inp=wrap.querySelector(".stg-input");
+    if(!isAdmin) return;
+    valEl.classList.add("can-edit");
+    valEl.addEventListener("click",()=>{
+      inp.value=valEl.dataset.grade||"";
+      valEl.style.display="none";
+      inp.style.display="inline-block";
+      inp.focus();inp.select();
+    });
+    const commitSave=async()=>{
+      inp.style.display="none";
+      valEl.style.display="inline-block";
+      const v=Number(inp.value);
+      if(!inp.value||!v||v<1||v>100) return;
+      const gv=document.getElementById("gradeSelect").value;
+      const sv=document.getElementById("subjectSelect").value;
+      try{
+        const r=await fetch("/api/progress/set",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({studentId:effectiveStudentId,grade:Number(gv),subject:sv,blockNumber:block,course:"standart",gradeValue:v})});
+        const d=await r.json().catch(()=>null);
+        if(d?.ok){valEl.textContent=String(v);valEl.dataset.grade=String(v);valEl.classList.add("has-grade");}
+      }catch(e){console.error(e);}
+    };
+    inp.addEventListener("keydown",e=>{if(e.key==="Enter")commitSave();if(e.key==="Escape"){inp.style.display="none";valEl.style.display="inline-block";}});
+    inp.addEventListener("blur",commitSave);
+  });
+}
+async function loadSubtopicGrades(){
+  if(!effectiveStudentId) return;
+  try{
+    const gv=document.getElementById("gradeSelect").value;
+    const sv=document.getElementById("subjectSelect").value;
+    const r=await fetch(`/api/progress/summary?studentId=${encodeURIComponent(effectiveStudentId)}`,{credentials:"include"});
+    const j=await r.json().catch(()=>null);
+    if(!j?.ok) return;
+    document.querySelectorAll(".stg-wrap").forEach(wrap=>{
+      const block=Number(wrap.dataset.block);
+      const key=`${gv}_${sv}_${block}`;
+      const item=j.data?.[key];
+      if(item&&Number(item.grade)>0){
+        const valEl=wrap.querySelector(".stg-val");
+        valEl.textContent=String(Number(item.grade));
+        valEl.dataset.grade=String(Number(item.grade));
+        valEl.classList.add("has-grade");
+      }
+    });
+  }catch(e){console.error(e);}
+}
 document.getElementById("quizClose").onclick=()=>closeQuizModal();
 document.getElementById("qsResultClose").onclick=()=>closeQuizModal();
 document.getElementById("qsSubmit").onclick=()=>_submitQuiz();
@@ -800,9 +832,10 @@ function wireNavButtons(){
   role=String(sessionUser.role||"student"); isAdmin=role==="admin"; isPreview=isAdmin&&!!previewStudentId;
   effectiveStudentId=isPreview?String(previewStudentId):String(sessionUser.studentId||"");
   fillSidebar(); wireNavButtons();
-  if(isAdmin) document.querySelectorAll(".sb-grade").forEach(b=>b.style.display="block");
   document.getElementById("gradeSelect").value=["10","11"].includes(String(sessionUser.grade||""))?""+sessionUser.grade:"10";
   document.getElementById("subjectSelect").value="algebra";
+  wireGradePickers();
+  loadSubtopicGrades();
 
   // Сандар card flip
   const sanddarCard = document.getElementById('sanddarCard');
