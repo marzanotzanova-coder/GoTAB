@@ -441,18 +441,7 @@
 
       <!-- Quiz creation form -->
       <div class="quiz-section-title">📋 Сынақты қосу / өңдеу</div>
-      <div class="quiz-selects">
-        <select id="qzGrade">
-          <option value="10">10 сынып</option>
-          <option value="11">11 сынып</option>
-        </select>
-        <select id="qzSubject">
-          <option value="math">Математика</option>
-          <option value="algebra">Алгебра</option>
-          <option value="geometry">Геометрия</option>
-        </select>
-        <input type="number" id="qzLesson" min="0" max="100" placeholder="Сабақ № (0 = диагностика)" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;">
-      </div>
+      <input type="number" id="qzLesson" min="0" max="100" placeholder="Сабақ № (0 = диагностика)" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;width:100%;margin-bottom:8px;box-sizing:border-box;">
 
       <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз: <span style="color:#2F6BFF;font-weight:700">(Ctrl+Enter — сақтау)</span></div>
       <textarea id="qzText" class="quiz-textarea" placeholder="<question>Сұрақ мәтіні
@@ -482,9 +471,7 @@
       <!-- Attempts -->
       <div class="quiz-section-title">📊 Сынақ нәтижелері</div>
       <div class="attempts-filter">
-        <select id="filtGrade" onchange="loadAttempts()"><option value="">Барлық сынып</option><option value="10">10</option><option value="11">11</option></select>
-        <select id="filtSubject" onchange="loadAttempts()"><option value="">Барлық пән</option><option value="math">Математика</option><option value="algebra">Алгебра</option><option value="geometry">Геометрия</option></select>
-        <input type="number" id="filtLesson" min="1" max="100" placeholder="Сабақ №" onchange="loadAttempts()" style="padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:12px;width:90px;background:rgba(255,255,255,.9);">
+        <input type="number" id="filtLesson" min="0" max="100" placeholder="Сабақ №" onchange="loadAttempts()" style="padding:8px 10px;border-radius:12px;border:1.5px solid rgba(47,107,255,.14);font-size:12px;width:120px;background:rgba(255,255,255,.9);">
         <button class="btn ghost" style="padding:8px 12px;font-size:12px;" onclick="loadAttempts()">🔄</button>
       </div>
       <div id="attemptsList"><div class="attempts-empty">Нәтижелер жоқ</div></div>
@@ -1022,8 +1009,8 @@ function previewQuiz() {
 }
 
 async function saveQuiz() {
-  const grade      = document.getElementById("qzGrade").value;
-  const subject    = document.getElementById("qzSubject").value;
+  const grade      = 10;
+  const subject    = "algebra";
   const lessonNumber = document.getElementById("qzLesson").value;
   const rawText    = document.getElementById("qzText").value.trim();
   const stat       = document.getElementById("qzStatus");
@@ -1077,7 +1064,7 @@ async function loadQuizList() {
     const quizzes = j?.quizzes || [];
     if (!quizzes.length) { box.innerHTML = "<div class='muted'>Сынақтар жоқ.</div>"; return; }
     box.innerHTML = quizzes.map(q => {
-      const label = `${escapeHtmlQ(q.package)} · ${q.grade} сынып · ${escapeHtmlQ(q.subject)} · Сабақ ${q.lesson_number}`;
+      const label = q.lesson_number === 0 ? `Диагностикалық тест` : `Сабақ ${q.lesson_number}`;
       const pkg = escapeHtmlQ(q.package), subj = escapeHtmlQ(q.subject);
       return `
         <div class="quiz-row">
@@ -1113,7 +1100,7 @@ async function previewQuizFromList(id, pkg, grade, subject, lessonNumber) {
   const body  = document.getElementById("qpmBody");
   const title = document.getElementById("qpmTitle");
   body.innerHTML = "<div class='muted' style='padding:30px 0;text-align:center'>Жүктелуде…</div>";
-  title.textContent = `📋 ${pkg} · ${grade} сынып · ${subject} · Сабақ ${lessonNumber}`;
+  title.textContent = `📋 ${Number(lessonNumber) === 0 ? "Диагностикалық тест" : "Сабақ " + lessonNumber}`;
   modal.style.display = "flex";
   try {
     const r = await fetch(`/api/quiz/admin/get?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}&lessonNumber=${lessonNumber}`, { credentials: "include" });
@@ -1139,8 +1126,6 @@ async function loadQuizForEdit(id, pkg, grade, subject, lessonNumber) {
     const r = await fetch(`/api/quiz/admin/get?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=${encodeURIComponent(subject)}&lessonNumber=${lessonNumber}`, { credentials: "include" });
     const j = await r.json().catch(() => null);
     if (!j?.quiz) return;
-    document.getElementById("qzGrade").value      = grade;
-    document.getElementById("qzSubject").value    = subject;
     document.getElementById("qzLesson").value     = lessonNumber;
     document.getElementById("qzText").value       = j.quiz.raw_text || "";
     document.getElementById("qzStatus").textContent = "";
@@ -1152,15 +1137,11 @@ async function loadQuizForEdit(id, pkg, grade, subject, lessonNumber) {
 
 async function loadAttempts() {
   const box     = document.getElementById("attemptsList");
-  const grade   = document.getElementById("filtGrade").value;
-  const subject = document.getElementById("filtSubject").value;
   const lesson  = document.getElementById("filtLesson").value;
   box.innerHTML = "<div class='muted'>Жүктелуде…</div>";
   try {
     let url = "/api/quiz/admin/attempts?";
-    if (grade)   url += `grade=${encodeURIComponent(grade)}&`;
-    if (subject) url += `subject=${encodeURIComponent(subject)}&`;
-    if (lesson)  url += `lessonNumber=${Number(lesson)}&`;
+    if (lesson !== "")  url += `lessonNumber=${Number(lesson)}&`;
     const r = await fetch(url, { credentials: "include", cache: "no-store" });
     const j = await r.json().catch(() => null);
     if (!r.ok) {
@@ -1177,7 +1158,7 @@ async function loadAttempts() {
         <div class="attempt-row-top">
           <div>
             <div class="attempt-name">${escapeHtmlQ(a.student_name || a.student_id)}</div>
-            <div class="attempt-meta">${escapeHtmlQ(a.package)} · ${a.grade} сынып · ${escapeHtmlQ(a.subject)} · Сабақ ${a.lesson_number} · ${new Date(a.created_at).toLocaleDateString("ru")}</div>
+            <div class="attempt-meta">${a.lesson_number === 0 ? "Диагностикалық тест" : "Сабақ " + a.lesson_number} · ${new Date(a.created_at).toLocaleDateString("ru")}</div>
             ${weak.length ? `<div class="attempt-topics">⚠️ Әлсіз: ${weak.join(", ")}</div>` : ""}
           </div>
           <div class="attempt-score">${a.correct_count}/${a.total_count}<br><span style="font-size:12px;color:#6B7280;">${a.percentage}%</span></div>
