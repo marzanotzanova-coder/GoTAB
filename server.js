@@ -2339,7 +2339,7 @@ app.get("/api/quiz/admin/get", requireAdmin, async (req, res) => {
   try {
     const { package: pkg, grade, subject, lessonNumber } = req.query;
     const ln = Number(lessonNumber);
-    if (!pkg || !grade || !subject || !ln) return res.status(400).json({ ok: false, error: "bad_input" });
+    if (!pkg || !grade || !subject || lessonNumber == null || lessonNumber === "" || isNaN(ln)) return res.status(400).json({ ok: false, error: "bad_input" });
     const { url, key } = quizDb();
     const r = await fetch(
       `${url}/rest/v1/quizzes?select=*&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,

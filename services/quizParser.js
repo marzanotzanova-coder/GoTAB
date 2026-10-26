@@ -71,13 +71,13 @@ function parseQuiz(rawText) {
       const m = line.match(/^<(topic|answer|variant)>(.*)/i);
       if (!m) { questionParts.push(line); continue; }
       const tag = m[1].toLowerCase();
-      const val = m[2].trim();
+      const val = m[2].replace(/<\/[^>]+>/g, "").trim();
       if      (tag === "topic"   && val) topic = val;
       else if (tag === "answer"  && val) correct = val;
       else if (tag === "variant" && val) variants.push(val);
     }
 
-    const questionText = questionParts.join(" ").trim();
+    const questionText = questionParts.join(" ").replace(/<\/[^>]+>/g, "").trim();
 
     if (!questionText) { errors.push(`Сұрақ №${qNum}: мәтін жоқ.`);         continue; }
     if (!correct)      { errors.push(`Сұрақ №${qNum}: <answer> тегі жоқ.`); continue; }
