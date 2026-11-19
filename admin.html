@@ -406,10 +406,16 @@
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle" data-i18n="docsLabel">Документтер</div>
-        <div class="rowSub" data-i18n="docsFmt">pdf / doc / docx</div>
+        <div class="rowSub">pdf / doc / docx / pptx — қанша керек болса, сонша қосыңыз (әрқайсысы 50 МБ-қа дейін)</div>
       </div>
     </div>
-    <input type="file" id="doc-upload" multiple accept=".pdf,.doc,.docx,.txt">
+    <div id="docRows">
+      <div class="doc-row" style="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b class="dr-num" style="font-size:13px;color:#2F6BFF">Құжат 1</b></div>
+        <input type="file" id="doc-upload" class="dr-file" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">
+      </div>
+    </div>
+    <button type="button" class="btn ghost" id="addDocRow" style="margin-top:10px;width:100%">➕ Құжат қосу</button>
 
     <div class="row">
   <div class="rowLeft">
@@ -837,7 +843,7 @@ const lessonTitle = String(lessonTitleInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
 
 const videos = videoRows.flatMap(r => Array.from(r.querySelector(".vr-file").files || []));
-const docs   = Array.from(docInput.files || []);
+const docs   = Array.from(document.querySelectorAll("#docRows .dr-file")).flatMap(i => Array.from(i.files || []));
 
 const hasFiles = videos.length > 0 || docs.length > 0 || !!youtubeUrl;
 const hasFeedback = feedbackText.length > 0;
@@ -1463,10 +1469,20 @@ async function loadAllMaterials() {
     r.querySelector(".vr-del").onclick=()=>{r.remove();renum();};
     box.appendChild(r); renum();
   });
+  const dbox=document.getElementById("docRows"), dadd=document.getElementById("addDocRow");
+  const drenum=()=>dbox.querySelectorAll(".doc-row").forEach((r,i)=>{r.querySelector(".dr-num").textContent="Құжат "+(i+1);});
+  if(dbox&&dadd) dadd.addEventListener("click",()=>{
+    const r=document.createElement("div"); r.className="doc-row";
+    r.style.cssText="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px";
+    r.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b class="dr-num" style="font-size:13px;color:#2F6BFF"></b><button type="button" class="dr-del" title="Өшіру" style="border:none;background:none;color:#ef4444;font-size:20px;cursor:pointer;line-height:1">×</button></div>'+
+      '<input type="file" class="dr-file" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">';
+    r.querySelector(".dr-del").onclick=()=>{r.remove();drenum();};
+    dbox.appendChild(r); drenum();
+  });
   window.__resetVideoRows=function(){
     box.querySelectorAll(".video-row").forEach((r,i)=>{ if(i>0) r.remove(); else { r.querySelector(".vr-file").value=""; r.querySelector(".vr-yt").value=""; const pv=document.getElementById("youtubePreview"); if(pv) pv.style.display="none"; } });
-    const dc=document.getElementById("doc-upload"); if(dc) dc.value="";
-    renum();
+    const dbox=document.getElementById("docRows"); if(dbox) dbox.querySelectorAll(".doc-row").forEach((r,i)=>{ if(i>0) r.remove(); else r.querySelector(".dr-file").value=""; });
+    renum(); if(dbox) drenum();
   };
 })();
 </script>

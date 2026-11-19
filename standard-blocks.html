@@ -895,7 +895,8 @@ function wireNavButtons(){
         else { const vd=document.createElement('video'); vd.src=url; vd.controls=true; vd.preload='metadata'; vd.setAttribute('playsinline',''); vd.setAttribute('controlsList','nodownload'); fr.appendChild(vd); }
         list.appendChild(item);
       });
-      docs.forEach((d,i)=>{ const a=document.createElement('a'); a.href=String(d.url||'#'); a.target='_blank'; a.rel='noopener'; a.textContent='📄 Құжат '+(i+1); docsBox.appendChild(a); });
+      if(docs.length){ const h=document.createElement('div'); h.className='lv-num'; h.style.margin='6px 0 2px'; h.textContent='Құжаттар'; docsBox.appendChild(h); }
+      docs.forEach((d,i)=>{ const u=String(d.url||'#'), ext=(u.split('?')[0].split('.').pop()||'').toUpperCase(); const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; a.textContent='📄 Құжат '+(i+1)+(ext&&ext.length<=5?' · '+ext:''); docsBox.appendChild(a); });
     }catch(e){ list.innerHTML='<div class="lv-empty">Жүктеу кезінде қате болды. Қайта көріңіз.</div>'; }
   }
   document.getElementById('lvBack').addEventListener('click',()=>{ document.querySelectorAll('#lvList iframe,#lvList video').forEach(x=>{ if(x.tagName==='VIDEO') x.pause(); else x.src='about:blank'; }); lvShow(false); });
