@@ -313,9 +313,24 @@
     .btm-btn:hover{background:rgba(255,255,255,.15);color:#fff;}
     .btm-copy-ok{font-size:12px;color:#4ade80;font-weight:800;flex-shrink:0;}
     @media(max-width:768px){.btm-bar{margin-left:0;}.btm-btn{font-size:11px;padding:6px 10px;}}
+  @media(max-width:768px){
+      body{display:block;}
+      .sidebar{position:relative!important;transform:none!important;width:100%!important;top:auto;bottom:auto;overflow:visible;}
+      .sb-logo{padding:12px 16px!important;}
+      .sb-logo-sub,.sb-hint,.sb-mountain{display:none!important;}
+      .sb-profile{margin:0 12px 8px;padding:10px!important;}
+      .sb-nav{flex-direction:row;flex-wrap:wrap;padding:8px 12px!important;gap:6px;}
+      .sb-item{flex:1 1 145px;justify-content:center;min-height:42px;}
+      .sb-divider{display:none;}
+      .main{margin-left:0!important;width:100%!important;min-width:0;}
+      .btm-bar{position:relative!important;left:auto!important;width:100%;flex-wrap:wrap;}
+    }
   </style>
+<link rel="stylesheet" href="student-theme.css?v=20261028">
+<link rel="stylesheet" href="hero-graphs.css?v=20261028">
+<link rel="stylesheet" href="growth-stairs.css?v=20261028">
 </head>
-<body>
+<body class="student-dashboard">
 
 <!-- SIDEBAR -->
 <aside class="sidebar" id="mainSidebar">
@@ -347,6 +362,7 @@
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
       <span>Курсқа өту</span>
     </button>
+    <button class="sb-item" id="goDiagnosticBtn" type="button"><svg class="gotab-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 9h6M9 13h6M9 17h3"/></svg> <span>Диагностикалық тест</span></button>
     <div class="sb-divider"></div>
     <button class="sb-item adm" id="goAdminBtn" style="display:none;">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -366,7 +382,7 @@
 
   <div class="sb-wave"></div>
   <div class="sb-mountain">
-    <img src="images/mountain.png" alt="">
+    <div class="growth-stairs" role="img" aria-label="Біртіндеп көтерілетін көк білім баспалдағы және төбедегі ту"><svg viewBox="0 0 240 210" aria-hidden="true"><defs><linearGradient id="stepFront" x2="0" y2="1"><stop stop-color="#3979f2"/><stop offset="1" stop-color="#2455c7"/></linearGradient><linearGradient id="stepTop"><stop stop-color="#8ab8ff"/><stop offset="1" stop-color="#4c90f4"/></linearGradient><linearGradient id="flagFill"><stop stop-color="#26b9ce"/><stop offset="1" stop-color="#5ee4e2"/></linearGradient><radialGradient id="stairGlow"><stop stop-color="#dceaff"/><stop offset="1" stop-color="#f6f8fb" stop-opacity="0"/></radialGradient></defs><ellipse cx="120" cy="185" rx="113" ry="23" fill="url(#stairGlow)"/><g class="growth-step" style="--step:0"><path d="M20 164l18-10h32l-18 10z" fill="url(#stepTop)"/><path d="M20 164h32v20h-32z" fill="url(#stepFront)"/><path d="M52 164l18-10v20l-18 10z" fill="#1d4cb5"/><path d="M22 165h28" stroke="#b8d5ff" stroke-opacity=".7" stroke-width="1.4"/></g><g class="growth-step" style="--step:1"><path d="M54 137l18-10h32l-18 10z" fill="url(#stepTop)"/><path d="M54 137h32v47h-32z" fill="url(#stepFront)"/><path d="M86 137l18-10v47l-18 10z" fill="#1d4cb5"/><path d="M56 138h28" stroke="#b8d5ff" stroke-opacity=".7" stroke-width="1.4"/></g><g class="growth-step" style="--step:2"><path d="M88 110l18-10h32l-18 10z" fill="url(#stepTop)"/><path d="M88 110h32v74h-32z" fill="url(#stepFront)"/><path d="M120 110l18-10v74l-18 10z" fill="#1d4cb5"/><path d="M90 111h28" stroke="#b8d5ff" stroke-opacity=".7" stroke-width="1.4"/></g><g class="growth-step" style="--step:3"><path d="M122 83l18-10h32l-18 10z" fill="url(#stepTop)"/><path d="M122 83h32v101h-32z" fill="url(#stepFront)"/><path d="M154 83l18-10v101l-18 10z" fill="#1d4cb5"/><path d="M124 84h28" stroke="#b8d5ff" stroke-opacity=".7" stroke-width="1.4"/></g><g class="growth-step" style="--step:4"><path d="M156 56l18-10h32l-18 10z" fill="url(#stepTop)"/><path d="M156 56h32v128h-32z" fill="url(#stepFront)"/><path d="M188 56l18-10v128l-18 10z" fill="#1d4cb5"/><path d="M158 57h28" stroke="#b8d5ff" stroke-opacity=".7" stroke-width="1.4"/></g><g class="growth-flag"><path d="M180 47V9" stroke="#2554aa" stroke-width="3" stroke-linecap="round"/><path class="growth-flag-cloth" d="M182 10c10-7 18 7 32 0v23c-14 7-22-7-32 0z" fill="url(#flagFill)"/><circle cx="180" cy="8" r="3" fill="#2864df"/><g class="growth-spark" fill="none" stroke="#26b9ce" stroke-width="2" stroke-linecap="round"><path d="M221 6v7m-3.5-3.5h7 M164 18v5m-2.5-2.5h5"/></g></g></svg></div>
   </div>
 </aside>
 
@@ -392,8 +408,9 @@
 
     <!-- HERO -->
     <section class="hero">
+      <div class="autumn-leaves" aria-hidden="true"><span class="autumn-leaf" style="--leaf-x:4%;--leaf-size:18px;--leaf-duration:14s;--leaf-delay:-4s;--leaf-color:#ba7734"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:18%;--leaf-size:23px;--leaf-duration:19s;--leaf-delay:-13s;--leaf-color:#c89243"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:31%;--leaf-size:15px;--leaf-duration:16s;--leaf-delay:-8s;--leaf-color:#b65d3c"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:43%;--leaf-size:21px;--leaf-duration:22s;--leaf-delay:-3s;--leaf-color:#cca76b"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:56%;--leaf-size:18px;--leaf-duration:18s;--leaf-delay:-12s;--leaf-color:#ba7734"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:68%;--leaf-size:24px;--leaf-duration:21s;--leaf-delay:-16s;--leaf-color:#c89243"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:79%;--leaf-size:17px;--leaf-duration:15s;--leaf-delay:-6s;--leaf-color:#b65d3c"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:91%;--leaf-size:20px;--leaf-duration:23s;--leaf-delay:-20s;--leaf-color:#cca76b"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span></div>
       <div class="hero-text">
-        <div class="hero-greet" id="hello">Сәлем, оқушы! 👋</div>
+        <div class="hero-greet" id="hello" aria-live="polite">Қош келдің!</div>
         <div class="hero-name">Бұл сенің <span id="heroSpan">жеке кабинетің.</span></div>
         <div style="font-size:13px;color:#64748b;margin-top:8px;line-height:1.5;max-width:380px">Бізбен бірге алған білім арқылы үлкен белестерді бағындыр.</div>
         <!-- Hidden compat: pkg/grade badges still updated by JS -->
@@ -401,7 +418,7 @@
         <span id="heroGradeBadge" style="display:none"></span>
         <button id="heroCourseBtn" style="display:none"></button>
       </div>
-      <img src="images/trophy.png" alt="" class="hero-img">
+      <div class="hero-graphs" role="img" aria-label="Кезекпен ауысатын бес математикалық график"><svg viewBox="0 0 300 220" aria-hidden="true"><defs><linearGradient id="graphLine" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2864df"/><stop offset="1" stop-color="#26b9ce"/></linearGradient></defs><g class="graph-grid"><path d="M30 22V180"/><path d="M60 22V180"/><path d="M90 22V180"/><path d="M120 22V180"/><path d="M150 22V180"/><path d="M180 22V180"/><path d="M210 22V180"/><path d="M240 22V180"/><path d="M270 22V180"/><path d="M22 30H280"/><path d="M22 60H280"/><path d="M22 90H280"/><path d="M22 120H280"/><path d="M22 150H280"/><path d="M22 180H280"/></g><path class="graph-axes" d="M22 105H281l-5-4m5 4-5 4 M150 182V20l-4 5m4-5 4 5"/><text x="280" y="122" class="axis-label">x</text><text x="160" y="27" class="axis-label">y</text><g class="graph-scene scene-0"><path class="graph-curve" pathLength="1" d="M30.40,124.28 L32.39,125.65 L34.39,126.98 L36.38,128.27 L38.37,129.52 L40.37,130.72 L42.36,131.87 L44.35,132.97 L46.35,134.02 L48.34,135.02 L50.33,135.95 L52.33,136.83 L54.32,137.66 L56.31,138.41 L58.31,139.11 L60.30,139.74 L62.29,140.31 L64.29,140.81 L66.28,141.24 L68.27,141.61 L70.27,141.91 L72.26,142.13 L74.25,142.29 L76.25,142.38 L78.24,142.40 L80.23,142.35 L82.23,142.22 L84.22,142.03 L86.21,141.77 L88.21,141.44 L90.20,141.04 L92.19,140.57 L94.19,140.04 L96.18,139.44 L98.17,138.77 L100.17,138.04 L102.16,137.25 L104.15,136.40 L106.15,135.49 L108.14,134.53 L110.13,133.51 L112.13,132.43 L114.12,131.30 L116.11,130.13 L118.11,128.90 L120.10,127.63 L122.09,126.32 L124.09,124.97 L126.08,123.58 L128.07,122.16 L130.07,120.70 L132.06,119.22 L134.05,117.71 L136.05,116.17 L138.04,114.61 L140.03,113.04 L142.03,111.45 L144.02,109.85 L146.01,108.24 L148.01,106.62 L150.00,105.00 L151.99,103.38 L153.99,101.76 L155.98,100.15 L157.97,98.55 L159.97,96.96 L161.96,95.39 L163.95,93.83 L165.95,92.29 L167.94,90.78 L169.93,89.30 L171.93,87.84 L173.92,86.42 L175.91,85.03 L177.91,83.68 L179.90,82.37 L181.89,81.10 L183.89,79.87 L185.88,78.70 L187.87,77.57 L189.87,76.49 L191.86,75.47 L193.85,74.51 L195.85,73.60 L197.84,72.75 L199.83,71.96 L201.83,71.23 L203.82,70.56 L205.81,69.96 L207.81,69.43 L209.80,68.96 L211.79,68.56 L213.79,68.23 L215.78,67.97 L217.77,67.78 L219.77,67.65 L221.76,67.60 L223.75,67.62 L225.75,67.71 L227.74,67.87 L229.73,68.09 L231.73,68.39 L233.72,68.76 L235.71,69.19 L237.71,69.69 L239.70,70.26 L241.69,70.89 L243.69,71.59 L245.68,72.34 L247.67,73.17 L249.67,74.05 L251.66,74.98 L253.65,75.98 L255.65,77.03 L257.64,78.13 L259.63,79.28 L261.63,80.48 L263.62,81.73 L265.61,83.02 L267.61,84.35 L269.60,85.72"/><text class="graph-formula" x="150" y="209" text-anchor="middle">y = sin x</text></g><g class="graph-scene scene-1"><path class="graph-curve" pathLength="1" d="M30.40,33.61 L32.39,35.97 L34.39,38.29 L36.38,40.57 L38.37,42.82 L40.37,45.02 L42.36,47.18 L44.35,49.30 L46.35,51.38 L48.34,53.42 L50.33,55.43 L52.33,57.39 L54.32,59.31 L56.31,61.20 L58.31,63.04 L60.30,64.85 L62.29,66.61 L64.29,68.34 L66.28,70.02 L68.27,71.67 L70.27,73.27 L72.26,74.84 L74.25,76.37 L76.25,77.85 L78.24,79.30 L80.23,80.71 L82.23,82.08 L84.22,83.41 L86.21,84.69 L88.21,85.94 L90.20,87.15 L92.19,88.32 L94.19,89.45 L96.18,90.54 L98.17,91.60 L100.17,92.61 L102.16,93.58 L104.15,94.51 L106.15,95.40 L108.14,96.26 L110.13,97.07 L112.13,97.84 L114.12,98.58 L116.11,99.27 L118.11,99.92 L120.10,100.54 L122.09,101.11 L124.09,101.65 L126.08,102.14 L128.07,102.60 L130.07,103.02 L132.06,103.39 L134.05,103.73 L136.05,104.03 L138.04,104.29 L140.03,104.50 L142.03,104.68 L144.02,104.82 L146.01,104.92 L148.01,104.98 L150.00,105.00 L151.99,104.98 L153.99,104.92 L155.98,104.82 L157.97,104.68 L159.97,104.50 L161.96,104.29 L163.95,104.03 L165.95,103.73 L167.94,103.39 L169.93,103.02 L171.93,102.60 L173.92,102.14 L175.91,101.65 L177.91,101.11 L179.90,100.54 L181.89,99.92 L183.89,99.27 L185.88,98.58 L187.87,97.84 L189.87,97.07 L191.86,96.26 L193.85,95.40 L195.85,94.51 L197.84,93.58 L199.83,92.61 L201.83,91.60 L203.82,90.54 L205.81,89.45 L207.81,88.32 L209.80,87.15 L211.79,85.94 L213.79,84.69 L215.78,83.41 L217.77,82.08 L219.77,80.71 L221.76,79.30 L223.75,77.85 L225.75,76.37 L227.74,74.84 L229.73,73.27 L231.73,71.67 L233.72,70.02 L235.71,68.34 L237.71,66.61 L239.70,64.85 L241.69,63.04 L243.69,61.20 L245.68,59.31 L247.67,57.39 L249.67,55.43 L251.66,53.42 L253.65,51.38 L255.65,49.30 L257.64,47.18 L259.63,45.02 L261.63,42.82 L263.62,40.57 L265.61,38.29 L267.61,35.97 L269.60,33.61"/><text class="graph-formula" x="150" y="209" text-anchor="middle">y = x²</text></g><g class="graph-scene scene-2"><path class="graph-curve" pathLength="1" d="M30.40,137.05 L32.39,136.18 L34.39,135.26 L36.38,134.28 L38.37,133.24 L40.37,132.15 L42.36,131.01 L44.35,129.83 L46.35,128.59 L48.34,127.31 L50.33,125.99 L52.33,124.63 L54.32,123.23 L56.31,121.80 L58.31,120.34 L60.30,118.84 L62.29,117.33 L64.29,115.79 L66.28,114.22 L68.27,112.65 L70.27,111.05 L72.26,109.45 L74.25,107.83 L76.25,106.22 L78.24,104.60 L80.23,102.98 L82.23,101.36 L84.22,99.75 L86.21,98.15 L88.21,96.57 L90.20,95.00 L92.19,93.44 L94.19,91.91 L96.18,90.41 L98.17,88.93 L100.17,87.48 L102.16,86.07 L104.15,84.69 L106.15,83.35 L108.14,82.05 L110.13,80.79 L112.13,79.58 L114.12,78.41 L116.11,77.30 L118.11,76.23 L120.10,75.23 L122.09,74.27 L124.09,73.38 L126.08,72.54 L128.07,71.77 L130.07,71.06 L132.06,70.41 L134.05,69.82 L136.05,69.31 L138.04,68.86 L140.03,68.47 L142.03,68.16 L144.02,67.92 L146.01,67.74 L148.01,67.64 L150.00,67.60 L151.99,67.64 L153.99,67.74 L155.98,67.92 L157.97,68.16 L159.97,68.47 L161.96,68.86 L163.95,69.31 L165.95,69.82 L167.94,70.41 L169.93,71.06 L171.93,71.77 L173.92,72.54 L175.91,73.38 L177.91,74.27 L179.90,75.23 L181.89,76.23 L183.89,77.30 L185.88,78.41 L187.87,79.58 L189.87,80.79 L191.86,82.05 L193.85,83.35 L195.85,84.69 L197.84,86.07 L199.83,87.48 L201.83,88.93 L203.82,90.41 L205.81,91.91 L207.81,93.44 L209.80,95.00 L211.79,96.57 L213.79,98.15 L215.78,99.75 L217.77,101.36 L219.77,102.98 L221.76,104.60 L223.75,106.22 L225.75,107.83 L227.74,109.45 L229.73,111.05 L231.73,112.65 L233.72,114.22 L235.71,115.79 L237.71,117.33 L239.70,118.84 L241.69,120.34 L243.69,121.80 L245.68,123.23 L247.67,124.63 L249.67,125.99 L251.66,127.31 L253.65,128.59 L255.65,129.83 L257.64,131.01 L259.63,132.15 L261.63,133.24 L263.62,134.28 L265.61,135.26 L267.61,136.18 L269.60,137.05"/><text class="graph-formula" x="150" y="209" text-anchor="middle">y = cos x</text></g><g class="graph-scene scene-3"><path class="graph-curve" pathLength="1" d="M214.00,105.00 L213.91,108.35 L213.65,111.69 L213.21,115.01 L212.60,118.31 L211.82,121.56 L210.87,124.78 L209.75,127.94 L208.47,131.03 L207.02,134.06 L205.43,137.00 L203.67,139.86 L201.78,142.62 L199.74,145.28 L197.56,147.82 L195.25,150.25 L192.82,152.56 L190.28,154.74 L187.62,156.78 L184.86,158.67 L182.00,160.43 L179.06,162.02 L176.03,163.47 L172.94,164.75 L169.78,165.87 L166.56,166.82 L163.31,167.60 L160.01,168.21 L156.69,168.65 L153.35,168.91 L150.00,169.00 L146.65,168.91 L143.31,168.65 L139.99,168.21 L136.69,167.60 L133.44,166.82 L130.22,165.87 L127.06,164.75 L123.97,163.47 L120.94,162.02 L118.00,160.43 L115.14,158.67 L112.38,156.78 L109.72,154.74 L107.18,152.56 L104.75,150.25 L102.44,147.82 L100.26,145.28 L98.22,142.62 L96.33,139.86 L94.57,137.00 L92.98,134.06 L91.53,131.03 L90.25,127.94 L89.13,124.78 L88.18,121.56 L87.40,118.31 L86.79,115.01 L86.35,111.69 L86.09,108.35 L86.00,105.00 L86.09,101.65 L86.35,98.31 L86.79,94.99 L87.40,91.69 L88.18,88.44 L89.13,85.22 L90.25,82.06 L91.53,78.97 L92.98,75.94 L94.57,73.00 L96.33,70.14 L98.22,67.38 L100.26,64.72 L102.44,62.18 L104.75,59.75 L107.18,57.44 L109.72,55.26 L112.38,53.22 L115.14,51.33 L118.00,49.57 L120.94,47.98 L123.97,46.53 L127.06,45.25 L130.22,44.13 L133.44,43.18 L136.69,42.40 L139.99,41.79 L143.31,41.35 L146.65,41.09 L150.00,41.00 L153.35,41.09 L156.69,41.35 L160.01,41.79 L163.31,42.40 L166.56,43.18 L169.78,44.13 L172.94,45.25 L176.03,46.53 L179.06,47.98 L182.00,49.57 L184.86,51.33 L187.62,53.22 L190.28,55.26 L192.82,57.44 L195.25,59.75 L197.56,62.18 L199.74,64.72 L201.78,67.38 L203.67,70.14 L205.43,73.00 L207.02,75.94 L208.47,78.97 L209.75,82.06 L210.87,85.22 L211.82,88.44 L212.60,91.69 L213.21,94.99 L213.65,98.31 L213.91,101.65 L214.00,105.00"/><text class="graph-formula" x="150" y="209" text-anchor="middle">x² + y² = r²</text></g><g class="graph-scene scene-4"><path class="graph-curve" pathLength="1" d="M30.40,174.60 L32.39,171.18 L34.39,167.87 L36.38,164.67 L38.37,161.59 L40.37,158.61 L42.36,155.74 L44.35,152.97 L46.35,150.31 L48.34,147.74 L50.33,145.28 L52.33,142.91 L54.32,140.64 L56.31,138.45 L58.31,136.36 L60.30,134.36 L62.29,132.45 L64.29,130.62 L66.28,128.87 L68.27,127.21 L70.27,125.62 L72.26,124.11 L74.25,122.68 L76.25,121.32 L78.24,120.03 L80.23,118.82 L82.23,117.66 L84.22,116.58 L86.21,115.56 L88.21,114.60 L90.20,113.70 L92.19,112.86 L94.19,112.07 L96.18,111.34 L98.17,110.66 L100.17,110.03 L102.16,109.45 L104.15,108.92 L106.15,108.43 L108.14,107.98 L110.13,107.58 L112.13,107.21 L114.12,106.88 L116.11,106.58 L118.11,106.32 L120.10,106.09 L122.09,105.88 L124.09,105.71 L126.08,105.56 L128.07,105.43 L130.07,105.32 L132.06,105.23 L134.05,105.16 L136.05,105.11 L138.04,105.07 L140.03,105.04 L142.03,105.02 L144.02,105.01 L146.01,105.00 L148.01,105.00 L150.00,105.00 L151.99,105.00 L153.99,105.00 L155.98,104.99 L157.97,104.98 L159.97,104.96 L161.96,104.93 L163.95,104.89 L165.95,104.84 L167.94,104.77 L169.93,104.68 L171.93,104.57 L173.92,104.44 L175.91,104.29 L177.91,104.12 L179.90,103.91 L181.89,103.68 L183.89,103.42 L185.88,103.12 L187.87,102.79 L189.87,102.42 L191.86,102.02 L193.85,101.57 L195.85,101.08 L197.84,100.55 L199.83,99.97 L201.83,99.34 L203.82,98.66 L205.81,97.93 L207.81,97.14 L209.80,96.30 L211.79,95.40 L213.79,94.44 L215.78,93.42 L217.77,92.34 L219.77,91.18 L221.76,89.97 L223.75,88.68 L225.75,87.32 L227.74,85.89 L229.73,84.38 L231.73,82.79 L233.72,81.13 L235.71,79.38 L237.71,77.55 L239.70,75.64 L241.69,73.64 L243.69,71.55 L245.68,69.36 L247.67,67.09 L249.67,64.72 L251.66,62.26 L253.65,59.69 L255.65,57.03 L257.64,54.26 L259.63,51.39 L261.63,48.41 L263.62,45.33 L265.61,42.13 L267.61,38.82 L269.60,35.40"/><text class="graph-formula" x="150" y="209" text-anchor="middle">y = x³</text></g></svg><div class="graph-dots" aria-hidden="true"><i style="--scene:0"></i><i style="--scene:1"></i><i style="--scene:2"></i><i style="--scene:3"></i><i style="--scene:4"></i></div></div>
     </section>
 
     <!-- TWO-COL DASHBOARD -->
@@ -456,12 +473,12 @@
             </div>
             <div>
               <div class="kpi-val" id="kpiDone">0/50</div>
-              <div class="kpi-lbl">Бараллаған сабақ</div>
+              <div class="kpi-lbl">Аяқталған сабақ</div>
             </div>
           </div>
           <div class="kpi-pct-row">
             <span class="kpi-pct" id="kpiGoal">0%</span>
-            <span class="kpi-progress-lbl">Жалпы progress</span>
+            <span class="kpi-progress-lbl">Жалпы прогресс</span>
           </div>
           <div class="progress-track"><div class="progress-fill" id="progressBar"></div></div>
           <div class="spark-lbl">Соңғы 10 баға</div>
@@ -800,6 +817,9 @@ let email = "";
   email = String(sessionUser.email || "");
   effectivePackage = String(sessionUser.package || "pending").toLowerCase();
   effectiveGrade = Number(sessionUser.grade || 5);
+  effectiveName = String(sessionUser.fullName || "Оқушы");
+  effectiveEmail = String(sessionUser.email || "");
+  effectivePhone = String(sessionUser.phone || "");
   init();
 })();
 
@@ -1070,10 +1090,9 @@ window.pingStreakServer = pingStreakServer;
     if(!isPreview) return;
 
     try{
-      const r = await fetch("/api/admin/students");
-      const j = await r.json().catch(()=>null);
-      const list = (j && j.ok && Array.isArray(j.students)) ? j.students : [];
-      const st = list.find(x => String(x.studentId||"") === String(effectiveStudentId));
+      const r=await fetch(`/api/admin/student/${encodeURIComponent(effectiveStudentId)}`,{credentials:"include",cache:"no-store"});
+      const j=await r.json().catch(()=>null);
+      const st=r.ok&&j?.ok?j.student:null;
 
       if(st){
         effectiveName = st.fullName || "Оқушы";
@@ -1099,12 +1118,13 @@ window.pingStreakServer = pingStreakServer;
   const pillPkgEl = document.getElementById("pillPkg");
 
   function setHelloText(){
-    const helloEl = document.getElementById("hello");
-    if(!helloEl) return;
-    const L = localStorage.getItem("lang") || "kk";
-    const t = (window.goI18n || {})[L] || {};
-    if(isPreview){ helloEl.textContent = t.greetingStudent || "Сәлем, оқушы! 👋"; return; }
-    helloEl.textContent = isAdmin ? (t.greetingAdmin || "Сәлем, Admin 👋") : (t.greetingStudent || "Сәлем, оқушы! 👋");
+    const helloEl=document.getElementById("hello");
+    if(!helloEl)return;
+    const lang=localStorage.getItem("lang")||"kk";
+    const raw=isPreview ? effectiveName : (isAdmin ? "" : (sessionUser?.firstName || sessionUser?.fullName || effectiveName));
+    const first=String(raw||"").trim().split(/\s+/)[0];
+    const name=first&&first!=="Оқушы"&&first!=="оқушы"?first:"";
+    helloEl.textContent=lang==="ru" ? (name?`Привет, ${name}!`:"Добро пожаловать!") : (name?`Сәлем, ${name}!`:"Қош келдің!");
   }
 
   function fillProfileUI(){
@@ -1240,6 +1260,24 @@ window.pingStreakServer = pingStreakServer;
   });
 }
 
+    const approvedPackages=["active","base","baza","standart","standard","premium"];
+    const accessLocked=!isAdmin&&!approvedPackages.includes(String(effectivePackage||"").toLowerCase());
+    for(const id of ["goCourseBtn"]){
+      const btn=document.getElementById(id);if(!btn)continue;
+      btn.disabled=accessLocked;btn.setAttribute("aria-disabled",String(accessLocked));
+      btn.title=accessLocked?"Әкімші қолжетімділік бергеннен кейін ашылады.":"";
+    }
+    if(accessLocked){
+      const note=document.createElement("p");note.className="access-pending-note";note.setAttribute("role","status");note.textContent="Диагностикалық тест ашық. Курс әкімші қолжетімділік бергеннен кейін ашылады.";
+      document.querySelector(".sb-nav")?.appendChild(note);
+    }
+    const goDiagnosticBtn = document.getElementById("goDiagnosticBtn");
+    if(goDiagnosticBtn) goDiagnosticBtn.addEventListener("click", ()=>{
+      const url = new URL("diagnostic.html", location.href);
+      url.searchParams.set("diagnostic", "1");
+      if(isPreview) url.searchParams.set("previewStudentId", effectiveStudentId);
+      location.href = url.href;
+    });
     const goCourseBtn = document.getElementById("goCourseBtn");
    if(goCourseBtn) goCourseBtn.addEventListener("click", ()=>{
   if(!isAdmin && String(effectivePackage || "").toLowerCase() === "pending"){
@@ -1310,7 +1348,8 @@ window.pingStreakServer = pingStreakServer;
 
     const instagramBtn = document.getElementById("instagramBtn");
     if(instagramBtn){
-      instagramBtn.href = GOTAB_INSTAGRAM_URL;
+      if(/^https:\/\/(www\.)?instagram\.com\//i.test(GOTAB_INSTAGRAM_URL)) instagramBtn.href = GOTAB_INSTAGRAM_URL;
+      else { instagramBtn.hidden = true; instagramBtn.style.display = "none"; }
     }
   }
 

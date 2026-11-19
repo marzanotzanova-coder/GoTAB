@@ -276,8 +276,19 @@
     .donut-legend-label{color:#374151;font-size:11px;}
     .donut-legend-val{font-weight:800;font-size:11px;margin-left:2px;}
   </style>
+<link rel="stylesheet" href="vendor/katex.min.css">
+<script src="vendor/katex.min.js"></script>
+<script src="quiz-math.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script src="quiz-docx.js"></script>
+<script defer src="vendor/html2canvas.min.js"></script>
+<script defer src="vendor/jspdf.umd.min.js"></script>
+<script defer src="attempt-pdf.js"></script>
+<link rel="stylesheet" href="student-theme.css?v=20261028">
+<link rel="stylesheet" href="admin-theme.css?v=20261028">
+<script src="admin-ui.js?v=20261028" defer></script>
 </head>
-<body>
+<body class="admin-page">
 
 <div class="lang-wrap">
   🌐
@@ -303,7 +314,7 @@
     </a>
 
     <div class="sectionTitle" data-i18n="studentsTitle">👥 Оқушылар тізімі</div>
-    <div class="muted">Серверден келеді: <code>/api/admin/students</code></div>
+    <div class="muted">Тіркелген оқушылар және қолжетімділікті басқару</div>
 
     <div class="row">
       <div class="rowLeft">
@@ -313,6 +324,7 @@
       <button class="btn ghost" id="reloadStudents">🔄</button>
     </div>
 
+    <label class="student-search"><span>Оқушыны іздеу</span><input id="studentSearch" type="search" placeholder="Аты немесе email" autocomplete="off"></label><div id="studentCount" class="muted" aria-live="polite"></div>
     <div class="list" id="studentsList"></div>
   </aside>
 
@@ -326,45 +338,70 @@
     <!-- ── MATERIALS TAB ── -->
     <div id="tabMaterials">
     <div class="sectionTitle" data-i18n="uploadTitle">📦 Материал жүктеу</div>
-    <div class="muted">Видеo/аудио/док → серверге сақталады (uploads/)</div>
+    <div class="muted">Сабаққа видео, құжат және мұғалім пікірін қосыңыз.</div>
 
 <select id="topic-select" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd;font-size:14px;margin-bottom:12px;">
-  <option value="1">1. Натурал сандар ұғымы</option>
-  <option value="2">2. Натурал санды жай көбейткіштерге жіктеу</option>
-  <option value="3">3. Санның бөлінгіштік белгісі</option>
-  <option value="4">4. Бірнеше натурал санның ең үлкен ортақ бөлгіші (ЕҮО-1)</option>
-  <option value="5">5. Бірнеше натурал санның ең үлкен ортақ бөлгіші (ЕҮО-2)</option>
-  <option value="6">6. Бірнеше натурал санның ең кіші ортақ еселігі</option>
+  <option value="1">Сабақ 1</option>
+  <option value="2">Сабақ 2</option>
+  <option value="3">Сабақ 3</option>
+  <option value="4">Сабақ 4</option>
+  <option value="5">Сабақ 5</option>
+  <option value="6">Сабақ 6</option>
+  <option value="7">Сабақ 7</option>
+  <option value="8">Сабақ 8</option>
+  <option value="9">Сабақ 9</option>
+  <option value="10">Сабақ 10</option>
+  <option value="11">Сабақ 11</option>
+  <option value="12">Сабақ 12</option>
+  <option value="13">Сабақ 13</option>
+  <option value="14">Сабақ 14</option>
+  <option value="15">Сабақ 15</option>
+  <option value="16">Сабақ 16</option>
+  <option value="17">Сабақ 17</option>
+  <option value="18">Сабақ 18</option>
+  <option value="19">Сабақ 19</option>
+  <option value="20">Сабақ 20</option>
+  <option value="21">Сабақ 21</option>
+  <option value="22">Сабақ 22</option>
+  <option value="23">Сабақ 23</option>
+  <option value="24">Сабақ 24</option>
+  <option value="25">Сабақ 25</option>
+  <option value="26">Сабақ 26</option>
+  <option value="27">Сабақ 27</option>
+  <option value="28">Сабақ 28</option>
+  <option value="29">Сабақ 29</option>
+  <option value="30">Сабақ 30</option>
 </select>
 
 <!-- LESSON TITLE -->
 <div class="row" style="margin-top:12px;">
   <div class="rowLeft">
-    <div class="rowTitle">📚 Сабақ тақырыбы</div>
-    <div class="rowSub">Осы сабақта оқытылатын нақты тақырып</div>
+    <div class="rowTitle">📚 Сабақ тақырыбы (міндетті)</div>
+    <div class="rowSub">Карточкада осы тақырып көрінеді</div>
   </div>
 </div>
 
 <input
   type="text"
   id="lesson-title"
-  placeholder="Мысалы: Натурал сандар және нөл. Жұп және тақ сандар"
+  placeholder="Сабақтың тақырыбын жазыңыз"
 />
 
     <div class="row">
       <div class="rowLeft">
         <div class="rowTitle" data-i18n="videosLabel">Видеолар</div>
-        <div class="rowSub" data-i18n="videosFmt">mp4 / mov / webm</div>
+        <div class="rowSub">mp4 / mov — компьютерден (50 МБ-қа дейін) немесе YouTube сілтемесі</div>
       </div>
     </div>
-    <input type="file" id="video-upload" multiple accept="video/*">
-
-    <input
-  type="text"
-  id="youtubeUrl"
-  placeholder="YouTube видео ссылка (https://youtu.be/... немесе watch?v=...)"
-  style="width:100%;padding:8px;margin-top:8px;border-radius:8px;border:1px solid #ccc;">
-    <div id="youtubePreview" style="display:none;font-size:12px;margin-top:4px;padding:6px 8px;border-radius:8px;background:rgba(47,107,255,.05);border:1px solid rgba(47,107,255,.12)"></div>
+    <div id="videoRows">
+      <div class="video-row" style="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b class="vr-num" style="font-size:13px;color:#2F6BFF">Видео 1</b></div>
+        <input type="file" id="video-upload" class="vr-file" accept="video/*">
+        <input type="text" id="youtubeUrl" class="vr-yt" placeholder="немесе YouTube сілтемесі (https://youtu.be/...)" style="width:100%;padding:8px;margin-top:8px;border-radius:8px;border:1px solid #ccc;">
+        <div id="youtubePreview" style="display:none;font-size:12px;margin-top:4px;padding:6px 8px;border-radius:8px;background:rgba(47,107,255,.05);border:1px solid rgba(47,107,255,.12)"></div>
+      </div>
+    </div>
+    <button type="button" class="btn ghost" id="addVideoRow" style="margin-top:10px;width:100%">➕ Видео қосу</button>
 
     <div class="row">
       <div class="rowLeft">
@@ -413,16 +450,9 @@
     <div style="margin-top:22px;padding-top:18px;border-top:1px solid rgba(47,107,255,.1)">
       <div class="sectionTitle" style="font-size:14px;margin-bottom:10px">📝 Сабақ тақырыбын өзгерту</div>
       <div class="muted" style="margin-bottom:10px">Бұрын жүктелген сабақтың тақырыбын ЖИ-ға беру үшін жаңарт</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <select id="lt-grade">
-          <option value="10">10 сынып</option>
-          <option value="11">11 сынып</option>
-        </select>
-        <select id="lt-subject">
-          <option value="math">Математика</option>
-          <option value="algebra">Алгебра</option>
-          <option value="geometry">Геометрия</option>
-        </select>
+      <div style="display:none">
+        <select id="lt-grade"><option value="10" selected>10</option></select>
+        <select id="lt-subject"><option value="algebra" selected>algebra</option></select>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="number" id="lt-block" min="1" max="100" placeholder="Сабақ №"
@@ -444,6 +474,12 @@
       <input type="number" id="qzLesson" min="0" max="100" placeholder="Сабақ № (0 = диагностика)" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;width:100%;margin-bottom:8px;box-sizing:border-box;">
 
       <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз: <span style="color:#2F6BFF;font-weight:700">(Ctrl+Enter — сақтау)</span></div>
+      <div style="margin:12px 0;padding:14px;border:1px solid #dae4ff;border-radius:14px">
+        <label for="qzDocx"><strong>📄 Word құжатынан тест енгізу</strong></label>
+        <input id="qzDocx" type="file" accept=".docx" style="display:block;margin-top:10px;max-width:100%">
+        <p class="muted">.docx таңдаңыз. Сұрақтар: 1. …, жауаптар: A) …, B) … . Дұрыс жауаптың соңына ✓ қойыңыз немесе құжат соңында «Жауаптар» және 1 — B, 2 — A деп жазыңыз. Формулаларды Word-тың «Формула» құралымен енгізіңіз.</p>
+        <div id="qzDocxStatus" role="status" aria-live="polite"></div>
+      </div>
       <textarea id="qzText" class="quiz-textarea" placeholder="<question>Сұрақ мәтіні
 <topic>Тақырып
 <answer>Дұрыс жауап
@@ -497,8 +533,12 @@
   <div class="attempt-detail-box">
     <div class="attempt-detail-header">
       <h3 id="attemptModalTitle">Толық анализ</h3>
-      <button class="attempt-x" onclick="closeAttemptModal()">✕</button>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn ghost" id="attemptPdfBtn" disabled onclick="downloadAttemptPdf()">PDF жүктеу</button>
+        <button class="attempt-x" onclick="closeAttemptModal()">✕</button>
+      </div>
     </div>
+    <div id="attemptPdfStatus" role="status" aria-live="polite" style="font-size:13px;padding:0 24px;color:#52627a"></div>
     <div class="attempt-detail-body" id="attemptModalBody"></div>
   </div>
 </div>
@@ -636,7 +676,7 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
               justify-content:center;
               font-weight:900;
               color:white;
-              background:linear-gradient(135deg,#7c3aed,#a855f7);
+              background:#eaf1ff;color:#2864df;
             ">
               ${escapeHtml((st.fullName || "О").trim().charAt(0).toUpperCase())}
            </div>`
@@ -649,8 +689,8 @@ function refillGradeSelectByPackage(gradeSel, pkgValue, currentGrade){
       </div>
 
     <select class="packageSelect">
-  <option value="pending" ${st.package==="pending" ? "selected" : ""}>⏳ Pending</option>
-  <option value="active" ${st.package!=="pending" ? "selected" : ""}>✅ Доступ бар</option>
+  <option value="pending" ${st.package==="pending" ? "selected" : ""}>Рұқсат күтілуде</option>
+  <option value="active" ${st.package!=="pending" ? "selected" : ""}>Қолжетімділік бар</option>
 </select>
 
   <div class="studentBtns">
@@ -754,29 +794,29 @@ function escapeHtml(s){
   // ===== upload =====
   const saveBtn = document.getElementById("save-btn");
 
- function uploadOneFile(file, grade, subject, blockNumber, type, lessonTitle){
-  const fd = new FormData();
-
-  fd.append("grade", grade);
-  fd.append("subject", subject);
-  fd.append("blockNumber", String(blockNumber));
-  fd.append("lessonTitle", lessonTitle);
-  fd.append("type", type);
-  fd.append("file", file);
-
-  return fetch("/api/admin/upload", {
-    method:"POST",
-    body: fd,
-    credentials:"include",
-    cache:"no-store"
-  })
-  .then(async (res)=>{
-    if(!res.ok){
-      const txt = await res.text().catch(()=> "");
-      throw new Error(txt || ("HTTP " + res.status));
-    }
-    return res.json();
+ // files go straight from the computer to Supabase Storage (no Vercel size limit), then a row is saved
+ const MAX_FILE_MB = 50;
+ async function uploadOneFile(file, grade, subject, blockNumber, type, lessonTitle, onProgress){
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    throw new Error(`«${file.name}» ${(file.size/1048576).toFixed(0)} МБ. Бір файл ${MAX_FILE_MB} МБ-тан аспауы керек — бұл видеоны YouTube сілтемесімен қосыңыз.`);
+  }
+  const sr = await fetch("/api/admin/upload-url", { method:"POST", credentials:"include", cache:"no-store",
+    headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ grade, subject, blockNumber, fileName: file.name }) });
+  const sj = await sr.json().catch(()=>null);
+  if (!sr.ok || !sj?.uploadUrl) throw new Error("Жүктеу сілтемесі алынбады");
+  await new Promise((resolve, reject) => {
+    const fd = new FormData(); fd.append("cacheControl", "3600"); fd.append("", file);
+    const x = new XMLHttpRequest(); x.open("PUT", sj.uploadUrl); x.setRequestHeader("x-upsert", "false");
+    x.upload.onprogress = e => { if (e.lengthComputable && onProgress) onProgress(e.loaded / e.total); };
+    x.onload = () => (x.status >= 200 && x.status < 300) ? resolve() : reject(new Error("Файл жүктелмеді (" + x.status + "): " + (x.responseText || "").slice(0, 160)));
+    x.onerror = () => reject(new Error("Интернет байланысы үзілді"));
+    x.send(fd);
   });
+  const rr = await fetch("/api/admin/register-material", { method:"POST", credentials:"include", cache:"no-store",
+    headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ grade, subject, blockNumber, type, lessonTitle, path: sj.path }) });
+  const rj = await rr.json().catch(()=>null);
+  if (!rr.ok || !rj?.ok) throw new Error("Материал сақталмады");
+  return rj;
 }
  saveBtn.addEventListener("click", async ()=>{
 
@@ -787,16 +827,16 @@ const blockNumber = parseInt(document.getElementById("topic-select").value, 10);
 const lessonTitleInput = document.getElementById("lesson-title");
 const lessonTitle = String(lessonTitleInput?.value || "").trim();
 
-  const videoInput = document.getElementById("video-upload");
+  const videoRows = Array.from(document.querySelectorAll("#videoRows .video-row"));
   const docInput   = document.getElementById("doc-upload");
   const feedbackInput = document.getElementById("feedbackText");
-  const youtubeUrl = document.getElementById("youtubeUrl").value.trim();
+  const youtubeUrl = videoRows.map(r => r.querySelector(".vr-yt").value.trim()).filter(Boolean).join(" ");
 
 
   const feedbackText = String(feedbackInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
 
-const videos = Array.from(videoInput.files || []);
+const videos = videoRows.flatMap(r => Array.from(r.querySelector(".vr-file").files || []));
 const docs   = Array.from(docInput.files || []);
 
 const hasFiles = videos.length > 0 || docs.length > 0 || !!youtubeUrl;
@@ -817,44 +857,41 @@ if(!hasFiles && !hasFeedback && !hasYoutube){
 
 const tasks = [];
 
-// ✅ YouTube ссылка — ДҰРЫС сақтау
-if(youtubeUrl){
-
-  const storedUrl = toEmbedUrl(youtubeUrl) || youtubeUrl;
-  if (!extractYouTubeId(youtubeUrl)) {
-    alert("YouTube URL жарамсыз. Видео ID анықталмады.\n\nДұрыс форматтар:\nhttps://youtu.be/VIDEO_ID\nhttps://www.youtube.com/watch?v=VIDEO_ID");
+if((videos.length || docs.length || youtubeUrl) && !lessonTitle){
+  alert("Сабақ тақырыбын жазыңыз");
+  saveBtn.disabled = false; saveBtn.textContent = oldText; return;
+}
+const bigFile = [...videos, ...docs].find(f => f.size > MAX_FILE_MB * 1024 * 1024);
+if (bigFile) {
+  alert(`«${bigFile.name}» ${(bigFile.size/1048576).toFixed(0)} МБ. Бір файл ${MAX_FILE_MB} МБ-тан аспауы керек — бұл видеоны YouTube сілтемесімен қосыңыз.`);
+  saveBtn.disabled = false; saveBtn.textContent = oldText; return;
+}
+for (const r of videoRows) {
+  const yt = r.querySelector(".vr-yt").value.trim();
+  if (yt && !extractYouTubeId(yt)) {
+    alert("YouTube сілтемесі жарамсыз: " + yt);
     saveBtn.disabled = false; saveBtn.textContent = oldText; return;
   }
-
-  const r = await fetch("/api/admin/add-video-link", {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    credentials: "include",
-    body: JSON.stringify({
-      course: "active",
-      grade,
-      subject,
-      blockNumber,
-      url: storedUrl
-    })
-  });
-
-  const j = await r.json().catch(()=>null);
-
-  if(!r.ok || !j?.ok){
-    alert("YouTube видео сақталмады");
-    return;
+}
+// videos are saved one by one in the order of the rows, so the lesson shows them in this order
+for (const r of videoRows) {
+  for (const f of Array.from(r.querySelector(".vr-file").files || [])) {
+    await uploadOneFile(f, grade, subject, blockNumber, "video", lessonTitle, p => { saveBtn.textContent = "Жүктеліп жатыр… " + f.name.slice(0, 24) + " " + Math.round(p * 100) + "%"; });
+  }
+  const yt = r.querySelector(".vr-yt").value.trim();
+  if (yt) {
+    const rr = await fetch("/api/admin/add-video-link", {
+      method: "POST", headers: { "Content-Type":"application/json" }, credentials: "include",
+      body: JSON.stringify({ course: "active", grade, subject, blockNumber, lessonTitle, url: toEmbedUrl(yt) || yt })
+    });
+    const jj = await rr.json().catch(()=>null);
+    if (!rr.ok || !jj?.ok) throw new Error("YouTube видео сақталмады");
   }
 }
 
-// 📁 Қалған файлдар бұрынғыдай
-videos.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "video", lessonTitle))
-);
-
-docs.forEach(f =>
-  tasks.push(uploadOneFile(f, grade, subject, blockNumber, "doc", lessonTitle))
-);
+for (const f of docs) {
+  await uploadOneFile(f, grade, subject, blockNumber, "doc", lessonTitle, p => { saveBtn.textContent = "Жүктеліп жатыр… " + Math.round(p * 100) + "%"; });
+}
 
     await Promise.all(tasks);
 
@@ -887,6 +924,8 @@ docs.forEach(f =>
     }
 
     alert("Сәтті жүктелді!");
+    if (window.__resetVideoRows) window.__resetVideoRows();
+    if (window.__reloadLessonTitles) window.__reloadLessonTitles();
 
   }catch(e){
     console.error(e);
@@ -915,6 +954,7 @@ function switchTab(tab) {
 function escapeHtmlQ(s) {
   return String(s || "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
 }
+function renderMath(text) { return GoTabMath.render(text); }
 
 function _buildDonut(topicBreakdown) {
   const topics = Object.entries(topicBreakdown || {});
@@ -948,6 +988,15 @@ function _buildDonut(topicBreakdown) {
   return `<div class="donut-wrap"><svg viewBox="0 0 160 160" class="donut-svg">${paths}<text x="${cx}" y="${cx - 4}" text-anchor="middle" font-size="20" font-weight="800" fill="#14213D">${pct}%</text><text x="${cx}" y="${cx + 14}" text-anchor="middle" font-size="10" fill="#6B7280">нәтиже</text></svg><div class="donut-legend">${legendHtml}</div></div>`;
 }
 
+function shuffleQuizOptions(options) {
+  const result = [...options];
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return result;
+}
+
 // ── Client-side quiz parser (mirrors server) ──
 function parseQuizClient(raw) {
   const errors = [], questions = [];
@@ -971,7 +1020,7 @@ function parseQuizClient(raw) {
     if (!qText)        { errors.push(`Сұрақ №${qn}: мәтін жоқ.`);              continue; }
     if (!correct)      { errors.push(`Сұрақ №${qn}: <answer> жоқ.`);           continue; }
     if (!variants.length) { errors.push(`Сұрақ №${qn}: <variant> жоқ.`);       continue; }
-    const options = [correct, ...variants].filter((v,i,a) => a.indexOf(v) === i);
+    const options = shuffleQuizOptions([correct, ...variants].filter((v,i,a) => a.indexOf(v) === i));
     if (options.length < 2) { errors.push(`Сұрақ №${qn}: 2+ нұсқа керек.`);   continue; }
     questions.push({ question: qText, topic: topic || "Тақырып", correct, options });
   }
@@ -998,14 +1047,14 @@ function previewQuiz() {
   parsed.questions.forEach((q, i) => {
     html += `<div class="quiz-preview-q">
       <div class="quiz-preview-topic">Тақырып: ${escapeHtmlQ(q.topic)}</div>
-      <div class="quiz-preview-q-text">${i+1}. ${escapeHtmlQ(q.question)}</div>
-      ${q.options.map(opt => `<div class="quiz-preview-opt${opt === q.correct ? " correct" : ""}">
-        ${opt === q.correct ? "✅ " : "○ "}${escapeHtmlQ(opt)}
+      <div class="quiz-preview-q-text">${i+1}. ${renderMath(q.question)}</div>
+      ${shuffleQuizOptions(q.options).map(opt => `<div class="quiz-preview-opt${opt === q.correct ? " correct" : ""}">
+        ${opt === q.correct ? "✅ " : "○ "}${renderMath(opt)}
       </div>`).join("")}
     </div>`;
   });
   box.innerHTML = html;
-  box.style.display = "";
+  box.style.display = "block";
 }
 
 async function saveQuiz() {
@@ -1111,8 +1160,8 @@ async function previewQuizFromList(id, pkg, grade, subject, lessonNumber) {
     body.innerHTML = qs.map((q, i) => `
       <div class="quiz-preview-q">
         <div class="quiz-preview-topic">Тақырып: ${escapeHtmlQ(q.topic || "—")}</div>
-        <div class="quiz-preview-q-text">${i + 1}. ${escapeHtmlQ(q.question)}</div>
-        ${q.options.map(opt => `<div class="quiz-preview-opt${opt === q.correct ? " correct" : ""}">${escapeHtmlQ(opt)}${opt === q.correct ? " ✓" : ""}</div>`).join("")}
+        <div class="quiz-preview-q-text">${i + 1}. ${renderMath(q.question)}</div>
+        ${shuffleQuizOptions(q.options).map(opt => `<div class="quiz-preview-opt${opt === q.correct ? " correct" : ""}">${renderMath(opt)}${opt === q.correct ? " ✓" : ""}</div>`).join("")}
       </div>`).join("");
   } catch(e) { body.innerHTML = "<div class='muted' style='text-align:center;padding:30px'>Жүктеу қатесі.</div>"; }
 }
@@ -1168,7 +1217,24 @@ async function loadAttempts() {
   } catch(e) { box.innerHTML = "<div class='attempts-empty'>Жүктеу қатесі.</div>"; }
 }
 
+let currentAttemptId = null;
+let attemptPdfBusy = false;
+async function downloadAttemptPdf(){
+  if(!currentAttemptId||attemptPdfBusy)return;
+  const id=currentAttemptId,btn=document.getElementById("attemptPdfBtn"),status=document.getElementById("attemptPdfStatus");
+  attemptPdfBusy=true;btn.disabled=true;status.textContent="PDF дайындалуда…";
+  try{
+    const r=await fetch(`/api/quiz/admin/attempt/${id}`,{credentials:"include",cache:"no-store"});
+    const j=await r.json();if(!r.ok||!j.attempt)throw Error("Нәтижені оқу мүмкін болмады.");
+    await GoTabAttemptPdf.download(j.attempt,(done,total)=>{status.textContent=`PDF дайындалуда: ${done}/${total}`;});
+    status.textContent="PDF жүктелді.";
+  }catch(e){status.textContent="PDF жүктелмеді. "+(e.message||"Қайта көріңіз.");}
+  finally{attemptPdfBusy=false;btn.disabled=!currentAttemptId;}
+}
 async function openAttemptModal(id) {
+  currentAttemptId=null;
+  document.getElementById("attemptPdfBtn").disabled=true;
+  document.getElementById("attemptPdfStatus").textContent="";
   const modal = document.getElementById("attemptModal");
   const body  = document.getElementById("attemptModalBody");
   modal.style.display = "flex";
@@ -1177,6 +1243,7 @@ async function openAttemptModal(id) {
     const r = await fetch(`/api/quiz/admin/attempt/${id}`, { credentials: "include" });
     const j = await r.json().catch(() => null);
     const a = j?.attempt;
+    if(a){currentAttemptId=id;document.getElementById("attemptPdfBtn").disabled=attemptPdfBusy;}
     if (!a) { body.innerHTML = "<div style='padding:20px;color:#ef4444'>Деректер табылмады.</div>"; return; }
     document.getElementById("attemptModalTitle").textContent = `${a.student_name || a.student_id} · Сабақ ${a.lesson_number}`;
 
@@ -1188,10 +1255,10 @@ async function openAttemptModal(id) {
 
     const wrongRows = (a.wrong_questions || []).map(wq => `
       <div class="attempt-wrong-q">
-        <div class="wq-text">${escapeHtmlQ(wq.question)}</div>
+        <div class="wq-text">${renderMath(wq.question)}</div>
         <div class="wq-row">📌 Тақырып: <b>${escapeHtmlQ(wq.topic)}</b></div>
-        <div class="wq-row wq-correct">✅ Дұрыс: ${escapeHtmlQ(wq.correct)}</div>
-        <div class="wq-row wq-student">❌ Оқушы: ${escapeHtmlQ(wq.studentAnswer || "(жауап берілмеді)")}</div>
+        <div class="wq-row wq-correct">✅ Дұрыс: ${renderMath(wq.correct)}</div>
+        <div class="wq-row wq-student">❌ Оқушы: ${renderMath(wq.studentAnswer || "(жауап берілмеді)")}</div>
       </div>`).join("");
 
     body.innerHTML = `
@@ -1212,6 +1279,7 @@ async function openAttemptModal(id) {
 }
 
 function closeAttemptModal() {
+  currentAttemptId=null;
   document.getElementById("attemptModal").style.display = "none";
 }
 
@@ -1257,6 +1325,20 @@ document.getElementById("lt-title").addEventListener("keydown", function(e) {
 });
 
 // Wire quiz form buttons
+document.getElementById("qzDocx").addEventListener("change", async function() {
+  const file=this.files[0]; if(!file)return;
+  const status=document.getElementById("qzDocxStatus");
+  if(document.getElementById("qzText").value.trim()&&!confirm("Енгізілген мәтінді Word құжатындағы тестпен ауыстыру керек пе?")){this.value="";return;}
+  this.disabled=true;status.textContent="Құжат оқылуда…";
+  try {
+    const raw=await GoTabDocx.read(file);
+    const parsed=parseQuizClient(raw);
+    if(!parsed.ok||parsed.errors.length)throw Error(parsed.errors.join(" "));
+    document.getElementById("qzText").value=raw;
+    previewQuiz();status.textContent=file.name+" — "+parsed.questions.length+" сұрақ оқылды. Формулалар мен дұрыс жауаптарды тексеріп, содан кейін сақтаңыз.";
+  }catch(e){status.textContent="Құжат енгізілмеді: "+e.message;}
+  finally{this.disabled=false;this.value="";}
+});
 document.getElementById("qzPreviewBtn").addEventListener("click", function() { previewQuiz(); });
 document.getElementById("qzSaveBtn").addEventListener("click", function() { saveQuiz(); });
 
@@ -1349,5 +1431,44 @@ async function loadAllMaterials() {
 
 </script>
 
+<script>
+(function(){
+  const sel=document.getElementById("topic-select"), inp=document.getElementById("lesson-title");
+  if(!sel||!inp)return; let map={};
+  fetch("/api/lessons/list",{credentials:"include",cache:"no-store"}).then(r=>r.json()).then(j=>{
+    (j.lessons||[]).forEach(l=>{map[l.block]=l.title;});
+    Array.from(sel.options).forEach(o=>{if(map[o.value])o.textContent="Сабақ "+o.value+" — "+map[o.value];});
+    fill();
+  }).catch(()=>{});
+  function fill(){ if(map[sel.value]) inp.value=map[sel.value]; else if(!inp.dataset.typed) inp.value=""; }
+  inp.addEventListener("input",()=>{inp.dataset.typed="1";});
+  sel.addEventListener("change",()=>{inp.dataset.typed="";fill();});
+  window.__reloadLessonTitles=function(){
+    fetch("/api/lessons/list",{credentials:"include",cache:"no-store"}).then(r=>r.json()).then(j=>{
+      map={}; (j.lessons||[]).forEach(l=>{map[l.block]=l.title;});
+      Array.from(sel.options).forEach(o=>{o.textContent="Сабақ "+o.value+(map[o.value]?" — "+map[o.value]:"");});
+    }).catch(()=>{});
+  };
+})();
+(function(){
+  const box=document.getElementById("videoRows"), add=document.getElementById("addVideoRow");
+  if(!box||!add)return;
+  const renum=()=>box.querySelectorAll(".video-row").forEach((r,i)=>{r.querySelector(".vr-num").textContent="Видео "+(i+1);});
+  add.addEventListener("click",()=>{
+    const r=document.createElement("div"); r.className="video-row";
+    r.style.cssText="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px";
+    r.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b class="vr-num" style="font-size:13px;color:#2F6BFF"></b><button type="button" class="vr-del" title="Өшіру" style="border:none;background:none;color:#ef4444;font-size:20px;cursor:pointer;line-height:1">×</button></div>'+
+      '<input type="file" class="vr-file" accept="video/*">'+
+      '<input type="text" class="vr-yt" placeholder="немесе YouTube сілтемесі (https://youtu.be/...)" style="width:100%;padding:8px;margin-top:8px;border-radius:8px;border:1px solid #ccc;">';
+    r.querySelector(".vr-del").onclick=()=>{r.remove();renum();};
+    box.appendChild(r); renum();
+  });
+  window.__resetVideoRows=function(){
+    box.querySelectorAll(".video-row").forEach((r,i)=>{ if(i>0) r.remove(); else { r.querySelector(".vr-file").value=""; r.querySelector(".vr-yt").value=""; const pv=document.getElementById("youtubePreview"); if(pv) pv.style.display="none"; } });
+    const dc=document.getElementById("doc-upload"); if(dc) dc.value="";
+    renum();
+  };
+})();
+</script>
 </body>
 </html>

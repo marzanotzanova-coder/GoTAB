@@ -11,6 +11,7 @@ const bcrypt = require("bcrypt");
 const rateLimit = require("express-rate-limit");
 const helmet = require("helmet");
 const compression = require("compression");
+const { waitUntil } = require("@vercel/functions");
 const OpenAI = require("openai");
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -65,6 +66,7 @@ app.use(helmet({
       objectSrc: ["'none'"],
       frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com", "https://*.supabase.co", "https://docs.google.com"],
       formAction: ["'self'"],
+      scriptSrcAttr: ["'unsafe-inline'"],
       upgradeInsecureRequests: IS_PROD ? [] : null,
     }
   },
@@ -190,6 +192,14 @@ app.use(session({
   }
 }));
 
+// Course HTML is protected before static serving; dashboard remains available to pending students.
+app.get(["/standard-blocks.html", "/standard-blocks"], (req,res,next)=>{
+  if(!req.session?.user)return res.redirect("/login.html");
+  next();
+}, requireCourseAccess, (req,res)=>res.sendFile(path.join(__dirname,"standard-blocks.html")));
+
+app.get("/diagnostic.html", requireAuth, (req,res)=>res.sendFile(path.join(__dirname,"standard-blocks.html")));
+
 app.use(express.static(__dirname, {
   setHeaders: (res, filePath) => {
     if (filePath.endsWith(".html")) {
@@ -209,6 +219,62 @@ function requireAuth(req, res, next){
 function requireAdmin(req, res, next){
   if(req.session?.user?.role === "admin") return next();
   return res.status(403).json({ ok:false, error:"forbidden" });
+}
+
+async function requireCourseAccess(req,res,next){
+  const user=req.session?.user;
+  if(!user)return res.status(401).json({ok:false,error:"unauthorized"});
+  if(user.role==="admin")return next();
+  if(req.diagnosticAccessVerified === true)return next();
+  try{
+    const sid=String(user.studentId||"").trim();
+    if(!sid)return res.status(403).json({ok:false,error:"access_pending"});
+    const key=sbKey();
+    const response=await fetch(`${SUPABASE_URL}/rest/v1/users?select=package&student_id=eq.${encodeURIComponent(sid)}&limit=1`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+    if(!response.ok)throw Error("Access lookup failed");
+    const rows=await response.json();
+    const pkg=String(rows[0]?.package||"pending").toLowerCase();
+    req.session.user.package=pkg;
+    if(["active","base","baza","standart","standard","premium"].includes(pkg))return next();
+    if(req.path==="/standard-blocks.html"||req.path==="/standard-blocks")return res.redirect("/dashboard.html?access=pending");
+    return res.status(403).json({ok:false,error:"access_pending",message:"Әкімші қолжетімділік бергеннен кейін ашылады."});
+  }catch(e){return res.status(503).json({ok:false,error:"access_check_failed",message:"Қолжетімділікті тексеру мүмкін болмады. Кейінірек қайталаңыз."});}
+}
+
+// A separate entitlement for authenticated diagnostics only. No course package is granted.
+async function verifyDiagnosticAccess(req,res,next){
+  const user=req.session?.user;
+  if(!user)return res.status(401).json({ok:false,error:"unauthorized"});
+  if(user.role==="admin")return next();
+  const sid=String(user.studentId||"").trim();
+  if(!sid)return res.status(403).json({ok:false,error:"missing_student_id"});
+  if(req.path==="/api/quiz/student"){
+    if(String(req.query.lessonNumber)!=="0")return next();
+    req.diagnosticAccessVerified=true;return next();
+  }
+  try{
+    const {url,key}=quizDb();
+    let resource;
+    if(req.path==="/api/quiz/submit"){
+      const id=Number(req.body?.quizId);
+      if(!Number.isSafeInteger(id)||id<=0)return res.status(400).json({ok:false,error:"bad_input"});
+      resource=`quizzes?id=eq.${id}&lesson_number=eq.0&select=id&limit=1`;
+    }else{
+      const id=Number(req.params.id);
+      if(!Number.isSafeInteger(id)||id<=0)return res.status(400).json({ok:false,error:"bad_input"});
+      resource=`quiz_attempts?id=eq.${id}&student_id=eq.${encodeURIComponent(sid)}&lesson_number=eq.0&select=id&limit=1`;
+    }
+    const response=await fetch(`${url}/rest/v1/${resource}`,{headers:{apikey:key,Authorization:`Bearer ${key}`}});
+    if(!response.ok)throw Error("Diagnostic lookup failed");
+    const rows=await response.json();
+    if(Array.isArray(rows)&&rows.length)req.diagnosticAccessVerified=true;
+    return next();
+  }catch(e){return res.status(503).json({ok:false,error:"diagnostic_check_failed"});}
+}
+
+function requireLessonsOpen(req, res, next){
+  if(req.session?.user?.role === "admin") return next();
+  return res.status(403).json({ok:false,error:"lessons_locked",message:"Сабақтар жақында ашылады. Қазір тек диагностикалық тест қолжетімді."});
 }
 
 function requireStudent(req, res, next){
@@ -978,7 +1044,7 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
 });
 
 // Student upload homework
-app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), async (req, res) => {
+app.post("/api/student/upload", requireStudent, requireLessonsOpen, uploadStudent.single("file"), async (req, res) => {
   try {
     const grade = normalizeGrade(req.body.grade);
     const subject = normalizeSubject(grade, req.body.subject);
@@ -1184,7 +1250,7 @@ app.get("/api/materials", requireAuth, async (req, res) => {
     const { grade, subject, blockNumber } = req.query;
 
     const r1 = await fetch(
-      `${SUPABASE_URL}/rest/v1/materials?select=*&grade=eq.${grade}&subject=eq.${subject}&block=eq.${blockNumber}`,
+      `${SUPABASE_URL}/rest/v1/materials?select=*&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&block=eq.${Number(blockNumber)}&order=created_at.asc,id.asc`,
       {
         headers: {
           apikey: SUPABASE_KEY,
@@ -1233,6 +1299,80 @@ app.get("/api/materials", requireAuth, async (req, res) => {
       audios: [],
       studentUploads: []
     });
+  }
+});
+
+// Admin: direct upload of big lesson files straight to Supabase Storage (bypasses the Vercel body limit)
+app.post("/api/admin/upload-url", requireAdmin, async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject)) return res.status(400).json({ ok: false, error: "bad_grade_subject_or_block" });
+    const ext = (path.extname(String(req.body.fileName || "")) || ".bin").toLowerCase().replace(/[^.a-z0-9]/g, "").slice(0, 8) || ".bin";
+    const filePath = `materials/${grade}/${subject}/block${block}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/files/${filePath}`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+      body: "{}"
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j?.url) { console.error("upload-url error:", j); return res.status(500).json({ ok: false, error: "sign_failed" }); }
+    return res.json({ ok: true, path: filePath, uploadUrl: `${SUPABASE_URL}/storage/v1${j.url}` });
+  } catch (e) {
+    console.error("upload-url error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Admin: save a material row for a file that was uploaded directly to Storage
+app.post("/api/admin/register-material", requireAdmin, async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
+    const lessonTitle = String(req.body.lessonTitle || "").trim();
+    const filePath = String(req.body.path || "");
+    const type = ["video", "audio", "doc"].includes(String(req.body.type)) ? String(req.body.type) : "doc";
+    const prefix = `materials/${grade}/${subject}/block${block}/`;
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !lessonTitle || !filePath.startsWith(prefix) || filePath.includes("..")) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+    const row = { grade, subject, block, type, url: `${SUPABASE_URL}/storage/v1/object/public/files/${filePath}`, lesson_title: lessonTitle };
+    const r = await fetch(`${SUPABASE_URL}/rest/v1/materials`, {
+      method: "POST",
+      headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json", Prefer: "return=representation" },
+      body: JSON.stringify([row])
+    });
+    const data = await r.json().catch(() => null);
+    if (!r.ok) { console.error("register-material error:", data); return res.status(500).json({ ok: false, error: "server_error" }); }
+    return res.json({ ok: true, item: Array.isArray(data) ? data[0] : row });
+  } catch (e) {
+    console.error("register-material error:", e);
+    return res.status(500).json({ ok: false, error: "server_error" });
+  }
+});
+
+// Lesson list for the standard course page: lesson number + title only (no files)
+app.get("/api/lessons/list", requireAuth, async (req, res) => {
+  try {
+    const r = await fetch(
+      `${SUPABASE_URL}/rest/v1/materials?select=block,lesson_title,created_at&grade=eq.10&subject=eq.algebra&order=block.asc,created_at.asc`,
+      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    );
+    const rows = await r.json().catch(() => []);
+    const map = new Map();
+    (Array.isArray(rows) ? rows : []).forEach(x => {
+      const b = Number(x.block); if (!b) return;
+      const t = String(x.lesson_title || "").trim();
+      if (!map.has(b) || t) map.set(b, t || map.get(b) || "");
+    });
+    const lessons = [...map.entries()].sort((a, b) => a[0] - b[0]).map(([block, title]) => ({ block, title }));
+    res.setHeader("Cache-Control", "no-store");
+    res.json({ ok: true, lessons });
+  } catch (e) {
+    console.error("lessons list error:", e);
+    res.json({ ok: true, lessons: [] });
   }
 });
 
@@ -1961,7 +2101,7 @@ app.get("/api/ai/usage", requireAuth, async (req, res) => {
   }
 });
 
-app.post("/api/ai/practice", aiLimiter, requireAuth, async (req, res) => {
+app.post("/api/ai/practice", aiLimiter, requireAuth, requireLessonsOpen, async (req, res) => {
   try {
     const { grade, subject, lessonId, lessonTitle, todayTopics, promptType, lessonKey } = req.body || {};
     const studentId = String(req.session?.user?.studentId || "");
@@ -2206,10 +2346,9 @@ async function generateQuizDiagnosis({ grade, subject, lessonNumber, totalCount,
   }
 
   try {
-    const { resolveModel } = require("./services/aiService");
-    const model = await resolveModel();
+    const model = process.env.OPENAI_DIAGNOSIS_MODEL || "gpt-4o-mini";
     const OpenAI = require("openai");
-    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 45000, maxRetries: 0 });
 
     const topicSummary = Object.entries(topicBreakdown)
       .map(([t, d]) => `${t}: ${d.correct}/${d.total} (${d.percentage}%)`).join("\n");
@@ -2228,7 +2367,8 @@ async function generateQuizDiagnosis({ grade, subject, lessonNumber, totalCount,
 
     const resp = await client.responses.create({
       model,
-      instructions: "Сен GoTAB математика мұғалімісің. Тек қазақ тілінде жауап бер. Диагностика нақты және қысқа болуы керек.",
+      max_output_tokens: 1800,
+      instructions: "Сен GoTAB математика мұғалімісің. Тек қазақ тілінде жауап бер. Диагностика нақты, қысқа және қолдаушы болсын. Тек тест нәтижесіне сүйен. Оқушының интеллекті, есте сақтау қабілеті немесе психологиялық қасиеттері туралы қорытынды жасама. Қате себептерін тек математикалық амалдар бойынша ықтимал болжам ретінде жаз.",
       input: prompt,
     });
 
@@ -2341,8 +2481,9 @@ app.get("/api/quiz/admin/get", requireAdmin, async (req, res) => {
     const ln = Number(lessonNumber);
     if (!pkg || !grade || !subject || lessonNumber == null || lessonNumber === "" || isNaN(ln)) return res.status(400).json({ ok: false, error: "bad_input" });
     const { url, key } = quizDb();
+    const gradeFilter = ln === 0 ? "" : `&grade=eq.${encodeURIComponent(grade)}`;
     const r = await fetch(
-      `${url}/rest/v1/quizzes?select=*&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,
+      `${url}/rest/v1/quizzes?select=*&package=eq.${encodeURIComponent(pkg)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}${gradeFilter}&limit=1`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } }
     );
     const rows = await r.json().catch(() => []);
@@ -2451,14 +2592,16 @@ app.get("/api/quiz/admin/attempt/:id", requireAdmin, async (req, res) => {
 });
 
 // Student: get quiz (no correct answers)
-app.get("/api/quiz/student", requireAuth, async (req, res) => {
+app.get("/api/quiz/student", requireAuth, verifyDiagnosticAccess, requireCourseAccess, async (req, res) => {
   try {
     const { package: pkg, grade, subject, lessonNumber } = req.query;
     const ln = Number(lessonNumber);
     if (!pkg || !grade || !subject || lessonNumber == null || isNaN(ln)) return res.status(400).json({ ok: false, error: "bad_input" });
+    if(ln !== 0 && req.session?.user?.role !== "admin") return res.status(403).json({ok:false,error:"lessons_locked"});
     const { url, key } = quizDb();
+    const gradeFilter = ln === 0 ? "" : `&grade=eq.${encodeURIComponent(grade)}`;
     const r = await fetch(
-      `${url}/rest/v1/quizzes?select=id,lesson_number,parsed_questions&package=eq.${encodeURIComponent(pkg)}&grade=eq.${encodeURIComponent(grade)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}&limit=1`,
+      `${url}/rest/v1/quizzes?select=id,lesson_number,parsed_questions&package=eq.${encodeURIComponent(pkg)}&subject=eq.${encodeURIComponent(subject)}&lesson_number=eq.${ln}${gradeFilter}&limit=1`,
       { headers: { apikey: key, Authorization: `Bearer ${key}` } }
     );
     const rows = await r.json().catch(() => []);
@@ -2474,7 +2617,7 @@ app.get("/api/quiz/student", requireAuth, async (req, res) => {
 });
 
 // Student: submit quiz
-app.post("/api/quiz/submit", requireAuth, async (req, res) => {
+app.post("/api/quiz/submit", requireAuth, verifyDiagnosticAccess, requireCourseAccess, async (req, res) => {
   try {
     const { quizId, answers } = req.body || {};
     const studentId   = String(req.session?.user?.studentId || "");
@@ -2489,6 +2632,7 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
     if (!qr.ok || !qrows[0]) return res.status(404).json({ ok: false, error: "quiz_not_found" });
 
     const quiz   = qrows[0];
+    if(Number(quiz.lesson_number) !== 0 && req.session?.user?.role !== "admin") return res.status(403).json({ok:false,error:"lessons_locked"});
     const parsed = quiz.parsed_questions || [];
 
     let correctCount = 0, wrongCount = 0;
@@ -2536,21 +2680,23 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
 
     console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%) attemptId=${attemptId}`);
 
-    // Return result to student immediately
-    res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, topicBreakdown, wrongQuestions, attemptId });
-
-    // Background: generate AI diagnosis and update attempt record
+    // Keep background work alive on Vercel after the score response is sent.
     if (attemptId) {
-      generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown })
-        .then(({ diagnosis, advice }) =>
-          fetch(`${url}/rest/v1/quiz_attempts?id=eq.${attemptId}`, {
+      const diagnosisWork = generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown })
+        .then(async ({ diagnosis, advice }) => {
+          const saved = await fetch(`${url}/rest/v1/quiz_attempts?id=eq.${attemptId}`, {
             method: "PATCH",
             headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
             body: JSON.stringify({ ai_diagnosis: diagnosis, teacher_advice: advice }),
-          })
-        )
+          });
+          if (!saved.ok) throw new Error(`Diagnosis save failed: ${saved.status}`);
+          console.log(`[quiz/diagnosis] completed attempt=${attemptId}`);
+        })
         .catch(e => console.error("[bg-diagnosis] error:", e.message));
+      waitUntil(diagnosisWork);
     }
+    res.json({ ok: true, correctCount, wrongCount, totalCount, percentage, message, topicBreakdown, wrongQuestions, attemptId });
+
   } catch (e) {
     console.error("[quiz/submit] error:", e.message);
     return res.status(500).json({ ok: false, error: "server_error" });
@@ -2558,7 +2704,7 @@ app.post("/api/quiz/submit", requireAuth, async (req, res) => {
 });
 
 // Poll endpoint: student checks if AI diagnosis is ready for their attempt
-app.get("/api/quiz/attempt/:id/diagnosis", requireAuth, async (req, res) => {
+app.get("/api/quiz/attempt/:id/diagnosis", requireAuth, verifyDiagnosticAccess, requireCourseAccess, async (req, res) => {
   try {
     const attemptId = Number(req.params.id);
     const studentId = String(req.session?.user?.studentId || "");

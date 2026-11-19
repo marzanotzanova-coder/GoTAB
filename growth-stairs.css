@@ -1,0 +1,6 @@
+.student-dashboard .sb-mountain{padding:16px 10px 0}.growth-stairs{width:100%;max-width:240px;margin:auto;pointer-events:none}.growth-stairs svg{width:100%;display:block;overflow:visible}.growth-step{opacity:0;animation:step-rise 10s ease-in-out infinite;animation-delay:calc(var(--step)*.65s);transform-box:fill-box;transform-origin:50% 100%}.growth-flag{opacity:0;animation:flag-rise 10s ease-in-out infinite;animation-delay:3.4s;transform-box:fill-box;transform-origin:50% 100%}.growth-flag-cloth{transform-box:fill-box;transform-origin:left center;animation:flag-wave 2.8s ease-in-out infinite}.growth-spark{animation:flag-glimmer 3s ease-in-out infinite}
+@keyframes step-rise{0%{opacity:0;transform:translateY(15px) scaleY(.75)}6%,68%{opacity:1;transform:translateY(0) scaleY(1)}73%,100%{opacity:0;transform:translateY(7px) scaleY(.95)}}
+@keyframes flag-rise{0%{opacity:0;transform:translateY(8px) scale(.85)}7%,35%{opacity:1;transform:translateY(0) scale(1)}40%,100%{opacity:0;transform:translateY(3px) scale(.98)}}
+@keyframes flag-wave{0%,100%{transform:skewY(-4deg) scaleX(1)}50%{transform:skewY(4deg) scaleX(.94)}}
+@keyframes flag-glimmer{0%,100%{opacity:.35}50%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.growth-step,.growth-flag,.growth-flag-cloth,.growth-spark{animation:none;opacity:1;transform:none}}

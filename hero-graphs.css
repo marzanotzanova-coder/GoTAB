@@ -1,0 +1,10 @@
+.student-dashboard .hero-graphs{width:280px;flex:0 0 280px;position:relative;z-index:1;align-self:center;filter:drop-shadow(0 12px 18px #2864df0c)}
+.hero-graphs svg{display:block;width:100%;height:auto;overflow:visible}.graph-grid{stroke:#dce7f5;stroke-width:.65}.graph-axes{stroke:#a6b9d4;stroke-width:1;fill:none}.axis-label{fill:#93a8c5;font:11px 'GoTAB Sans',sans-serif}
+.graph-scene{opacity:0;animation:graph-scene 25s infinite;animation-delay:calc(var(--scene)*5s)}.scene-0{--scene:0}.scene-1{--scene:1}.scene-2{--scene:2}.scene-3{--scene:3}.scene-4{--scene:4}
+.graph-curve{fill:none;stroke:url(#graphLine);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;animation:graph-draw 25s infinite;animation-delay:calc(var(--scene)*5s)}
+.graph-formula{fill:#2864df;font:500 14px 'GoTAB Sans',sans-serif;letter-spacing:.02em}.graph-dots{display:flex;justify-content:center;gap:6px;margin-top:4px}.graph-dots i{width:5px;height:5px;border-radius:50%;background:#cbdcf1;animation:graph-dot 25s infinite;animation-delay:calc(var(--scene)*5s)}
+@keyframes graph-scene{0%{opacity:0;transform:translateY(5px)}3%,16%{opacity:1;transform:translateY(0)}20%,100%{opacity:0;transform:translateY(-4px)}}
+@keyframes graph-draw{0%{stroke-dashoffset:1}10%,100%{stroke-dashoffset:0}}
+@keyframes graph-dot{0%,19%{background:#2864df}20%,100%{background:#cbdcf1}}
+@media(max-width:700px){.student-dashboard .hero{flex-wrap:wrap}.student-dashboard .hero-graphs{width:210px;flex-basis:210px;margin:0 auto}.student-dashboard .hero-text{width:100%}}
+@media(prefers-reduced-motion:reduce){.graph-scene,.graph-curve,.graph-dots i{animation:none}.graph-scene.scene-0{opacity:1}.graph-scene:not(.scene-0){display:none}.graph-dots i:first-child{background:#2864df}}

@@ -4,3 +4,4 @@ student_uploads/
 .env
 .DS_Store
 .vercel
+.env*

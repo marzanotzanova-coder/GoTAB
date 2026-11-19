@@ -4,18 +4,49 @@
     {
       "src": "server.js",
       "use": "@vercel/node",
-      "config": { "includeFiles": ["**"] }
+      "config": {
+        "includeFiles": [
+          "**"
+        ],
+        "maxDuration": 60
+      }
     },
-    { "src": "images/**", "use": "@vercel/static" },
-    { "src": "style.css", "use": "@vercel/static" },
-    { "src": "script.js", "use": "@vercel/static" },
-    { "src": "lang.js", "use": "@vercel/static" },
-    { "src": "course.js", "use": "@vercel/static" },
-    { "src": "auth.js", "use": "@vercel/static" },
-    { "src": "admin.js", "use": "@vercel/static" }
+    {
+      "src": "images/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "style.css",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "script.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "lang.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "course.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "auth.js",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin.js",
+      "use": "@vercel/static"
+    }
   ],
   "routes": [
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/server.js" }
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
   ]
 }
