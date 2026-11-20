@@ -182,7 +182,7 @@ const i18n = {
     // student checklist action labels (student view only)
     checkVideoAction: "Видео көру",
     checkUploadAction: "Тапсырма жүктеу",
-    checkTestAction: "Тақырып аралық сынақтардан өту",
+    checkTestAction: "Тест тапсыру",
     checkAIAction: "ЖИ қолдану",
     // standard-blocks nav
     navCourseBtn: "Курсқа өту",
@@ -413,7 +413,7 @@ const i18n = {
     // student checklist action labels (student view only)
     checkVideoAction: "Смотреть видео",
     checkUploadAction: "Загрузить задание",
-    checkTestAction: "Пройти тест по теме",
+    checkTestAction: "Пройти тест",
     checkAIAction: "Использовать ИИ",
     // standard-blocks nav
     navCourseBtn: "К курсу",

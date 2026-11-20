@@ -1044,36 +1044,15 @@ app.post("/api/admin/upload", requireAdmin, uploadAdmin.single("file"), async (r
 });
 
 // Student upload homework
-app.post("/api/student/upload", requireStudent, requireLessonsOpen, uploadStudent.single("file"), async (req, res) => {
-  try {
-    const grade = normalizeGrade(req.body.grade);
-    const subject = normalizeSubject(grade, req.body.subject);
-    const block = Number(req.body.blockNumber);
-    const studentId = String(req.session?.user?.studentId || "");
-
-    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId || !req.file) {
-      return res.status(400).json({ ok: false, error: "bad_input" });
-    }
-
-    const ext = path.extname(req.file.originalname || "") || ".bin";
-    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
-
-    const buffer = req.file.buffer;
-
-    const publicUrl = await uploadBufferToSupabaseStorage(
-      "files",
-      filePath,
-      buffer,
-      req.file.mimetype
-    );
-
+// Saves a homework upload: student_uploads row, progress status "uploaded", notification + today's activity signal
+async function recordStudentUpload(req, { studentId, grade, subject, block, publicUrl, fileName }) {
    const supaItem = {
   student_id: studentId,
   grade,
   subject,
   block,
   url: publicUrl,
-  name: req.file.originalname,
+  name: fileName,
   status: "uploaded"
 };
 
@@ -1092,7 +1071,7 @@ app.post("/api/student/upload", requireStudent, requireLessonsOpen, uploadStuden
 
     if (!sr.ok) {
       console.error("student_uploads insert error:", supaData);
-      return res.status(500).json({ ok: false, error: "server_error" });
+      throw new Error("server_error");
     }
 
     let course = String(req.session?.user?.package || "").toLowerCase().trim();
@@ -1116,7 +1095,7 @@ const checkProgRes = await fetch(
 const existingProgRows = await checkProgRes.json().catch(() => []);
 if (!checkProgRes.ok) {
   console.error("student upload progress check error:", existingProgRows);
-  return res.status(500).json({ ok: false, error: "supabase_progress_check_failed" });
+  throw new Error("supabase_progress_check_failed");
 }
 
 const prevProg = Array.isArray(existingProgRows) ? existingProgRows[0] : null;
@@ -1168,12 +1147,75 @@ if (prevProg) {
 
 if (!progSaveRes.ok) {
   console.error("student upload progress save error:", progSaveData);
-  return res.status(500).json({ ok: false, error: "server_error" });
+  throw new Error("server_error");
 }
 
 const db = readDB();
 await pushNotif(studentId, "upload", `Сабақ ${block}: тапсырма жүктелді ✅`);
 writeDB(db);
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+      method: "POST",
+      headers: { apikey: sbKey(), Authorization: `Bearer ${sbKey()}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify([{ id: "act_uploaded_" + Date.now() + "_" + Math.random().toString(16).slice(2, 6), student_id: studentId, type: "act_uploaded", text: new Date().toISOString().slice(0, 10), read: true }])
+    });
+  } catch (e) { console.error("[upload activity]", e.message); }
+}
+
+// Student homework: direct upload to Storage (no Vercel size limit), then record it
+app.post("/api/student/upload-url", requireStudent, requireCourseAccess, async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade), subject = normalizeSubject(grade, req.body.subject), block = Number(req.body.blockNumber);
+    const studentId = String(req.session?.user?.studentId || "");
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId) return res.status(400).json({ ok: false, error: "bad_input" });
+    const ext = (path.extname(String(req.body.fileName || "")) || ".bin").toLowerCase().replace(/[^.a-z0-9]/g, "").slice(0, 8) || ".bin";
+    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`;
+    const r = await fetch(`${SUPABASE_URL}/storage/v1/object/upload/sign/files/${filePath}`, {
+      method: "POST", headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" }, body: "{}"
+    });
+    const j = await r.json().catch(() => null);
+    if (!r.ok || !j?.url) { console.error("student upload-url error:", j); return res.status(500).json({ ok: false, error: "sign_failed" }); }
+    return res.json({ ok: true, path: filePath, uploadUrl: `${SUPABASE_URL}/storage/v1${j.url}` });
+  } catch (e) { console.error("student upload-url error:", e); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+app.post("/api/student/register-upload", requireStudent, requireCourseAccess, async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade), subject = normalizeSubject(grade, req.body.subject), block = Number(req.body.blockNumber);
+    const studentId = String(req.session?.user?.studentId || "");
+    const filePath = String(req.body.path || ""), fileName = String(req.body.name || "file").slice(0, 200);
+    const prefix = `student_uploads/${studentId}/${grade}/${subject}/block${block}/`;
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId || !filePath.startsWith(prefix) || filePath.includes("..")) return res.status(400).json({ ok: false, error: "bad_input" });
+    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/files/${filePath}`;
+    await recordStudentUpload(req, { studentId, grade, subject, block, publicUrl, fileName });
+    return res.json({ ok: true, item: { url: publicUrl, name: fileName, studentId, createdAt: nowISO(), status: "uploaded" } });
+  } catch (e) { console.error("student register-upload error:", e); return res.status(500).json({ ok: false, error: "server_error" }); }
+});
+
+app.post("/api/student/upload", requireStudent, uploadStudent.single("file"), async (req, res) => {
+  try {
+    const grade = normalizeGrade(req.body.grade);
+    const subject = normalizeSubject(grade, req.body.subject);
+    const block = Number(req.body.blockNumber);
+    const studentId = String(req.session?.user?.studentId || "");
+
+    if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !studentId || !req.file) {
+      return res.status(400).json({ ok: false, error: "bad_input" });
+    }
+
+    const ext = path.extname(req.file.originalname || "") || ".bin";
+    const filePath = `student_uploads/${studentId}/${grade}/${subject}/block${block}/${Date.now()}${ext}`;
+
+    const buffer = req.file.buffer;
+
+    const publicUrl = await uploadBufferToSupabaseStorage(
+      "files",
+      filePath,
+      buffer,
+      req.file.mimetype
+    );
+
+    await recordStudentUpload(req, { studentId, grade, subject, block, publicUrl, fileName: req.file.originalname });
 
     return res.json({
       ok: true,
@@ -1279,7 +1321,9 @@ app.get("/api/materials", requireAuth, async (req, res) => {
     const extras = materialsData.filter(x => x.type === "extra");
     const audios = materialsData.filter(x => x.type === "audio");
 
-    const studentUploads = uploadsData.map(x => ({
+    const viewer = req.session?.user || {};
+    const ownUploads = viewer.role === "admin" ? uploadsData : (Array.isArray(uploadsData) ? uploadsData : []).filter(x => String(x.student_id || "") === String(viewer.studentId || ""));
+    const studentUploads = ownUploads.map(x => ({
       url: x.url,
       name: x.name,
       studentId: x.student_id,

@@ -315,13 +315,13 @@ body{
 .quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
 .quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
 /* ── Lesson flip cards ── */
-.lcard{perspective:1400px;min-height:270px;cursor:pointer;outline:none;}
-.lcard-inner{position:relative;width:100%;height:100%;min-height:270px;transition:transform .7s cubic-bezier(.2,.75,.25,1);transform-style:preserve-3d;}
+.lcard{perspective:1400px;min-height:318px;cursor:pointer;outline:none;}
+.lcard-inner{position:relative;width:100%;height:100%;min-height:318px;transition:transform .7s cubic-bezier(.2,.75,.25,1);transform-style:preserve-3d;}
 .lcard.flipped .lcard-inner{transform:rotateY(180deg);}
 .lcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;}
 .lcard-front{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 18px;}
 .lcard-front .lc-hint{margin-top:14px;font-size:12px;font-weight:700;color:#8a97b4;}
-.lcard-back{transform:rotateY(180deg);background:#fff;border:1px solid rgba(47,107,255,.14);box-shadow:0 14px 34px rgba(47,107,255,.14);padding:16px 14px;display:flex;flex-direction:column;gap:9px;cursor:default;}
+.lcard-back{transform:rotateY(180deg);background:#fff;border:1px solid rgba(47,107,255,.14);box-shadow:0 14px 34px rgba(47,107,255,.14);padding:14px 14px;display:flex;flex-direction:column;gap:8px;cursor:default;}
 .lcard-back .lb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
 .lcard-back .lb-num{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2F6BFF;}
 .lcard-back .lb-turn{border:none;background:rgba(47,107,255,.08);color:#2F6BFF;border-radius:10px;width:30px;height:30px;font-size:15px;cursor:pointer;}
@@ -332,6 +332,15 @@ body{
 .lb-task{background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 4px 12px rgba(217,119,6,.22);}
 .lb-extra{background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 4px 12px rgba(13,148,136,.22);}
 .lb-test{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 4px 12px rgba(220,38,38,.2);}
+.lb-upload{background:linear-gradient(135deg,#0f766e,#22c55e);box-shadow:0 4px 12px rgba(34,197,94,.22);}
+.lv-up-drop{display:block;border:2px dashed rgba(47,107,255,.28);border-radius:16px;padding:22px;text-align:center;color:#52627a;font-weight:700;cursor:pointer;background:#f7f9ff;}
+.lv-up-drop input{display:block;margin:12px auto 0;max-width:100%;}
+.lv-up-btn{margin-top:14px;border:none;border-radius:13px;padding:12px 22px;font-weight:800;font-size:15px;color:#fff;background:linear-gradient(90deg,#16a34a,#22c55e);cursor:pointer;}
+.lv-up-btn[disabled]{opacity:.6;cursor:default;}
+.lv-up-status{margin-top:10px;font-weight:700;font-size:14px;min-height:20px;}
+.lv-up-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;}
+.lv-up-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 14px;border-radius:12px;background:#f7f9ff;border:1px solid rgba(47,107,255,.1);font-size:14px;}
+.lv-up-item a{color:#2F6BFF;font-weight:800;text-decoration:none;word-break:break-all;}
 /* ── Lesson content view ── */
 #lessonView{display:none;max-width:1100px;}
 .lv-back{display:inline-flex;align-items:center;gap:6px;border:none;background:rgba(47,107,255,.08);color:#2F6BFF;font-weight:800;font-size:14px;padding:9px 16px;border-radius:12px;cursor:pointer;margin-bottom:16px;}
@@ -576,7 +585,7 @@ body{
   </div>
 </div>
 
-<script src="lang.js?v=3"></script>
+<script src="lang.js?v=20261120"></script>
 <script>
 function extractYouTubeId(url) {
   if (!url) return null;
@@ -901,14 +910,37 @@ function wireNavButtons(){
     extra:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l7.9-7.9"/></svg>',
     test:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
   };
-  const SEC={video:'Видеосабақ',task:'Тапсырма',extra:'Қосымша',test:'Тест'};
+  ICON.upload='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>';
+  const SEC={video:'Видеосабақ',task:'Тапсырма',extra:'Қосымша',test:'Тест',upload:'Тапсырма жүктеу'};
+  const SECS=['video','task','extra','test','upload'];
+  // today's activity → dashboard checklist (only for students, once a day per action)
+  function markActivity(action){
+    if(isAdmin)return;
+    const k='gotab_act_'+action+'_'+new Date().toISOString().slice(0,10)+'_'+effectiveStudentId;
+    try{if(localStorage.getItem(k))return;}catch(e){}
+    fetch('/api/student/mark-activity',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({action})})
+      .then(r=>{if(r.ok)try{localStorage.setItem(k,'1');}catch(e){}}).catch(()=>{});
+  }
+  // a video counts as watched after half of it (or 3 minutes) has really been played
+  const ytProgress={};
+  const watchedEnough=(t,d)=>d>0&&t>=Math.min(d*0.5,180);
+  window.addEventListener('message',ev=>{
+    let host=''; try{host=new URL(ev.origin).hostname;}catch(e){return;}
+    if(!/(^|\.)youtube(-nocookie)?\.com$/.test(host))return;
+    let d; try{d=typeof ev.data==='string'?JSON.parse(ev.data):ev.data;}catch(e){return;}
+    if(!d||d.event!=='infoDelivery'||!d.info)return;
+    const p=ytProgress[d.id]||(ytProgress[d.id]={acc:0,last:null,d:0});
+    if(typeof d.info.duration==='number')p.d=d.info.duration;
+    if(typeof d.info.currentTime==='number'){const ct=d.info.currentTime; if(p.last!=null&&ct>p.last&&ct-p.last<3)p.acc+=ct-p.last; p.last=ct;}
+    if(watchedEnough(p.acc,p.d))markActivity('watched');
+  });
   async function loadLesson(block){
     if(lessonCache[block])return lessonCache[block];
     const r=await fetch(`/api/materials?grade=10&subject=algebra&blockNumber=${block}`,{credentials:'include',cache:'no-store'});
     const j=await r.json().catch(()=>({}));
     const byTime=(a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||(Number(a.id||0)-Number(b.id||0));
     const arr=x=>(Array.isArray(x)?x:[]).slice().sort(byTime);
-    const data={videos:arr(j.videos),tasks:arr(j.tasks),extras:arr(j.extras).concat(arr(j.docs)).sort(byTime)};
+    const data={videos:arr(j.videos),tasks:arr(j.tasks),extras:arr(j.extras).concat(arr(j.docs)).sort(byTime),uploads:(Array.isArray(j.studentUploads)?j.studentUploads:[]).slice().sort((a,b)=>String(b.createdAt||'').localeCompare(String(a.createdAt||'')))};
     lessonCache[block]=data;return data;
   }
   const extOf=u=>(String(u).split('?')[0].split('.').pop()||'').toLowerCase();
@@ -927,7 +959,7 @@ function wireNavButtons(){
     document.getElementById('lvNum').textContent='Сабақ '+block;
     document.getElementById('lvTitle').textContent=lessonTitles[block]||'';
     const tabs=document.getElementById('lvTabs'), body=document.getElementById('lvBody');
-    tabs.innerHTML=['video','task','extra','test'].map(k=>`<button class="lv-tab${k===sec?' on':''}" data-sec="${k}">${SEC[k]}</button>`).join('');
+    tabs.innerHTML=SECS.map(k=>`<button class="lv-tab${k===sec?' on':''}" data-sec="${k}">${SEC[k]}</button>`).join('');
     tabs.querySelectorAll('.lv-tab').forEach(t=>t.onclick=()=>{if(t.dataset.sec!=='test')stopMedia();openSection(block,t.dataset.sec);});
     stopMedia(); body.innerHTML='<div class="lv-empty">Жүктелуде…</div>'; lvShow(true);
     let d; try{d=await loadLesson(block);}catch(e){body.innerHTML='<div class="lv-empty">Жүктеу кезінде қате болды. Қайта көріңіз.</div>';return;}
@@ -939,8 +971,9 @@ function wireNavButtons(){
         const url=String(v.url||''), yt=toEmbedUrl(url);
         const item=document.createElement('div'); item.className='lv-vid'; item.innerHTML=`<h4>Видео ${i+1}</h4><div class="lv-frame"></div>`;
         const fr=item.querySelector('.lv-frame');
-        if(yt){const f=document.createElement('iframe');f.src=yt;f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;f.loading='lazy';fr.appendChild(f);}
-        else{const vd=document.createElement('video');vd.src=url;vd.controls=true;vd.preload='metadata';vd.setAttribute('playsinline','');vd.setAttribute('controlsList','nodownload');fr.appendChild(vd);}
+        if(yt){const f=document.createElement('iframe');const vid='gv'+block+'_'+i;f.src=yt+'&origin='+encodeURIComponent(location.origin);f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;f.loading='lazy';
+          f.addEventListener('load',()=>{const hi=()=>{try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:vid,channel:'widget'}),'*');}catch(e){}};hi();setTimeout(hi,1500);});fr.appendChild(f);}
+        else{const vd=document.createElement('video');vd.src=url;vd.controls=true;vd.preload='metadata';vd.setAttribute('playsinline','');vd.setAttribute('controlsList','nodownload');vd.addEventListener('timeupdate',()=>{let pl=0;for(let k=0;k<vd.played.length;k++)pl+=vd.played.end(k)-vd.played.start(k);if(watchedEnough(pl,vd.duration))markActivity('watched');});fr.appendChild(vd);}
         grid.appendChild(item);
       });
     }else if(sec==='task'){
@@ -952,6 +985,37 @@ function wireNavButtons(){
       const show=i=>{document.querySelectorAll('#lvExtraTabs .lv-tab').forEach(b=>b.classList.toggle('on',Number(b.dataset.i)===i));document.getElementById('lvExtraBody').innerHTML=docViewer(d.extras[i],'Қосымша '+(i+1),block);};
       document.querySelectorAll('#lvExtraTabs .lv-tab').forEach(b=>b.onclick=()=>show(Number(b.dataset.i)));
       show(0);
+    }else if(sec==='upload'){
+      const listHtml=()=>d.uploads.length?`<div class="lv-num" style="margin-top:22px">Жіберілген тапсырмалар</div><div class="lv-up-list">${d.uploads.map(u=>`<div class="lv-up-item"><a href="${escapeHtml(u.url||'#')}" target="_blank" rel="noopener">📎 ${escapeHtml(u.name||'файл')}</a><span style="color:#6B7280;white-space:nowrap">${escapeHtml(String(u.createdAt||'').slice(0,10))}${isAdmin&&u.studentId?' · '+escapeHtml(u.studentId):''}</span></div>`).join('')}</div>`:'';
+      body.innerHTML=`<div class="lv-card"><div class="lv-docname" style="margin-bottom:6px">Тапсырманы жүктеу</div>
+        <div style="color:#52627a;font-size:14px;margin-bottom:14px">Орындаған тапсырмаңды фото, PDF немесе Word түрінде жібер. Бірнеше файл таңдауға болады (әрқайсысы 50 МБ-қа дейін).</div>
+        <label class="lv-up-drop">📤 Файлдарды таңда<input type="file" id="lvUpFile" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></label>
+        <button class="lv-up-btn" id="lvUpBtn">Жіберу</button><div class="lv-up-status" id="lvUpStatus"></div><div id="lvUpList">${listHtml()}</div></div>`;
+      const btn=document.getElementById('lvUpBtn'), st=document.getElementById('lvUpStatus'), inp=document.getElementById('lvUpFile');
+      if(isAdmin){btn.disabled=true;st.style.color='#6B7280';st.textContent='Тапсырманы оқушы өз аккаунтынан жібереді. Мұнда оқушылар жіберген файлдар көрінеді.';}
+      btn.onclick=async()=>{
+        const files=Array.from(inp.files||[]);
+        if(!files.length){st.style.color='#ef4444';st.textContent='Алдымен файл таңда.';return;}
+        const big=files.find(f=>f.size>50*1024*1024); if(big){st.style.color='#ef4444';st.textContent=`«${big.name}» 50 МБ-тан үлкен.`;return;}
+        btn.disabled=true; st.style.color='#2F6BFF';
+        try{
+          for(const [n,f] of files.entries()){
+            st.textContent=`Жүктеліп жатыр… ${n+1}/${files.length}`;
+            const sr=await fetch('/api/student/upload-url',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({grade:10,subject:'algebra',blockNumber:block,fileName:f.name})});
+            const sj=await sr.json().catch(()=>null); if(!sr.ok||!sj?.uploadUrl)throw new Error('сілтеме алынбады');
+            await new Promise((ok,bad)=>{const fd=new FormData();fd.append('cacheControl','3600');fd.append('',f);const x=new XMLHttpRequest();x.open('PUT',sj.uploadUrl);x.setRequestHeader('x-upsert','false');
+              x.upload.onprogress=e=>{if(e.lengthComputable)st.textContent=`Жүктеліп жатыр… ${n+1}/${files.length} · ${Math.round(e.loaded/e.total*100)}%`;};
+              x.onload=()=>(x.status>=200&&x.status<300)?ok():bad(new Error('файл жүктелмеді ('+x.status+')'));x.onerror=()=>bad(new Error('интернет үзілді'));x.send(fd);});
+            const rr=await fetch('/api/student/register-upload',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify({grade:10,subject:'algebra',blockNumber:block,path:sj.path,name:f.name})});
+            const rj=await rr.json().catch(()=>null); if(!rr.ok||!rj?.ok)throw new Error('сақталмады');
+            d.uploads.unshift(rj.item);
+          }
+          markActivity('uploaded');
+          st.style.color='#059669'; st.textContent='✅ Тапсырма жіберілді! Мұғалім тексереді.'; inp.value='';
+          document.getElementById('lvUpList').innerHTML=listHtml();
+        }catch(e){st.style.color='#ef4444';st.textContent='Қате: '+e.message+'. Қайта көр.';}
+        btn.disabled=isAdmin;
+      };
     }
   }
   document.getElementById('lvBack').addEventListener('click',()=>{stopMedia();lvShow(false);});
@@ -966,7 +1030,7 @@ function wireNavButtons(){
         <div class="lcard-inner">
           <div class="lcard-face lcard-front topic-card ${colors[i%colors.length]}"><div class="lesson-num">Сабақ ${b}</div><div class="topic-card__title">${escapeHtml(l.title||'')}</div><div class="lc-hint">Ашу үшін басыңыз</div></div>
           <div class="lcard-face lcard-back"><div class="lb-head"><span class="lb-num">Сабақ ${b}</span><button class="lb-turn" title="Артқа бұру" aria-label="Артқа бұру">↺</button></div>
-            ${['video','task','extra','test'].map(k=>`<button class="lb-btn lb-${k}" data-sec="${k}">${ICON[k]}<span>${SEC[k]}</span></button>`).join('')}
+            ${SECS.map(k=>`<button class="lb-btn lb-${k}" data-sec="${k}">${ICON[k]}<span>${SEC[k]}</span></button>`).join('')}
           </div>
         </div></div>`;}).join('');
       box.querySelectorAll('.lcard').forEach(c=>{

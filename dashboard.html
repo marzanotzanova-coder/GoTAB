@@ -438,7 +438,7 @@
               </div>
             </div>
             <div class="today-badge-wrap">
-              <div class="today-progress-badge" id="todayBadge">0/4</div>
+              <div class="today-progress-badge" id="todayBadge">0/3</div>
             </div>
           </div>
           <div class="today-steps" id="todayChecklist"></div>
@@ -768,7 +768,7 @@ renderMP(1);
 })();
 </script>
 
-<script src="lang.js"></script>
+<script src="lang.js?v=20261120"></script>
 <script>
 (function(){
 
@@ -1639,8 +1639,7 @@ function renderTodayPlan(progressValues, activityData){
   const items = [
     {k:"watched",  label: isPreview ? _tCl.checkVideo  : (_tCl.checkVideoAction  || "Видео көру")},
     {k:"uploaded", label: isPreview ? _tCl.checkUpload : (_tCl.checkUploadAction || "Тапсырма жүктеу")},
-    {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тақырып аралық сынақтардан өту")},
-    {k:"ai",       label: isPreview ? _tCl.checkAI     : (_tCl.checkAIAction     || "ЖИ қолдану")},
+    {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тест тапсыру")},
   ];
 
   items.forEach(it=>{
@@ -1655,7 +1654,7 @@ function renderTodayPlan(progressValues, activityData){
   });
 
   if (activityData) {
-    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested, ai: !!activityData.ai } });
+    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested } });
   } else {
     renderTodayBadge(plan);
   }
@@ -1663,9 +1662,9 @@ function renderTodayPlan(progressValues, activityData){
   function renderTodayBadge(plan){
     const badge = document.getElementById("todayBadge");
     if(!badge) return;
-    const done = Object.values(plan.items || {}).filter(Boolean).length;
-    badge.textContent = done + "/4";
-    badge.className = "badge " + (done===4 ? "" : (done>=2 ? "warn" : "neutral"));
+    const it = plan.items || {}; const done = ["watched","uploaded","tested"].filter(k => !!it[k]).length;
+    badge.textContent = done + "/3";
+    badge.className = "badge " + (done===3 ? "" : (done>=2 ? "warn" : "neutral"));
   }
 
   // =========================================================
@@ -2176,9 +2175,8 @@ async function refreshChecklist() {
     const items = [
       {k:"watched",  label: isPreview ? _tCl.checkVideo  : (_tCl.checkVideoAction  || "Видео көру")},
       {k:"uploaded", label: isPreview ? _tCl.checkUpload : (_tCl.checkUploadAction || "Тапсырма жүктеу")},
-      {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тақырып аралық сынақтардан өту")},
-      {k:"ai",       label: isPreview ? _tCl.checkAI     : (_tCl.checkAIAction     || "ЖИ қолдану")},
-    ];
+      {k:"tested",   label: isPreview ? _tCl.checkTest   : (_tCl.checkTestAction   || "Тест тапсыру")},
+      ];
     checklist.innerHTML = "";
     items.forEach(it => {
       const row = document.createElement("div");
@@ -2187,7 +2185,7 @@ async function refreshChecklist() {
       row.innerHTML = `<input type="checkbox" ${isChecked ? "checked" : ""} disabled /><div style="font-weight:900">${escapeHtml(it.label)}</div>`;
       checklist.appendChild(row);
     });
-    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested, ai: !!activityData.ai } });
+    renderTodayBadge({ items: { watched: !!activityData.watched, uploaded: !!activityData.uploaded, tested: !!activityData.tested } });
   } catch (_) {}
 }
 
