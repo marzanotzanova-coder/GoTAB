@@ -64,7 +64,7 @@ app.use(helmet({
       connectSrc: ["'self'", "https://*.supabase.co", "https://api.openai.com"],
       fontSrc: ["'self'", "data:"],
       objectSrc: ["'none'"],
-      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com", "https://*.supabase.co", "https://docs.google.com"],
+      frameSrc: ["'self'", "https://www.youtube.com", "https://youtube.com", "https://*.youtube.com", "https://player.vimeo.com", "https://*.supabase.co", "https://docs.google.com", "https://view.officeapps.live.com", "https://*.officeapps.live.com"],
       formAction: ["'self'"],
       scriptSrcAttr: ["'unsafe-inline'"],
       upgradeInsecureRequests: IS_PROD ? [] : null,
