@@ -137,7 +137,7 @@ h1 {
       <option value="kk">Қазақша</option>
       <option value="ru">Русский</option>
     </select>
-    <a href="login.html">← Артқа</a>
+    <a href="login.html" data-go-back="index.html">← Артқа</a>
   </div>
 </nav>
 
@@ -346,7 +346,7 @@ h1 {
 </div>
 
 <div class="back-footer">
-  © 2026 GoTAB · <a href="login.html">← Артқа / Назад</a>
+  © 2026 GoTAB · <a href="login.html" data-go-back="index.html">← Артқа / Назад</a>
 </div>
 
 <script>
@@ -361,5 +361,6 @@ function switchLang(lang) {
 const _lang = localStorage.getItem("lang") || "kk";
 switchLang(_lang);
 </script>
+<script src="nav.js?v=20261120"></script>
 </body>
 </html>

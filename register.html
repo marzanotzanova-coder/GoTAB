@@ -284,7 +284,9 @@
   <img src="images/mountain.png" alt="" style="width:440px;max-width:90vw;mix-blend-mode:screen;">
 </div>
 
+<script src="nav.js?v=20261120"></script>
 <script src="lang.js"></script>
+<script>goSkipIfSignedIn();</script>
 <script>
 (function(){
   const lang = localStorage.getItem("lang") || "kk";
@@ -304,7 +306,7 @@
     pass2Input.type = pass2Input.type === "password" ? "text" : "password";
   });
 
-  document.getElementById("backBtn").onclick = () => { window.location.href = "index.html"; };
+  document.getElementById("backBtn").onclick = () => { goBack("index.html"); };
 
   document.getElementById("submitBtn").onclick = async () => {
     errorBox.textContent = "";

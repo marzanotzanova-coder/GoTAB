@@ -417,6 +417,7 @@ main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
       <div class="avatarHint" data-i18n="avatarHint">* Аватарды бас → өз фотоңды таңда</div>
     </div>
     <div class="nav">
+      <button class="navBtn" type="button" data-go-back="dashboard.html" data-go-back-auto><svg class="ni" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg><span>Артқа</span></button>
       <button class="navBtn active" id="navCourse">
         <svg class="ni" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
@@ -604,6 +605,7 @@ main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
 
 <script src="lang.js?v=20261120"></script>
 <script src="sparkle.js?v=20261120"></script>
+<script src="nav.js?v=20261120"></script>
 <script>
 function extractYouTubeId(url) {
   if (!url) return null;
@@ -915,7 +917,7 @@ function fillSidebar(){
 }
 
 function wireNavButtons(){
-  document.getElementById("navCourse").onclick=()=>{};
+  document.getElementById("navCourse").onclick=()=>{ if(window.goBackHook) window.goBackHook(); };
   document.getElementById("navAdmin").onclick=()=>{ window.location.href="admin.html"; };
   document.getElementById("navRefresh").onclick=()=>location.reload();
   document.getElementById("navLogout").onclick=async()=>{ await fetch("/api/auth/logout",{method:"POST",credentials:"include"}).catch(()=>{}); window.location.href="index.html"; };
@@ -1005,6 +1007,11 @@ function wireNavButtons(){
   }
   function stopMedia(){document.querySelectorAll('#lvBody iframe,#lvBody video').forEach(x=>{if(x.tagName==='VIDEO')x.pause();else x.src='about:blank';});}
   function lvShow(on){document.getElementById('mainContent').style.display=on?'none':'';document.getElementById('lessonView').style.display=on?'block':'none';window.scrollTo(0,0);}
+  const lvOpen=()=>document.getElementById('lessonView').style.display==='block';
+  // the open lesson is a history step: browser Back / «Артқа» return to the lesson cards first
+  function lvClose(){ if(!lvOpen())return false; if(history.state&&history.state.gtLesson){history.back();} else {stopMedia();lvShow(false);} return true; }
+  window.goBackHook=lvClose;
+  window.addEventListener('popstate',()=>{ if(lvOpen()&&!(history.state&&history.state.gtLesson)){stopMedia();lvShow(false);} });
   async function openSection(block,sec){
     if(sec==='test'){openQuizModal(block);return;}
     document.getElementById('lvNum').textContent='Сабақ '+block;
@@ -1012,6 +1019,7 @@ function wireNavButtons(){
     const tabs=document.getElementById('lvTabs'), body=document.getElementById('lvBody');
     tabs.innerHTML=SECS.map(k=>`<button class="lv-tab${k===sec?' on':''}" data-sec="${k}">${SEC[k]}</button>`).join('');
     tabs.querySelectorAll('.lv-tab').forEach(t=>t.onclick=()=>{if(t.dataset.sec!=='test')stopMedia();openSection(block,t.dataset.sec);});
+    if(!lvOpen()) try{history.pushState({gtLesson:block},'');}catch(e){}
     stopMedia(); body.innerHTML='<div class="lv-empty">Жүктелуде…</div>'; lvShow(true);
     let d; try{d=await loadLesson(block);}catch(e){body.innerHTML='<div class="lv-empty">Жүктеу кезінде қате болды. Қайта көріңіз.</div>';return;}
     if(sec==='video'){
@@ -1075,7 +1083,7 @@ function wireNavButtons(){
       };
     }
   }
-  document.getElementById('lvBack').addEventListener('click',()=>{stopMedia();lvShow(false);});
+  document.getElementById('lvBack').addEventListener('click',()=>{lvClose();});
   (async function renderLessonCards(){
     const box=document.getElementById('lessonCards'); if(!box)return;
     try{
