@@ -988,13 +988,19 @@ function wireNavButtons(){
     }else if(sec==='upload'){
       const listHtml=()=>d.uploads.length?`<div class="lv-num" style="margin-top:22px">Жіберілген тапсырмалар</div><div class="lv-up-list">${d.uploads.map(u=>`<div class="lv-up-item"><a href="${escapeHtml(u.url||'#')}" target="_blank" rel="noopener">📎 ${escapeHtml(u.name||'файл')}</a><span style="color:#6B7280;white-space:nowrap">${escapeHtml(String(u.createdAt||'').slice(0,10))}${isAdmin&&u.studentId?' · '+escapeHtml(u.studentId):''}</span></div>`).join('')}</div>`:'';
       body.innerHTML=`<div class="lv-card"><div class="lv-docname" style="margin-bottom:6px">Тапсырманы жүктеу</div>
-        <div style="color:#52627a;font-size:14px;margin-bottom:14px">Орындаған тапсырмаңды фото, PDF немесе Word түрінде жібер. Бірнеше файл таңдауға болады (әрқайсысы 50 МБ-қа дейін).</div>
-        <label class="lv-up-drop">📤 Файлдарды таңда<input type="file" id="lvUpFile" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></label>
+        <div style="color:#52627a;font-size:14px;margin-bottom:14px">Word немесе PDF файлын жібер, не дәптерге жазғаныңды суретке түсіріп жүкте (медиатекадан да таңдауға болады). Бірнеше файл жіберуге болады, әрқайсысы 50 МБ-қа дейін.</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">
+          <label class="lv-up-drop">📄 Word / PDF / фото таңдау<br><span style="font-weight:600;font-size:12px">файлдар немесе медиатека</span><input type="file" id="lvUpFile" multiple accept="image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"></label>
+          <label class="lv-up-drop">📷 Дәптерді суретке түсіру<br><span style="font-weight:600;font-size:12px">телефон камерасы</span><input type="file" id="lvUpCam" accept="image/*" capture="environment"></label>
+        </div>
+        <div id="lvUpPicked" style="margin-top:10px;font-size:13px;color:#14213D"></div>
         <button class="lv-up-btn" id="lvUpBtn">Жіберу</button><div class="lv-up-status" id="lvUpStatus"></div><div id="lvUpList">${listHtml()}</div></div>`;
-      const btn=document.getElementById('lvUpBtn'), st=document.getElementById('lvUpStatus'), inp=document.getElementById('lvUpFile');
+      const btn=document.getElementById('lvUpBtn'), st=document.getElementById('lvUpStatus'), inp=document.getElementById('lvUpFile'), cam=document.getElementById('lvUpCam');
+      const picked=[]; const showPicked=()=>{document.getElementById('lvUpPicked').innerHTML=picked.length?'Таңдалды: '+picked.map(f=>'📎 '+escapeHtml(f.name)).join(', '):'';};
+      [inp,cam].forEach(el=>el.addEventListener('change',()=>{Array.from(el.files||[]).forEach(f=>picked.push(f));el.value='';showPicked();}));
       if(isAdmin){btn.disabled=true;st.style.color='#6B7280';st.textContent='Тапсырманы оқушы өз аккаунтынан жібереді. Мұнда оқушылар жіберген файлдар көрінеді.';}
       btn.onclick=async()=>{
-        const files=Array.from(inp.files||[]);
+        const files=picked.slice();
         if(!files.length){st.style.color='#ef4444';st.textContent='Алдымен файл таңда.';return;}
         const big=files.find(f=>f.size>50*1024*1024); if(big){st.style.color='#ef4444';st.textContent=`«${big.name}» 50 МБ-тан үлкен.`;return;}
         btn.disabled=true; st.style.color='#2F6BFF';
@@ -1011,7 +1017,7 @@ function wireNavButtons(){
             d.uploads.unshift(rj.item);
           }
           markActivity('uploaded');
-          st.style.color='#059669'; st.textContent='✅ Тапсырма жіберілді! Мұғалім тексереді.'; inp.value='';
+          st.style.color='#059669'; st.textContent='✅ Тапсырма жіберілді! Мұғалім тексереді.'; picked.length=0; showPicked();
           document.getElementById('lvUpList').innerHTML=listHtml();
         }catch(e){st.style.color='#ef4444';st.textContent='Қате: '+e.message+'. Қайта көр.';}
         btn.disabled=isAdmin;
