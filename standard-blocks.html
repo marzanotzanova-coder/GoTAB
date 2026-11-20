@@ -328,13 +328,13 @@ body{
 .lc-shine{position:absolute;top:-40%;left:-60%;width:42%;height:180%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent);transform:rotate(18deg);animation:lcshine 4s ease-in-out infinite;pointer-events:none;}
 @keyframes lcshine{0%{left:-60%;}55%,100%{left:130%;}}
 .lc-badge{position:relative;display:inline-block;padding:7px 16px;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);color:#fff;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 6px 18px rgba(47,107,255,.38);}
-.lc-title{position:relative;margin-top:16px;font-size:19px;font-weight:800;line-height:1.3;color:#14213D;}
+.lc-title{position:relative;margin-top:16px;font-size:17px;font-weight:800;line-height:1.3;color:#14213D;}
 .lc-hint{position:relative;margin-top:16px;font-size:12px;font-weight:800;color:#3f6fe0;letter-spacing:.02em;}
 .lc-star{position:absolute;color:#2F6BFF;opacity:.0;animation:lctw 2.6s ease-in-out infinite;pointer-events:none;font-size:14px;}
 @keyframes lctw{0%,100%{opacity:0;transform:scale(.4) rotate(0);}50%{opacity:.9;transform:scale(1) rotate(45deg);}}
 .lcard:not(.flipped):hover .lcard-inner{transform:translateY(-5px);}
 .lcard-back{box-shadow:0 16px 40px rgba(47,107,255,.25),0 0 0 2px rgba(47,107,255,.18)!important;}
-main.content{position:relative;}
+main.content{position:relative;min-height:calc(100vh - 36px);}
 main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
 .avatar.clickable{cursor:pointer;}
 .lcard-back{transform:rotateY(180deg);background:#fff;border:1px solid rgba(47,107,255,.14);box-shadow:0 14px 34px rgba(47,107,255,.14);padding:14px 14px;display:flex;flex-direction:column;gap:8px;cursor:default;}
@@ -389,6 +389,7 @@ main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
 <script src="vendor/katex.min.js"></script>
 <script src="quiz-math.js"></script>
 <link rel="stylesheet" href="student-theme.css?v=20261028">
+<link rel="stylesheet" href="student-polish.css?v=20261120">
 </head>
 <body class="student-course">
 
@@ -457,7 +458,7 @@ main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
       <div class="subject-hero" data-i18n="subjectAlgebra">Алгебра</div>
       <div class="topics-grid">
 
-        <div class="topic-card tc-blue">
+        <div class="lcard-front diag-prem"><div class="lc-in"><span class="lc-shine"></span><span class="lc-star" style="left:12%;top:12%">✦</span><span class="lc-star" style="right:12%;top:20%;animation-delay:1.1s;color:#20C9FF">✦</span><span class="lc-star" style="left:16%;bottom:12%;animation-delay:.5s;font-size:11px;color:#7FB2FF">✦</span>
           <div class="topic-card__label" data-i18n="diagLabel">Диагностика</div>
           <div class="topic-card__btns">
             <button class="topic-btn tb-solid" onclick="openQuizModal(0)">
@@ -469,7 +470,7 @@ main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
               <span data-i18n="diagResultBtn">Нәтиже</span>
             </button>
           </div>
-        </div>
+        </div></div>
 
         <div id="lessonCards" style="display:contents"></div>
 
