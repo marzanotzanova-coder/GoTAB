@@ -1079,7 +1079,7 @@ if (course === "baza") course = "base";
 if (course === "standard") course = "standart";
 
 if (!["base", "standart", "premium"].includes(course)) {
-  course = "base";
+  course = "standart"; // the standard course page grades with "standart", keep one progress row per lesson
 }
 
 const checkProgRes = await fetch(

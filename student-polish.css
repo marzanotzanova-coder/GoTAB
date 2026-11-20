@@ -37,7 +37,7 @@
 .student-dashboard #todayChecklist .checkItem:has(input:checked){background:linear-gradient(90deg,rgba(32,201,243,.12),rgba(32,214,199,.08))!important;border-color:rgba(32,201,243,.35)!important}
 
 /* ---------- course page: diagnostic card in the same premium style ---------- */
-.student-course .diag-prem{position:relative;border-radius:22px;min-height:318px;height:100%}
+.student-course .diag-prem{position:relative;border-radius:22px;min-height:318px;align-self:start}
 .student-course .diag-prem .lc-in{justify-content:center;gap:14px}
 .student-course .diag-prem .topic-card__label{font-size:12px;font-weight:800;color:#2F6BFF;letter-spacing:.12em;text-transform:uppercase;position:relative}
 .student-course .diag-prem .topic-card__btns{position:relative;display:flex;flex-direction:column;gap:10px;width:100%}
