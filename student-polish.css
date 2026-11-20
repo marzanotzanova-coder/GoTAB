@@ -48,3 +48,17 @@
   .student-dashboard .card,.student-dashboard .hero{animation:none}
   .student-dashboard .progress-fill{animation:none}
 }
+
+/* ---------- winter: snow on the greeting card ---------- */
+.student-dashboard .hero-snow{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;border-radius:inherit;contain:paint}
+.student-dashboard .hero-snow span{position:absolute;top:-24px;left:var(--x);width:var(--s);height:var(--s);opacity:0;animation:gpSnow var(--d) linear var(--dl) infinite}
+.student-dashboard .snow-dot{border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0%,var(--c) 60%,rgba(170,200,255,.4) 100%);box-shadow:0 0 6px rgba(120,170,255,.55)}
+.student-dashboard .snow-flake{color:var(--c);filter:drop-shadow(0 0 3px rgba(120,170,255,.6))}
+.student-dashboard .snow-flake svg{display:block;width:100%;height:100%}
+@keyframes gpSnow{0%{opacity:0;transform:translate3d(0,0,0) rotate(0)}8%{opacity:.95}50%{transform:translate3d(var(--dx),160px,0) rotate(160deg)}92%{opacity:.85}100%{opacity:0;transform:translate3d(calc(var(--dx)*-.5),330px,0) rotate(320deg)}}
+@media (prefers-reduced-motion: reduce){.student-dashboard .hero-snow span{animation:none;opacity:.6;top:calc(10% + var(--s)*6)}}
+
+/* ---------- diagnostic card: calm, no glow ---------- */
+.student-course .diag-prem{animation:none!important;background:linear-gradient(160deg,#cfe0ff,#e8f1ff)!important;box-shadow:0 8px 24px rgba(47,107,255,.10)!important}
+.student-course .diag-prem .lc-shine,.student-course .diag-prem .lc-star{display:none}
+.student-course .diag-prem .lc-in::before{display:none}
