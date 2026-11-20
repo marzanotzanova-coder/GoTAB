@@ -407,7 +407,7 @@
   <div class="page">
 
     <!-- HERO -->
-    <section class="hero">
+    <section class="hero" id="heroCard">
       <div class="autumn-leaves" aria-hidden="true"><span class="autumn-leaf" style="--leaf-x:4%;--leaf-size:18px;--leaf-duration:14s;--leaf-delay:-4s;--leaf-color:#ba7734"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:18%;--leaf-size:23px;--leaf-duration:19s;--leaf-delay:-13s;--leaf-color:#c89243"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:31%;--leaf-size:15px;--leaf-duration:16s;--leaf-delay:-8s;--leaf-color:#b65d3c"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:43%;--leaf-size:21px;--leaf-duration:22s;--leaf-delay:-3s;--leaf-color:#cca76b"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:56%;--leaf-size:18px;--leaf-duration:18s;--leaf-delay:-12s;--leaf-color:#ba7734"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:68%;--leaf-size:24px;--leaf-duration:21s;--leaf-delay:-16s;--leaf-color:#c89243"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:79%;--leaf-size:17px;--leaf-duration:15s;--leaf-delay:-6s;--leaf-color:#b65d3c"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="autumn-leaf" style="--leaf-x:91%;--leaf-size:20px;--leaf-duration:23s;--leaf-delay:-20s;--leaf-color:#cca76b"><svg viewBox="0 0 32 40" aria-hidden="true"><path d="M17 2C9 9 2 14 4 24c1 7 8 11 14 9 10-3 13-14 10-27-3 5-6 5-11-4Z" fill="currentColor"/><path d="M11 38 23 10M15 29l-6-8m10 1 7-3" fill="none" stroke="#76512f" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span></div>
       <div class="hero-text">
         <div class="hero-greet" id="hello" aria-live="polite">Қош келдің!</div>
@@ -769,6 +769,23 @@ renderMP(1);
 </script>
 
 <script src="lang.js?v=20261120"></script>
+<script src="sparkle.js?v=20261120"></script>
+<script>
+// shrink a photo to a small square-ish JPEG before uploading (any phone photo works, stays well under limits)
+window.goResizeImage = window.goResizeImage || function(file, max){
+  return new Promise(function(ok, bad){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var s = Math.min(1, max / Math.max(img.width, img.height)), w = Math.round(img.width * s), h = Math.round(img.height * s);
+      var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ b ? ok(b) : bad(new Error('resize')); }, 'image/jpeg', 0.88);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); bad(new Error('image')); };
+    img.src = url;
+  });
+};
+</script>
 <script>
 (function(){
 
@@ -1174,14 +1191,10 @@ window.pingStreakServer = pingStreakServer;
     const file = input.files && input.files[0];
     if(!file) return;
 
-    if(file.size > 1_500_000){
-      alert("Фото тым үлкен. 1.5MB-тан кіші фото таңдашы 🙏");
-      return;
-    }
-
     try{
+      const blob = await goResizeImage(file, 512);
       const fd = new FormData();
-      fd.append("avatar", file);
+      fd.append("avatar", blob, "avatar.jpg");
 
       const r = await fetch("/api/avatar/upload", {
         method: "POST",
@@ -2195,6 +2208,10 @@ document.addEventListener("visibilitychange", () => {
 setInterval(refreshChecklist, 30000);
 
 })();
+</script>
+<script>
+(function(){ function go(){ try{ GoSparkle(document.getElementById('heroCard'),{ambient:18,trail:true}); }catch(e){} }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',go); else go(); })();
 </script>
 </body>
 </html>

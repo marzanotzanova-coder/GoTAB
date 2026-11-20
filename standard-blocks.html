@@ -319,8 +319,24 @@ body{
 .lcard-inner{position:relative;width:100%;height:100%;min-height:318px;transition:transform .7s cubic-bezier(.2,.75,.25,1);transform-style:preserve-3d;}
 .lcard.flipped .lcard-inner{transform:rotateY(180deg);}
 .lcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;}
-.lcard-front{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 18px;}
-.lcard-front .lc-hint{margin-top:14px;font-size:12px;font-weight:700;color:#8a97b4;}
+@property --lcang{syntax:'<angle>';inherits:false;initial-value:0deg;}
+.lcard-front{padding:2.5px;background:conic-gradient(from var(--lcang),#2F6BFF,#20C9FF,#ffffff,#8fb6ff,#2F6BFF 62%,#20C9FF 82%,#2F6BFF);animation:lcspin 4.5s linear infinite,lcglow 3.2s ease-in-out infinite;}
+@keyframes lcspin{to{--lcang:360deg;}}
+@keyframes lcglow{0%,100%{box-shadow:0 10px 28px rgba(47,107,255,.22),0 0 0 rgba(32,201,255,0);}50%{box-shadow:0 16px 40px rgba(47,107,255,.36),0 0 30px rgba(32,201,255,.5);}}
+.lc-in{position:relative;height:100%;border-radius:20px;overflow:hidden;background:radial-gradient(120% 90% at 50% 0%,#ffffff 0%,#f3f8ff 45%,#dce9ff 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 18px;}
+.lc-in::before{content:"";position:absolute;inset:auto -30% -55% -30%;height:75%;background:radial-gradient(closest-side,rgba(32,201,255,.28),transparent);pointer-events:none;}
+.lc-shine{position:absolute;top:-40%;left:-60%;width:42%;height:180%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.9),transparent);transform:rotate(18deg);animation:lcshine 4s ease-in-out infinite;pointer-events:none;}
+@keyframes lcshine{0%{left:-60%;}55%,100%{left:130%;}}
+.lc-badge{position:relative;display:inline-block;padding:7px 16px;border-radius:999px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);color:#fff;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 6px 18px rgba(47,107,255,.38);}
+.lc-title{position:relative;margin-top:16px;font-size:19px;font-weight:800;line-height:1.3;color:#14213D;}
+.lc-hint{position:relative;margin-top:16px;font-size:12px;font-weight:800;color:#3f6fe0;letter-spacing:.02em;}
+.lc-star{position:absolute;color:#2F6BFF;opacity:.0;animation:lctw 2.6s ease-in-out infinite;pointer-events:none;font-size:14px;}
+@keyframes lctw{0%,100%{opacity:0;transform:scale(.4) rotate(0);}50%{opacity:.9;transform:scale(1) rotate(45deg);}}
+.lcard:not(.flipped):hover .lcard-inner{transform:translateY(-5px);}
+.lcard-back{box-shadow:0 16px 40px rgba(47,107,255,.25),0 0 0 2px rgba(47,107,255,.18)!important;}
+main.content{position:relative;}
+main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
+.avatar.clickable{cursor:pointer;}
 .lcard-back{transform:rotateY(180deg);background:#fff;border:1px solid rgba(47,107,255,.14);box-shadow:0 14px 34px rgba(47,107,255,.14);padding:14px 14px;display:flex;flex-direction:column;gap:8px;cursor:default;}
 .lcard-back .lb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
 .lcard-back .lb-num{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2F6BFF;}
@@ -586,6 +602,7 @@ body{
 </div>
 
 <script src="lang.js?v=20261120"></script>
+<script src="sparkle.js?v=20261120"></script>
 <script>
 function extractYouTubeId(url) {
   if (!url) return null;
@@ -710,6 +727,20 @@ document.getElementById("viewerClose").onclick=()=>closeViewer();
 document.getElementById("viewerModal").addEventListener("click",e=>{ if(e.target.id==="viewerModal") closeViewer(); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){closeViewer();closeQuizModal();closeAiModal();} });
 
+// shrink a photo to a small square-ish JPEG before uploading (any phone photo works, stays well under limits)
+window.goResizeImage = window.goResizeImage || function(file, max){
+  return new Promise(function(ok, bad){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var s = Math.min(1, max / Math.max(img.width, img.height)), w = Math.round(img.width * s), h = Math.round(img.height * s);
+      var c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d').drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ b ? ok(b) : bad(new Error('resize')); }, 'image/jpeg', 0.88);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); bad(new Error('image')); };
+    img.src = url;
+  });
+};
 function escapeHtml(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 function renderMath(text) { return GoTabMath.render(text); }
 
@@ -902,6 +933,25 @@ function wireNavButtons(){
   loadSubtopicGrades();
   if(params.get("diagnostic") === "1" || location.pathname === "/diagnostic.html") openQuizModal(0);
 
+  try{ GoSparkle(document.querySelector('main.content'),{ambient:34,trail:true}); }catch(e){}
+  // avatar: students tap it to choose their own photo
+  (function(){
+    const av=document.getElementById('sideAvatar'); if(!av||isAdmin)return;
+    av.classList.add('clickable'); av.title='Өз фотоңды таңда';
+    av.addEventListener('click',()=>{
+      const inp=document.createElement('input'); inp.type='file'; inp.accept='image/*';
+      inp.onchange=async()=>{
+        const f=inp.files&&inp.files[0]; if(!f)return;
+        try{
+          const blob=await goResizeImage(f,512); const fd=new FormData(); fd.append('avatar',blob,'avatar.jpg');
+          const r=await fetch('/api/avatar/upload',{method:'POST',body:fd,credentials:'include'}); const j=await r.json().catch(()=>null);
+          if(!r.ok||!j?.ok){alert('Аватар жүктелмеді. Қайта көр.');return;}
+          av.innerHTML=`<img src="${j.url}?t=${Date.now()}" alt="">`;
+        }catch(e){alert('Фото оқылмады. Басқа фото таңда.');}
+      };
+      inp.click();
+    });
+  })();
   // ── Lessons from the admin panel: flip card → 4 buttons (Видеосабақ / Тапсырма / Қосымша / Тест) ──
   const lessonTitles={}, lessonCache={};
   const ICON={
@@ -1034,7 +1084,7 @@ function wireNavButtons(){
       const colors=['tc-purple','tc-teal','tc-amber','tc-rose','tc-sky','tc-emerald','tc-orange','tc-violet','tc-cyan','tc-fuchsia','tc-peach','tc-lime'];
       box.innerHTML=list.map((l,i)=>{const b=Number(l.block);lessonTitles[b]=l.title||'';return `<div class="lcard" data-block="${b}" tabindex="0" role="button" aria-label="Сабақ ${b}">
         <div class="lcard-inner">
-          <div class="lcard-face lcard-front topic-card ${colors[i%colors.length]}"><div class="lesson-num">Сабақ ${b}</div><div class="topic-card__title">${escapeHtml(l.title||'')}</div><div class="lc-hint">Ашу үшін басыңыз</div></div>
+          <div class="lcard-face lcard-front"><div class="lc-in"><span class="lc-shine"></span><span class="lc-star" style="left:14%;top:16%">✦</span><span class="lc-star" style="right:13%;top:26%;animation-delay:.9s;color:#20C9FF">✦</span><span class="lc-star" style="left:20%;bottom:18%;animation-delay:1.7s;font-size:11px">✦</span><span class="lc-star" style="right:18%;bottom:14%;animation-delay:.4s;font-size:12px;color:#7FB2FF">✦</span><div class="lc-badge">Сабақ ${b}</div><div class="lc-title">${escapeHtml(l.title||'')}</div><div class="lc-hint">Ашу үшін басыңыз ✦</div></div></div>
           <div class="lcard-face lcard-back"><div class="lb-head"><span class="lb-num">Сабақ ${b}</span><button class="lb-turn" title="Артқа бұру" aria-label="Артқа бұру">↺</button></div>
             ${SECS.map(k=>`<button class="lb-btn lb-${k}" data-sec="${k}">${ICON[k]}<span>${SEC[k]}</span></button>`).join('')}
           </div>
