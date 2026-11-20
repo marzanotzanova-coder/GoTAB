@@ -1275,6 +1275,8 @@ app.get("/api/materials", requireAuth, async (req, res) => {
 
     const videos = materialsData.filter(x => x.type === "video");
     const docs = materialsData.filter(x => x.type === "doc");
+    const tasks = materialsData.filter(x => x.type === "task");
+    const extras = materialsData.filter(x => x.type === "extra");
     const audios = materialsData.filter(x => x.type === "audio");
 
     const studentUploads = uploadsData.map(x => ({
@@ -1288,6 +1290,8 @@ app.get("/api/materials", requireAuth, async (req, res) => {
     res.json({
       videos,
       docs,
+      tasks,
+      extras,
       audios,
       studentUploads
     });
@@ -1333,7 +1337,7 @@ app.post("/api/admin/register-material", requireAdmin, async (req, res) => {
     const block = Number(req.body.blockNumber);
     const lessonTitle = String(req.body.lessonTitle || "").trim();
     const filePath = String(req.body.path || "");
-    const type = ["video", "audio", "doc"].includes(String(req.body.type)) ? String(req.body.type) : "doc";
+    const type = ["video", "audio", "doc", "task", "extra"].includes(String(req.body.type)) ? String(req.body.type) : "doc";
     const prefix = `materials/${grade}/${subject}/block${block}/`;
     if (!grade || !subject || !safeBlockNumber(block, grade, subject) || !lessonTitle || !filePath.startsWith(prefix) || filePath.includes("..")) {
       return res.status(400).json({ ok: false, error: "bad_input" });
@@ -2597,7 +2601,6 @@ app.get("/api/quiz/student", requireAuth, verifyDiagnosticAccess, requireCourseA
     const { package: pkg, grade, subject, lessonNumber } = req.query;
     const ln = Number(lessonNumber);
     if (!pkg || !grade || !subject || lessonNumber == null || isNaN(ln)) return res.status(400).json({ ok: false, error: "bad_input" });
-    if(ln !== 0 && req.session?.user?.role !== "admin") return res.status(403).json({ok:false,error:"lessons_locked"});
     const { url, key } = quizDb();
     const gradeFilter = ln === 0 ? "" : `&grade=eq.${encodeURIComponent(grade)}`;
     const r = await fetch(
@@ -2632,7 +2635,6 @@ app.post("/api/quiz/submit", requireAuth, verifyDiagnosticAccess, requireCourseA
     if (!qr.ok || !qrows[0]) return res.status(404).json({ ok: false, error: "quiz_not_found" });
 
     const quiz   = qrows[0];
-    if(Number(quiz.lesson_number) !== 0 && req.session?.user?.role !== "admin") return res.status(403).json({ok:false,error:"lessons_locked"});
     const parsed = quiz.parsed_questions || [];
 
     let correctCount = 0, wrongCount = 0;
@@ -2681,7 +2683,7 @@ app.post("/api/quiz/submit", requireAuth, verifyDiagnosticAccess, requireCourseA
     console.log(`[quiz/submit] student=${studentId} quiz=${quizId} ${correctCount}/${totalCount} (${percentage}%) attemptId=${attemptId}`);
 
     // Keep background work alive on Vercel after the score response is sent.
-    if (attemptId) {
+    if (attemptId && Number(quiz.lesson_number) === 0) {
       const diagnosisWork = generateQuizDiagnosis({ grade: quiz.grade, subject: quiz.subject, lessonNumber: quiz.lesson_number, totalCount, correctCount, wrongCount, percentage, wrongQuestions, topicBreakdown })
         .then(async ({ diagnosis, advice }) => {
           const saved = await fetch(`${url}/rest/v1/quiz_attempts?id=eq.${attemptId}`, {

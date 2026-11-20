@@ -405,17 +405,31 @@
 
     <div class="row">
       <div class="rowLeft">
-        <div class="rowTitle" data-i18n="docsLabel">Документтер</div>
-        <div class="rowSub">pdf / doc / docx / pptx — қанша керек болса, сонша қосыңыз (әрқайсысы 50 МБ-қа дейін)</div>
+        <div class="rowTitle">📝 Тапсырма</div>
+        <div class="rowSub">Оқушы «Тапсырма» батырмасын басқанда осы құжат ашылады (pdf / docx, 50 МБ-қа дейін)</div>
       </div>
     </div>
-    <div id="docRows">
-      <div class="doc-row" style="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center"><b class="dr-num" style="font-size:13px;color:#2F6BFF">Құжат 1</b></div>
-        <input type="file" id="doc-upload" class="dr-file" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">
+    <div class="fileRows" id="taskRows" data-kind="task" data-label="Тапсырма">
+      <div class="file-row" style="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b class="fr-num" style="font-size:13px;color:#2F6BFF">Тапсырма 1</b></div>
+        <input type="file" class="fr-file" id="doc-upload" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">
       </div>
     </div>
-    <button type="button" class="btn ghost" id="addDocRow" style="margin-top:10px;width:100%">➕ Құжат қосу</button>
+    <button type="button" class="btn ghost addFileRow" data-target="taskRows" style="margin-top:10px;width:100%">➕ Тапсырма қосу</button>
+    <div class="row">
+      <div class="rowLeft">
+        <div class="rowTitle">📎 Қосымша</div>
+        <div class="rowSub">«Қосымша» батырмасының ішінде «Қосымша 1, 2…» болып тұрады</div>
+      </div>
+    </div>
+    <div class="fileRows" id="extraRows" data-kind="extra" data-label="Қосымша">
+      <div class="file-row" style="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><b class="fr-num" style="font-size:13px;color:#2F6BFF">Қосымша 1</b></div>
+        <input type="file" class="fr-file" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">
+      </div>
+    </div>
+    <button type="button" class="btn ghost addFileRow" data-target="extraRows" style="margin-top:10px;width:100%">➕ Қосымша қосу</button>
+
 
     <div class="row">
   <div class="rowLeft">
@@ -477,7 +491,7 @@
 
       <!-- Quiz creation form -->
       <div class="quiz-section-title">📋 Сынақты қосу / өңдеу</div>
-      <input type="number" id="qzLesson" min="0" max="100" placeholder="Сабақ № (0 = диагностика)" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;width:100%;margin-bottom:8px;box-sizing:border-box;">
+      <input type="number" id="qzLesson" min="0" max="100" placeholder="Сабақ № (0 = диагностика, 1, 2… = сабақ тесті)" style="padding:12px 14px;border-radius:14px;border:1.5px solid rgba(47,107,255,.14);font-size:14px;background:rgba(255,255,255,.9);color:#14213D;outline:none;width:100%;margin-bottom:8px;box-sizing:border-box;">
 
       <div class="muted" style="margin-bottom:4px">Сынақ мәтінін қойыңыз: <span style="color:#2F6BFF;font-weight:700">(Ctrl+Enter — сақтау)</span></div>
       <div style="margin:12px 0;padding:14px;border:1px solid #dae4ff;border-radius:14px">
@@ -843,7 +857,10 @@ const lessonTitle = String(lessonTitleInput?.value || "").trim();
   const sid = localStorage.getItem("lastPreviewStudentId") || "";
 
 const videos = videoRows.flatMap(r => Array.from(r.querySelector(".vr-file").files || []));
-const docs   = Array.from(document.querySelectorAll("#docRows .dr-file")).flatMap(i => Array.from(i.files || []));
+const filesOf = id => Array.from(document.querySelectorAll("#" + id + " .fr-file")).flatMap(i => Array.from(i.files || []));
+const taskFiles  = filesOf("taskRows");
+const extraFiles = filesOf("extraRows");
+const docs   = [...taskFiles, ...extraFiles];
 
 const hasFiles = videos.length > 0 || docs.length > 0 || !!youtubeUrl;
 const hasFeedback = feedbackText.length > 0;
@@ -895,8 +912,10 @@ for (const r of videoRows) {
   }
 }
 
-for (const f of docs) {
-  await uploadOneFile(f, grade, subject, blockNumber, "doc", lessonTitle, p => { saveBtn.textContent = "Жүктеліп жатыр… " + Math.round(p * 100) + "%"; });
+for (const [kind, list] of [["task", taskFiles], ["extra", extraFiles]]) {
+  for (const f of list) {
+    await uploadOneFile(f, grade, subject, blockNumber, kind, lessonTitle, p => { saveBtn.textContent = "Жүктеліп жатыр… " + f.name.slice(0, 24) + " " + Math.round(p * 100) + "%"; });
+  }
 }
 
     await Promise.all(tasks);
@@ -1469,20 +1488,21 @@ async function loadAllMaterials() {
     r.querySelector(".vr-del").onclick=()=>{r.remove();renum();};
     box.appendChild(r); renum();
   });
-  const dbox=document.getElementById("docRows"), dadd=document.getElementById("addDocRow");
-  const drenum=()=>dbox.querySelectorAll(".doc-row").forEach((r,i)=>{r.querySelector(".dr-num").textContent="Құжат "+(i+1);});
-  if(dbox&&dadd) dadd.addEventListener("click",()=>{
-    const r=document.createElement("div"); r.className="doc-row";
+  const ACC=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg";
+  const frenum=box=>box.querySelectorAll(".file-row").forEach((r,i)=>{r.querySelector(".fr-num").textContent=box.dataset.label+" "+(i+1);});
+  document.querySelectorAll(".addFileRow").forEach(btn=>btn.addEventListener("click",()=>{
+    const fbox=document.getElementById(btn.dataset.target); if(!fbox) return;
+    const r=document.createElement("div"); r.className="file-row";
     r.style.cssText="border:1px solid rgba(47,107,255,.14);border-radius:14px;padding:10px 12px;margin-top:8px";
-    r.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b class="dr-num" style="font-size:13px;color:#2F6BFF"></b><button type="button" class="dr-del" title="Өшіру" style="border:none;background:none;color:#ef4444;font-size:20px;cursor:pointer;line-height:1">×</button></div>'+
-      '<input type="file" class="dr-file" multiple accept=".pdf,.doc,.docx,.txt,.ppt,.pptx,.xls,.xlsx,.png,.jpg,.jpeg">';
-    r.querySelector(".dr-del").onclick=()=>{r.remove();drenum();};
-    dbox.appendChild(r); drenum();
-  });
+    r.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><b class="fr-num" style="font-size:13px;color:#2F6BFF"></b><button type="button" class="fr-del" title="Өшіру" style="border:none;background:none;color:#ef4444;font-size:20px;cursor:pointer;line-height:1">×</button></div>'+
+      '<input type="file" class="fr-file" multiple accept="'+ACC+'">';
+    r.querySelector(".fr-del").onclick=()=>{r.remove();frenum(fbox);};
+    fbox.appendChild(r); frenum(fbox);
+  }));
   window.__resetVideoRows=function(){
     box.querySelectorAll(".video-row").forEach((r,i)=>{ if(i>0) r.remove(); else { r.querySelector(".vr-file").value=""; r.querySelector(".vr-yt").value=""; const pv=document.getElementById("youtubePreview"); if(pv) pv.style.display="none"; } });
-    const dbox=document.getElementById("docRows"); if(dbox) dbox.querySelectorAll(".doc-row").forEach((r,i)=>{ if(i>0) r.remove(); else r.querySelector(".dr-file").value=""; });
-    renum(); if(dbox) drenum();
+    document.querySelectorAll(".fileRows").forEach(fb=>{ fb.querySelectorAll(".file-row").forEach((r,i)=>{ if(i>0) r.remove(); else r.querySelector(".fr-file").value=""; }); frenum(fb); });
+    renum();
   };
 })();
 </script>

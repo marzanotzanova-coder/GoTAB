@@ -314,20 +314,44 @@ body{
 .quiz-result-stat .rnum{font-weight:900;font-size:22px;color:#2F6BFF;}.quiz-result-stat .rlbl{font-size:11px;color:#6B7280;margin-top:3px;}
 .quiz-result-msg{text-align:center;font-weight:700;font-size:15px;color:#14213D;padding:0 20px 18px;}
 .quiz-result-close{display:block;width:calc(100% - 44px);margin:0 22px 22px;padding:14px;background:linear-gradient(90deg,#2F6BFF,#20C9FF);border:none;border-radius:14px;color:#fff;font-weight:800;font-size:15px;cursor:pointer;}
-.lesson-card-new{cursor:pointer;transition:transform .15s,box-shadow .15s;}
-.lesson-card-new:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(47,107,255,.16);}
-#lessonView{display:none;}
+/* ── Lesson flip cards ── */
+.lcard{perspective:1400px;min-height:270px;cursor:pointer;outline:none;}
+.lcard-inner{position:relative;width:100%;height:100%;min-height:270px;transition:transform .7s cubic-bezier(.2,.75,.25,1);transform-style:preserve-3d;}
+.lcard.flipped .lcard-inner{transform:rotateY(180deg);}
+.lcard-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:22px;}
+.lcard-front{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px 18px;}
+.lcard-front .lc-hint{margin-top:14px;font-size:12px;font-weight:700;color:#8a97b4;}
+.lcard-back{transform:rotateY(180deg);background:#fff;border:1px solid rgba(47,107,255,.14);box-shadow:0 14px 34px rgba(47,107,255,.14);padding:16px 14px;display:flex;flex-direction:column;gap:9px;cursor:default;}
+.lcard-back .lb-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
+.lcard-back .lb-num{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2F6BFF;}
+.lcard-back .lb-turn{border:none;background:rgba(47,107,255,.08);color:#2F6BFF;border-radius:10px;width:30px;height:30px;font-size:15px;cursor:pointer;}
+.lb-btn{display:flex;align-items:center;gap:10px;width:100%;border:none;border-radius:13px;padding:11px 14px;font-weight:800;font-size:14px;color:#fff;cursor:pointer;text-align:left;transition:transform .15s,filter .15s;}
+.lb-btn:hover{transform:translateY(-1px);filter:brightness(1.07);}
+.lb-btn svg{flex:none;}
+.lb-video{background:linear-gradient(135deg,#4f46e5,#6366f1);box-shadow:0 4px 12px rgba(79,70,229,.25);}
+.lb-task{background:linear-gradient(135deg,#d97706,#f59e0b);box-shadow:0 4px 12px rgba(217,119,6,.22);}
+.lb-extra{background:linear-gradient(135deg,#0d9488,#14b8a6);box-shadow:0 4px 12px rgba(13,148,136,.22);}
+.lb-test{background:linear-gradient(135deg,#dc2626,#ef4444);box-shadow:0 4px 12px rgba(220,38,38,.2);}
+/* ── Lesson content view ── */
+#lessonView{display:none;max-width:1100px;}
 .lv-back{display:inline-flex;align-items:center;gap:6px;border:none;background:rgba(47,107,255,.08);color:#2F6BFF;font-weight:800;font-size:14px;padding:9px 16px;border-radius:12px;cursor:pointer;margin-bottom:16px;}
 .lv-num{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2F6BFF;}
-.lv-title{font-size:26px;font-weight:800;color:#14213D;margin:6px 0 22px;line-height:1.25;}
-.lv-list{display:flex;flex-direction:column;gap:22px;max-width:900px;}
-.lv-item{background:#fff;border-radius:20px;padding:14px;box-shadow:0 8px 24px rgba(90,120,255,.08);border:1px solid rgba(47,107,255,.08);}
-.lv-item h3{font-size:15px;font-weight:800;color:#14213D;margin:2px 4px 10px;}
+.lv-title{font-size:24px;font-weight:800;color:#14213D;margin:6px 0 6px;line-height:1.25;}
+.lv-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 18px;}
+.lv-tab{border:1.5px solid rgba(47,107,255,.16);background:#fff;color:#14213D;border-radius:12px;padding:9px 16px;font-weight:800;font-size:14px;cursor:pointer;}
+.lv-tab.on{background:#2F6BFF;border-color:#2F6BFF;color:#fff;}
+.lv-card{background:#fff;border-radius:22px;padding:18px;box-shadow:0 8px 24px rgba(90,120,255,.08);border:1px solid rgba(47,107,255,.08);}
+.lv-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;}
+.lv-vid h4{font-size:14px;font-weight:800;color:#14213D;margin:0 2px 8px;}
 .lv-frame{position:relative;width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#0b1020;}
 .lv-frame iframe,.lv-frame video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#000;}
-.lv-docs{display:flex;flex-direction:column;gap:8px;max-width:900px;margin-top:22px;}
-.lv-docs a{display:block;padding:12px 16px;border-radius:14px;background:#fff;border:1px solid rgba(47,107,255,.12);color:#2F6BFF;font-weight:700;text-decoration:none;}
-.lv-empty{color:#6B7280;font-size:15px;padding:20px 4px;}
+.lv-docbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.lv-docname{font-size:16px;font-weight:800;color:#14213D;}
+.lv-dl{display:inline-flex;align-items:center;gap:8px;text-decoration:none;background:linear-gradient(90deg,#2F6BFF,#20C9FF);color:#fff;font-weight:800;font-size:14px;padding:10px 16px;border-radius:12px;}
+.lv-dl.ghost{background:rgba(47,107,255,.08);color:#2F6BFF;}
+.lv-doc{width:100%;height:78vh;min-height:520px;border:0;border-radius:14px;background:#f3f5fb;display:block;}
+.lv-empty{color:#6B7280;font-size:15px;padding:18px 4px;}
+@media(max-width:760px){.lv-grid{grid-template-columns:1fr;}.lv-doc{height:70vh;min-height:420px;}}
 .lesson-num{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#2F6BFF;margin-bottom:8px;}
 .lesson-card-new .topic-card__title{font-size:16px;line-height:1.3;}
 .topic-card.lesson-card-new{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
@@ -428,11 +452,11 @@ body{
     </div>
 
     <div id="lessonView">
-      <button class="lv-back" id="lvBack">← Артқа</button>
+      <button class="lv-back" id="lvBack">← Сабақтарға</button>
       <div class="lv-num" id="lvNum"></div>
       <div class="lv-title" id="lvTitle"></div>
-      <div class="lv-list" id="lvList"></div>
-      <div class="lv-docs" id="lvDocs"></div>
+      <div class="lv-tabs" id="lvTabs"></div>
+      <div id="lvBody"></div>
     </div>
 
     <!-- ── Сандар панелі ── -->
@@ -685,14 +709,14 @@ function _setQState(s){["qsLoading","qsNone","qsQuiz","qsResult"].forEach(id=>do
 function _updateQProgress(){if(!_quizData)return;const answered=Object.keys(_quizAnswers).length;const t=window.goI18n[window.goLang]||window.goI18n.kk;const tpl=t.quizProgress||"{answered}/{total} сұраққа жауап берілді";document.getElementById("qsProg").textContent=tpl.replace("{answered}",answered).replace("{total}",_quizData.total);document.getElementById("qsSubmit").disabled=_quizSubmitting;}
 function _renderQuiz(){const t=window.goI18n[window.goLang]||window.goI18n.kk;const container=document.getElementById("qsQuestions");container.innerHTML="";_quizData.questions.forEach(q=>{const block=document.createElement("div");block.className="quiz-qblock";block.innerHTML=`<div class="quiz-qnum">Сұрақ ${q.idx+1}</div><div class="quiz-qtext">${renderMath(q.question)}</div>`;if(q.type==="open"||!q.options||q.options.length===0){const lbl=document.createElement("span");lbl.className="quiz-open-label";lbl.textContent="Жауабыңызды жазыңыз:";const inp=document.createElement("textarea");inp.className="quiz-open-input";inp.rows=2;inp.value=_quizAnswers[q.idx]||"";inp.addEventListener("input",()=>{const v=inp.value.trim();if(v)_quizAnswers[q.idx]=inp.value;else delete _quizAnswers[q.idx];_updateQProgress();});block.appendChild(lbl);block.appendChild(inp);}else{q.options.forEach(opt=>{const label=document.createElement("label");label.className="quiz-opt"+(_quizAnswers[q.idx]===opt?" selected":"");label.innerHTML=`<input type="radio" name="q${q.idx}" value="${escapeHtml(opt)}"${_quizAnswers[q.idx]===opt?" checked":""}> ${renderMath(opt)}`;label.addEventListener("click",()=>{_quizAnswers[q.idx]=opt;block.querySelectorAll(".quiz-opt").forEach(l=>l.classList.remove("selected"));label.classList.add("selected");block.querySelector(`input[value="${CSS.escape(opt)}"]`).checked=true;_updateQProgress();});block.appendChild(label);});}container.appendChild(block);});_updateQProgress();_setQState("quiz");}
 function _buildDonut(topicBreakdown){const topics=Object.entries(topicBreakdown||{});if(!topics.length)return"";const total=topics.reduce((s,[,d])=>s+d.total,0);if(!total)return"";const PALETTE=["#2F6BFF","#20C9FF","#1DE9B6","#f59e0b","#ef4444","#8B5CF6","#ec4899","#059669","#f97316","#06b6d4"];const cx=80,cy=80,r=68,ri=44;let paths="",legendHtml="";let angle=-Math.PI/2;const allCorrect=topics.reduce((s,[,d])=>s+d.correct,0);const pct=Math.round(allCorrect/total*100);topics.forEach(([topic,d],i)=>{const slice=(d.total/total)*2*Math.PI;const color=PALETTE[i%PALETTE.length];const pc=d.percentage>=80?"#059669":d.percentage>=50?"#f59e0b":"#ef4444";if(topics.length===1){paths+=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}"/><circle cx="${cx}" cy="${cy}" r="${ri}" fill="white"/>`;}else{const x1=cx+r*Math.cos(angle),y1=cy+r*Math.sin(angle);const x2=cx+r*Math.cos(angle+slice),y2=cy+r*Math.sin(angle+slice);const xi1=cx+ri*Math.cos(angle),yi1=cy+ri*Math.sin(angle);const xi2=cx+ri*Math.cos(angle+slice),yi2=cy+ri*Math.sin(angle+slice);const lg=slice>Math.PI?1:0;paths+=`<path d="M${xi1.toFixed(1)},${yi1.toFixed(1)} L${x1.toFixed(1)},${y1.toFixed(1)} A${r},${r} 0 ${lg},1 ${x2.toFixed(1)},${y2.toFixed(1)} L${xi2.toFixed(1)},${yi2.toFixed(1)} A${ri},${ri} 0 ${lg},0 ${xi1.toFixed(1)},${yi1.toFixed(1)}Z" fill="${color}"/>`;}const label=topic.length>26?topic.slice(0,24)+"…":topic;legendHtml+=`<div class="donut-legend-item"><span class="donut-legend-dot" style="background:${color}"></span><span class="donut-legend-label">${label}</span><span class="donut-legend-val" style="color:${pc}">${d.percentage}%</span></div>`;angle+=slice;});return`<div class="donut-wrap"><svg viewBox="0 0 160 160" class="donut-svg">${paths}<text x="${cx}" y="${cy-4}" text-anchor="middle" font-size="20" font-weight="800" fill="#14213D">${pct}%</text><text x="${cx}" y="${cy+14}" text-anchor="middle" font-size="10" fill="#6B7280">нәтиже</text></svg><div class="donut-legend">${legendHtml}</div></div>`;}
+function _buildLessonResult(j){const wr={};(j.wrongQuestions||[]).forEach(w=>{wr[w.idx]=w;});const qs=(_quizData&&_quizData.questions)||[];let html=`<div class="qs-section-title">Жауаптар</div><div class="qs-wrong-wrap">`;html+=qs.map(q=>{const w=wr[q.idx];const mine=_quizAnswers[q.idx]||"";if(!w)return`<div class="qs-wrong-q" style="border-left:4px solid #059669"><div class="qs-wq-text"><b>${q.idx+1}.</b> ${renderMath(q.question)}</div><div class="qs-wq-row qs-wq-correct">✅ Дұрыс: ${renderMath(mine)}</div></div>`;return`<div class="qs-wrong-q" style="border-left:4px solid #ef4444"><div class="qs-wq-text"><b>${q.idx+1}.</b> ${renderMath(q.question)}</div><div class="qs-wq-row qs-wq-student">❌ Сенің жауабың: ${renderMath(w.studentAnswer||"(жауап берілмеді)")}</div><div class="qs-wq-row qs-wq-correct">✅ Дұрыс жауап: ${renderMath(w.correct)}</div></div>`;}).join("");html+=`</div>`;return html;}
 function _filterStudentDiagnosis(text){const skipRe=/^(Мұғалімге|Қосымша тапсырма)/i;const lines=text.split("\n");const out=[];let skip=false;for(const line of lines){const t=line.trim().replace(/^#+\s*/," ").replace(/\*\*/g,"").trim();if(/[А-ЯҒҚҢӨҮҰіӘA-Z].+:$/.test(t))skip=skipRe.test(t);if(!skip)out.push(line);}return out.join("\n").replace(/\n{3,}/g,"\n\n").trim();}
 function _buildResultDetail(j){let html="";const topics=Object.entries(j.topicBreakdown||{});const wrongs=j.wrongQuestions||[];if(topics.length){html+=_buildDonut(j.topicBreakdown);html+=`<div class="qs-section-title">📊 Қай тақырыпты жақсы білесің?</div>`;html+=topics.map(([topic,d])=>{const c=d.percentage>=80?"#059669":d.percentage>=50?"#f59e0b":"#ef4444";const emoji=d.percentage>=80?"✅":d.percentage>=50?"⚠️":"❌";return`<div class="qs-topic-row"><span class="qs-topic-emoji">${emoji}</span><div class="qs-topic-info"><span class="qs-topic-name">${topic}</span><div class="qs-topic-bar-track"><div class="qs-topic-bar-fill" style="width:${d.percentage}%;background:${c}"></div></div></div><span class="qs-topic-pct" style="color:${c}">${d.correct}/${d.total}</span></div>`;}).join("");}if(wrongs.length){html+=`<div class="qs-section-title">❌ Қате жіберілген сұрақтар</div><div class="qs-wrong-wrap">`;html+=wrongs.map(wq=>`<div class="qs-wrong-q"><div class="qs-wq-text">${renderMath(wq.question)}</div><div class="qs-wq-row">📌 Тақырып: <b>${escapeHtml(wq.topic)}</b></div><div class="qs-wq-row qs-wq-correct">✅ Дұрыс: ${renderMath(wq.correct)}</div><div class="qs-wq-row qs-wq-student">❌ Оқушы: ${renderMath(wq.studentAnswer||"(жауап берілмеді)")}</div></div>`).join("");html+=`</div>`;}else if(topics.length){html+=`<div style="color:#059669;font-weight:700;padding:14px 20px">✅ Барлық жауап дұрыс!</div>`;}if(j.aiDiagnosis){const filtered=_filterStudentDiagnosis(j.aiDiagnosis);if(filtered)html+=`<div class="qs-section-title">🤖 ИИ Диагностика</div><div class="qs-diag-text">${renderMath(filtered.replace(/\*\*/g,""))}</div>`;}else if(j.attemptId){html+=`<div id="qsDiagLoadingRow" class="qs-diag-loading"><div class="qs-diag-spin"></div><span>🤖 ИИ диагностика жасалуда…</span></div>`;}return html;}
 let _diagPollTimer=null;
 function _stopDiagPoll(){if(_diagPollTimer){clearInterval(_diagPollTimer);_diagPollTimer=null;}}
 function _startDiagPoll(attemptId){_stopDiagPoll();let tries=0;_diagPollTimer=setInterval(async()=>{tries++;if(tries>30){_stopDiagPoll();const row=document.getElementById("qsDiagLoadingRow");if(row)row.textContent="ЖИ талдауы әзірге дайын емес. Тест нәтижесі мен тақырыптар бойынша талдау сақталды.";return;}try{const r=await fetch(`/api/quiz/attempt/${attemptId}/diagnosis`,{credentials:"include"});const j=await r.json().catch(()=>null);if(j?.ready&&j.aiDiagnosis){_stopDiagPoll();try{const key="diagResult_"+effectiveStudentId;const saved=JSON.parse(localStorage.getItem(key)||"null");if(saved&&Number(saved.attemptId)===Number(attemptId)){saved.aiDiagnosis=j.aiDiagnosis;localStorage.setItem(key,JSON.stringify(saved));}}catch(e){}const loadEl=document.getElementById("qsDiagLoadingRow");if(loadEl){const filtered=_filterStudentDiagnosis(j.aiDiagnosis);if(filtered){const safe=renderMath(filtered.replace(/\*\*/g,""));loadEl.outerHTML=`<div class="qs-section-title">🤖 ИИ Диагностика</div><div class="qs-diag-text">${safe}</div>`;}else{loadEl.remove();}}}}catch(e){}},2000);}
-async function _submitQuiz(){if(_quizSubmitting)return;const t=window.goI18n[window.goLang]||window.goI18n.kk;const answered=Object.keys(_quizAnswers).length;if(answered<_quizData.total){const msg=t.quizConfirm||"Барлық сұраққа жауап берілмеді. Жіберуге сенімдісіз бе?";if(!confirm(msg))return;}_quizSubmitting=true;document.getElementById("qsSubmit").disabled=true;document.getElementById("qsSubmit").textContent="Жіберілуде…";const answers=_quizData.questions.map(q=>_quizAnswers[q.idx]||"");try{const r=await fetch("/api/quiz/submit",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({quizId:_quizData.id,answers})});const j=await r.json().catch(()=>null);if(!j?.ok){alert((j?.error&&j.error!=="server_error")?j.error:"Жіберу қатесі. Қайталаңыз.");_quizSubmitting=false;document.getElementById("qsSubmit").disabled=false;document.getElementById("qsSubmit").textContent=t.quizSubmit||"Сынақты аяқтау";return;}const scoreTpl=t.quizScoreLine||"Нәтижеңіз: {correct}/{total}";document.getElementById("qsResultBig").textContent=scoreTpl.replace("{correct}",j.correctCount).replace("{total}",j.totalCount);document.getElementById("qsResultStats").innerHTML=`<div class="quiz-result-stat"><div class="rnum" style="color:#1DE9B6">${j.correctCount}</div><div class="rlbl">${t.quizCorrectLbl||"Дұрыс"}</div></div><div class="quiz-result-stat"><div class="rnum" style="color:#ef4444">${j.wrongCount}</div><div class="rlbl">${t.quizWrongLbl||"Қате"}</div></div><div class="quiz-result-stat"><div class="rnum">${j.percentage}%</div><div class="rlbl">${t.quizPercentLbl||"Пайыз"}</div></div>`;document.getElementById("qsResultMsg").textContent=j.message||"";const diagEl=document.getElementById("qsResultDiag");const detailHtml=_buildResultDetail(j);if(detailHtml){diagEl.innerHTML=detailHtml;diagEl.style.display="";}else{diagEl.style.display="none";}_setQState("result");if(_quizLesson===0||_quizLesson==="0")try{localStorage.setItem("diagResult_"+effectiveStudentId,JSON.stringify(j));}catch(_le){}if(j.attemptId)_startDiagPoll(j.attemptId);fetch("/api/student/mark-activity",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"tested"})}).catch(()=>{});}catch(e){alert("Желі қатесі. Қайталаңыз.");_quizSubmitting=false;document.getElementById("qsSubmit").disabled=false;document.getElementById("qsSubmit").textContent=t.quizSubmit||"Сынақты аяқтау";}}
+async function _submitQuiz(){if(_quizSubmitting)return;const t=window.goI18n[window.goLang]||window.goI18n.kk;const answered=Object.keys(_quizAnswers).length;if(answered<_quizData.total){const msg=t.quizConfirm||"Барлық сұраққа жауап берілмеді. Жіберуге сенімдісіз бе?";if(!confirm(msg))return;}_quizSubmitting=true;document.getElementById("qsSubmit").disabled=true;document.getElementById("qsSubmit").textContent="Жіберілуде…";const answers=_quizData.questions.map(q=>_quizAnswers[q.idx]||"");try{const r=await fetch("/api/quiz/submit",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({quizId:_quizData.id,answers})});const j=await r.json().catch(()=>null);if(!j?.ok){alert((j?.error&&j.error!=="server_error")?j.error:"Жіберу қатесі. Қайталаңыз.");_quizSubmitting=false;document.getElementById("qsSubmit").disabled=false;document.getElementById("qsSubmit").textContent=t.quizSubmit||"Сынақты аяқтау";return;}const scoreTpl=t.quizScoreLine||"Нәтижеңіз: {correct}/{total}";document.getElementById("qsResultBig").textContent=scoreTpl.replace("{correct}",j.correctCount).replace("{total}",j.totalCount);document.getElementById("qsResultStats").innerHTML=`<div class="quiz-result-stat"><div class="rnum" style="color:#1DE9B6">${j.correctCount}</div><div class="rlbl">${t.quizCorrectLbl||"Дұрыс"}</div></div><div class="quiz-result-stat"><div class="rnum" style="color:#ef4444">${j.wrongCount}</div><div class="rlbl">${t.quizWrongLbl||"Қате"}</div></div><div class="quiz-result-stat"><div class="rnum">${j.percentage}%</div><div class="rlbl">${t.quizPercentLbl||"Пайыз"}</div></div>`;document.getElementById("qsResultMsg").textContent=j.message||"";const diagEl=document.getElementById("qsResultDiag");const detailHtml=(Number(_quizLesson)===0)?_buildResultDetail(j):_buildLessonResult(j);if(detailHtml){diagEl.innerHTML=detailHtml;diagEl.style.display="";}else{diagEl.style.display="none";}_setQState("result");if(_quizLesson===0||_quizLesson==="0")try{localStorage.setItem("diagResult_"+effectiveStudentId,JSON.stringify(j));}catch(_le){}if(j.attemptId&&Number(_quizLesson)===0)_startDiagPoll(j.attemptId);fetch("/api/student/mark-activity",{method:"POST",credentials:"include",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"tested"})}).catch(()=>{});}catch(e){alert("Желі қатесі. Қайталаңыз.");_quizSubmitting=false;document.getElementById("qsSubmit").disabled=false;document.getElementById("qsSubmit").textContent=t.quizSubmit||"Сынақты аяқтау";}}
 window.openQuizModal=async function(lessonNum){
-  if(Number(lessonNum)!==0)return;
   try{
     _quizLesson=(lessonNum!=null)?lessonNum:null;
     _quizData=null;_quizAnswers={};_quizSubmitting=false;
@@ -701,10 +725,10 @@ window.openQuizModal=async function(lessonNum){
     modal.style.display="flex";
     _setQState("loading");
     const hdr=document.getElementById("quizHeaderTitle");
-    if(hdr)hdr.textContent=lessonNum===0?"Диагностикалық тест":"Сабақ "+lessonNum;
+    if(hdr)hdr.textContent=Number(lessonNum)===0?"Диагностикалық тест":"Сабақ "+lessonNum+" · Тест";
     const pkg="active";
     const gradeEl=document.getElementById("gradeSelect");
-    const grade=gradeEl?gradeEl.value:"10";
+    const grade=Number(lessonNum)===0?(gradeEl?gradeEl.value:"10"):"10";
     const r=await fetch(`/api/quiz/student?package=${encodeURIComponent(pkg)}&grade=${encodeURIComponent(grade)}&subject=algebra&lessonNumber=${lessonNum}`,{credentials:"include",cache:"no-store"});
     const j=await r.json().catch(()=>null);
     if(!j?.ok||!j.quiz){
@@ -869,37 +893,68 @@ function wireNavButtons(){
   loadSubtopicGrades();
   if(params.get("diagnostic") === "1" || location.pathname === "/diagnostic.html") openQuizModal(0);
 
-  // Lessons added from the admin panel: a card per lesson ("Сабақ N" + title); opening it lists every video one under another
-  const lessonTitles={};
-  function lvShow(on){ document.getElementById('mainContent').style.display=on?'none':''; document.getElementById('lessonView').style.display=on?'block':'none'; window.scrollTo(0,0); }
-  async function openLesson(block){
-    const g=document.getElementById("gradeSelect").value||"10";
+  // ── Lessons from the admin panel: flip card → 4 buttons (Видеосабақ / Тапсырма / Қосымша / Тест) ──
+  const lessonTitles={}, lessonCache={};
+  const ICON={
+    video:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="3"/><path d="M17 10l5-3v10l-5-3z"/></svg>',
+    task:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6a2 2 0 0 1 2 2H7a2 2 0 0 1 2-2z"/><rect x="4" y="5" width="16" height="17" rx="2.5"/><path d="M8 12l2.5 2.5L16 9"/></svg>',
+    extra:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.6-8.6a3.7 3.7 0 0 1 5.2 5.2l-8.6 8.6a1.8 1.8 0 0 1-2.6-2.6l7.9-7.9"/></svg>',
+    test:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
+  };
+  const SEC={video:'Видеосабақ',task:'Тапсырма',extra:'Қосымша',test:'Тест'};
+  async function loadLesson(block){
+    if(lessonCache[block])return lessonCache[block];
+    const r=await fetch(`/api/materials?grade=10&subject=algebra&blockNumber=${block}`,{credentials:'include',cache:'no-store'});
+    const j=await r.json().catch(()=>({}));
+    const byTime=(a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||(Number(a.id||0)-Number(b.id||0));
+    const arr=x=>(Array.isArray(x)?x:[]).slice().sort(byTime);
+    const data={videos:arr(j.videos),tasks:arr(j.tasks),extras:arr(j.extras).concat(arr(j.docs)).sort(byTime)};
+    lessonCache[block]=data;return data;
+  }
+  const extOf=u=>(String(u).split('?')[0].split('.').pop()||'').toLowerCase();
+  function viewerSrc(u){const e=extOf(u);if(e==='pdf')return u+'#view=FitH';if(['doc','docx','ppt','pptx','xls','xlsx'].includes(e))return 'https://view.officeapps.live.com/op/embed.aspx?src='+encodeURIComponent(u);return u;}
+  function dlHref(u,name){const e=extOf(u);return u.split('?')[0]+'?download='+encodeURIComponent(name+(e?'.'+e:''));}
+  function docViewer(doc,name,block){
+    const u=String(doc.url||''), e=extOf(u), file=`Sabaq${block}-`+name.replace('Тапсырма','Tapsyrma').replace('Қосымша','Qosymsha').replace(/\s+/g,'');
+    const isImg=['png','jpg','jpeg','webp','gif'].includes(e);
+    const view=isImg?`<img src="${escapeHtml(u)}" alt="${escapeHtml(name)}" style="max-width:100%;border-radius:14px;display:block;margin:auto">`:`<iframe class="lv-doc" src="${escapeHtml(viewerSrc(u))}" title="${escapeHtml(name)}" allowfullscreen></iframe>`;
+    return `<div class="lv-card"><div class="lv-docbar"><div class="lv-docname">${escapeHtml(name)}</div><div style="display:flex;gap:8px;flex-wrap:wrap"><a class="lv-dl ghost" href="${escapeHtml(u)}" target="_blank" rel="noopener">Жаңа бетте ашу</a><a class="lv-dl" href="${escapeHtml(dlHref(u,file))}">⬇ Жүктеп алу</a></div></div>${view}</div>`;
+  }
+  function stopMedia(){document.querySelectorAll('#lvBody iframe,#lvBody video').forEach(x=>{if(x.tagName==='VIDEO')x.pause();else x.src='about:blank';});}
+  function lvShow(on){document.getElementById('mainContent').style.display=on?'none':'';document.getElementById('lessonView').style.display=on?'block':'none';window.scrollTo(0,0);}
+  async function openSection(block,sec){
+    if(sec==='test'){openQuizModal(block);return;}
     document.getElementById('lvNum').textContent='Сабақ '+block;
     document.getElementById('lvTitle').textContent=lessonTitles[block]||'';
-    const list=document.getElementById('lvList'), docsBox=document.getElementById('lvDocs');
-    list.innerHTML='<div class="lv-empty">Жүктелуде…</div>'; docsBox.innerHTML='';
-    lvShow(true);
-    try{
-      const r=await fetch(`/api/materials?grade=10&subject=algebra&blockNumber=${block}`,{credentials:'include',cache:'no-store'});
-      const j=await r.json().catch(()=>({}));
-      const byTime=(a,b)=>String(a.created_at||'').localeCompare(String(b.created_at||''))||(Number(a.id||0)-Number(b.id||0));
-      const vids=(Array.isArray(j.videos)?j.videos:[]).slice().sort(byTime);
-      const docs=(Array.isArray(j.docs)?j.docs:[]).slice().sort(byTime);
-      list.innerHTML=vids.length?'':'<div class="lv-empty">Бұл сабаққа видео әлі қосылмаған.</div>';
-      vids.forEach((v,i)=>{
+    const tabs=document.getElementById('lvTabs'), body=document.getElementById('lvBody');
+    tabs.innerHTML=['video','task','extra','test'].map(k=>`<button class="lv-tab${k===sec?' on':''}" data-sec="${k}">${SEC[k]}</button>`).join('');
+    tabs.querySelectorAll('.lv-tab').forEach(t=>t.onclick=()=>{if(t.dataset.sec!=='test')stopMedia();openSection(block,t.dataset.sec);});
+    stopMedia(); body.innerHTML='<div class="lv-empty">Жүктелуде…</div>'; lvShow(true);
+    let d; try{d=await loadLesson(block);}catch(e){body.innerHTML='<div class="lv-empty">Жүктеу кезінде қате болды. Қайта көріңіз.</div>';return;}
+    if(sec==='video'){
+      if(!d.videos.length){body.innerHTML='<div class="lv-empty">Бұл сабаққа видео әлі қосылмаған.</div>';return;}
+      body.innerHTML='<div class="lv-card"><div class="lv-grid" id="lvGrid"></div></div>';
+      const grid=document.getElementById('lvGrid');
+      d.videos.forEach((v,i)=>{
         const url=String(v.url||''), yt=toEmbedUrl(url);
-        const item=document.createElement('div'); item.className='lv-item';
-        item.innerHTML=`<h3>Видео ${i+1}</h3><div class="lv-frame"></div>`;
+        const item=document.createElement('div'); item.className='lv-vid'; item.innerHTML=`<h4>Видео ${i+1}</h4><div class="lv-frame"></div>`;
         const fr=item.querySelector('.lv-frame');
-        if(yt){ const f=document.createElement('iframe'); f.src=yt; f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen'; f.allowFullscreen=true; f.loading='lazy'; fr.appendChild(f); }
-        else { const vd=document.createElement('video'); vd.src=url; vd.controls=true; vd.preload='metadata'; vd.setAttribute('playsinline',''); vd.setAttribute('controlsList','nodownload'); fr.appendChild(vd); }
-        list.appendChild(item);
+        if(yt){const f=document.createElement('iframe');f.src=yt;f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen';f.allowFullscreen=true;f.loading='lazy';fr.appendChild(f);}
+        else{const vd=document.createElement('video');vd.src=url;vd.controls=true;vd.preload='metadata';vd.setAttribute('playsinline','');vd.setAttribute('controlsList','nodownload');fr.appendChild(vd);}
+        grid.appendChild(item);
       });
-      if(docs.length){ const h=document.createElement('div'); h.className='lv-num'; h.style.margin='6px 0 2px'; h.textContent='Құжаттар'; docsBox.appendChild(h); }
-      docs.forEach((d,i)=>{ const u=String(d.url||'#'), ext=(u.split('?')[0].split('.').pop()||'').toUpperCase(); const a=document.createElement('a'); a.href=u; a.target='_blank'; a.rel='noopener'; a.textContent='📄 Құжат '+(i+1)+(ext&&ext.length<=5?' · '+ext:''); docsBox.appendChild(a); });
-    }catch(e){ list.innerHTML='<div class="lv-empty">Жүктеу кезінде қате болды. Қайта көріңіз.</div>'; }
+    }else if(sec==='task'){
+      if(!d.tasks.length){body.innerHTML='<div class="lv-empty">Бұл сабаққа тапсырма әлі қосылмаған.</div>';return;}
+      body.innerHTML=d.tasks.map((t,i)=>docViewer(t,d.tasks.length>1?'Тапсырма '+(i+1):'Тапсырма',block)).join('<div style="height:16px"></div>');
+    }else if(sec==='extra'){
+      if(!d.extras.length){body.innerHTML='<div class="lv-empty">Бұл сабаққа қосымша материал әлі қосылмаған.</div>';return;}
+      body.innerHTML=`<div class="lv-tabs" id="lvExtraTabs" style="margin-top:0">${d.extras.map((x,i)=>`<button class="lv-tab${i===0?' on':''}" data-i="${i}">Қосымша ${i+1}</button>`).join('')}</div><div id="lvExtraBody"></div>`;
+      const show=i=>{document.querySelectorAll('#lvExtraTabs .lv-tab').forEach(b=>b.classList.toggle('on',Number(b.dataset.i)===i));document.getElementById('lvExtraBody').innerHTML=docViewer(d.extras[i],'Қосымша '+(i+1),block);};
+      document.querySelectorAll('#lvExtraTabs .lv-tab').forEach(b=>b.onclick=()=>show(Number(b.dataset.i)));
+      show(0);
+    }
   }
-  document.getElementById('lvBack').addEventListener('click',()=>{ document.querySelectorAll('#lvList iframe,#lvList video').forEach(x=>{ if(x.tagName==='VIDEO') x.pause(); else x.src='about:blank'; }); lvShow(false); });
+  document.getElementById('lvBack').addEventListener('click',()=>{stopMedia();lvShow(false);});
   (async function renderLessonCards(){
     const box=document.getElementById('lessonCards'); if(!box)return;
     try{
@@ -907,8 +962,20 @@ function wireNavButtons(){
       const j=await r.json().catch(()=>null);
       const list=(j&&Array.isArray(j.lessons))?j.lessons:[];
       const colors=['tc-purple','tc-teal','tc-amber','tc-rose','tc-sky','tc-emerald','tc-orange','tc-violet','tc-cyan','tc-fuchsia','tc-peach','tc-lime'];
-      box.innerHTML=list.map((l,i)=>{ lessonTitles[l.block]=l.title||''; return `<div class="topic-card ${colors[i%colors.length]} lesson-card-new" role="button" tabindex="0" data-block="${Number(l.block)}"><div class="lesson-num">Сабақ ${Number(l.block)}</div><div class="topic-card__title">${escapeHtml(l.title||'')}</div></div>`; }).join('');
-      box.querySelectorAll('.lesson-card-new').forEach(c=>{ const go=()=>openLesson(Number(c.dataset.block)); c.addEventListener('click',go); c.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();go();} }); });
+      box.innerHTML=list.map((l,i)=>{const b=Number(l.block);lessonTitles[b]=l.title||'';return `<div class="lcard" data-block="${b}" tabindex="0" role="button" aria-label="Сабақ ${b}">
+        <div class="lcard-inner">
+          <div class="lcard-face lcard-front topic-card ${colors[i%colors.length]}"><div class="lesson-num">Сабақ ${b}</div><div class="topic-card__title">${escapeHtml(l.title||'')}</div><div class="lc-hint">Ашу үшін басыңыз</div></div>
+          <div class="lcard-face lcard-back"><div class="lb-head"><span class="lb-num">Сабақ ${b}</span><button class="lb-turn" title="Артқа бұру" aria-label="Артқа бұру">↺</button></div>
+            ${['video','task','extra','test'].map(k=>`<button class="lb-btn lb-${k}" data-sec="${k}">${ICON[k]}<span>${SEC[k]}</span></button>`).join('')}
+          </div>
+        </div></div>`;}).join('');
+      box.querySelectorAll('.lcard').forEach(c=>{
+        const b=Number(c.dataset.block);
+        c.addEventListener('click',e=>{ if(e.target.closest('.lb-btn')||e.target.closest('.lb-turn'))return; if(!c.classList.contains('flipped')){ box.querySelectorAll('.lcard.flipped').forEach(o=>{if(o!==c)o.classList.remove('flipped');}); c.classList.add('flipped'); loadLesson(b).catch(()=>{}); } });
+        c.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target===c){e.preventDefault();c.classList.toggle('flipped');} });
+        c.querySelector('.lb-turn').addEventListener('click',e=>{e.stopPropagation();c.classList.remove('flipped');});
+        c.querySelectorAll('.lb-btn').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();openSection(b,btn.dataset.sec);}));
+      });
     }catch(e){console.warn('lessons list',e);}
   })();
 
