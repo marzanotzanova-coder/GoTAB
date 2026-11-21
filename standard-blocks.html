@@ -342,6 +342,15 @@ body{
 .lgrade-row input:focus{border-color:#2F6BFF;}
 .lgrade-row button{border:none;border-radius:10px;padding:8px 12px;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(90deg,#2F6BFF,#20C9FF);cursor:pointer;}
 .lgrade-msg{font-size:11px;font-weight:700;margin-top:6px;min-height:14px;}
+.lwork{margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed rgba(47,107,255,.2);}
+.lwork-list{display:flex;flex-direction:column;gap:6px;max-height:230px;overflow:auto;}
+.lwork-empty{font-size:12px;color:#8a97b4;font-weight:600;}
+.lwork-item{display:flex;align-items:center;gap:9px;width:100%;border:1px solid #e6eefc;background:#f8fbff;border-radius:11px;padding:6px 8px;cursor:pointer;text-align:left;font:inherit;transition:background .15s;}
+.lwork-item:hover{background:#eef4ff;}
+.lwork-thumb{flex:none;width:38px;height:38px;border-radius:8px;object-fit:cover;background:#e8f0ff;display:flex;align-items:center;justify-content:center;color:#2F6BFF;font-size:10px;font-weight:800;}
+.lwork-meta{min-width:0;flex:1;display:flex;flex-direction:column;}
+.lwork-name{font-size:12px;font-weight:800;color:#14213D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.lwork-date{font-size:11px;color:#8a97b4;font-weight:600;}
 .lcard-back{box-shadow:0 16px 40px rgba(47,107,255,.25),0 0 0 2px rgba(47,107,255,.18)!important;}
 main.content{position:relative;min-height:calc(100vh - 36px);}
 main.content > *:not(.go-sparkle-canvas){position:relative;z-index:1;}
@@ -718,7 +727,7 @@ window.openDoc=function(url){
     }
     if(["doc","docx","ppt","pptx","xls","xlsx","odt","ods","odp"].includes(ext)){
       var officeIframe=document.createElement("iframe");officeIframe.style.cssText="width:100%;height:100%;border:none;background:#fff;display:block;";
-      officeIframe.src="https://docs.google.com/viewer?url="+encodeURIComponent(s)+"&embedded=true";box.appendChild(officeIframe);return;
+      officeIframe.src="https://view.officeapps.live.com/op/embed.aspx?src="+encodeURIComponent(s);box.appendChild(officeIframe);return;
     }
     if(["txt","md","csv","json","xml"].includes(ext)){
       box.innerHTML="<div style='padding:40px;text-align:center;color:#6B7280'>Жүктелуде…</div>";
@@ -1107,13 +1116,32 @@ function wireNavButtons(){
           <div class="lcard-face lcard-back"><div class="lb-head"><span class="lb-num">Сабақ ${b}</span><button class="lb-turn" title="Артқа бұру" aria-label="Артқа бұру">↺</button></div>
             ${SECS.map(k=>`<button class="lb-btn lb-${k}" data-sec="${k}">${ICON[k]}<span>${SEC[k]}</span></button>`).join('')}
           </div>
-        </div></div>${canGrade?`<div class="lgrade" data-block="${b}"><div class="lgrade-top"><span>Мұғалім бағасы</span><span class="lgrade-cur">—</span></div><div class="lgrade-row"><input type="number" min="5" max="100" step="1" inputmode="numeric" placeholder="5–100"><button type="button">Қою</button></div><div class="lgrade-msg"></div></div>`:''}</div>`;}).join('');
+        </div></div>${canGrade?`<div class="lgrade" data-block="${b}"><div class="lwork"><div class="lgrade-top"><span>Оқушы тапсырмасы</span><span class="lgrade-cur lwork-count">…</span></div><div class="lwork-list"><div class="lwork-empty">Жүктелуде…</div></div></div><div class="lgrade-top"><span>Мұғалім бағасы</span><span class="lgrade-cur lgrade-val">—</span></div><div class="lgrade-row"><input type="number" min="5" max="100" step="1" inputmode="numeric" placeholder="5–100"><button type="button">Қою</button></div><div class="lgrade-msg"></div></div>`:''}</div>`;}).join('');
       if(canGrade){
         fetch(`/api/progress/summary?studentId=${encodeURIComponent(effectiveStudentId)}`,{credentials:'include',cache:'no-store'}).then(r=>r.json()).then(j=>{
-          box.querySelectorAll('.lgrade').forEach(g=>{const it=j?.data?.[`10_algebra_${g.dataset.block}`];if(it&&Number(it.grade)>0){g.querySelector('.lgrade-cur').textContent=Number(it.grade)+'/100';g.querySelector('input').value=Number(it.grade);}});
+          box.querySelectorAll('.lgrade').forEach(g=>{const it=j?.data?.[`10_algebra_${g.dataset.block}`];if(it&&Number(it.grade)>0){g.querySelector('.lgrade-val').textContent=Number(it.grade)+'/100';g.querySelector('.lgrade-row input').value=Number(it.grade);}});
         }).catch(()=>{});
+        // the student's submitted homework for each lesson (teacher view)
+        box.querySelectorAll('.lgrade').forEach(async g=>{
+          const listEl=g.querySelector('.lwork-list'), cnt=g.querySelector('.lwork-count');
+          try{
+            const d=await loadLesson(Number(g.dataset.block));
+            const mine=(d.uploads||[]).filter(u=>String(u.studentId||'')===String(effectiveStudentId));
+            cnt.textContent=mine.length?mine.length+' файл':'жоқ';
+            if(!mine.length){listEl.innerHTML='<div class="lwork-empty">Оқушы әлі тапсырма жібермеген</div>';return;}
+            listEl.innerHTML='';
+            mine.forEach(u=>{
+              const url=String(u.url||''), ext=extOf(url), isImg=['png','jpg','jpeg','webp','gif','heic','avif'].includes(ext);
+              const d2=new Date(u.createdAt||Date.now()), z=x=>String(x).padStart(2,'0');
+              const it=document.createElement('button'); it.type='button'; it.className='lwork-item'; it.title='Ашу';
+              it.innerHTML=`${isImg?`<img class="lwork-thumb" src="${escapeHtml(url)}" alt="" loading="lazy">`:`<span class="lwork-thumb">${escapeHtml((ext||'файл').toUpperCase().slice(0,4))}</span>`}<span class="lwork-meta"><span class="lwork-name">${escapeHtml(u.name||'Тапсырма')}</span><span class="lwork-date">${z(d2.getDate())}.${z(d2.getMonth()+1)}, ${z(d2.getHours())}:${z(d2.getMinutes())}</span></span>`;
+              it.addEventListener('click',e=>{e.stopPropagation();openDoc(url);});
+              listEl.appendChild(it);
+            });
+          }catch(e){listEl.innerHTML='<div class="lwork-empty">Жүктеу кезінде қате болды</div>';}
+        });
         box.querySelectorAll('.lgrade').forEach(g=>{
-          const inp=g.querySelector('input'), btn=g.querySelector('button'), msg=g.querySelector('.lgrade-msg'), cur=g.querySelector('.lgrade-cur');
+          const inp=g.querySelector('.lgrade-row input'), btn=g.querySelector('.lgrade-row button'), msg=g.querySelector('.lgrade-msg'), cur=g.querySelector('.lgrade-val');
           const save=async()=>{
             const v=Math.round(Number(inp.value));
             if(!inp.value||!Number.isFinite(v)||v<5||v>100){msg.style.color='#ef4444';msg.textContent='5-тен 100-ге дейін жазыңыз';return;}
