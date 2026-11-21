@@ -192,23 +192,33 @@ app.use(session({
   }
 }));
 
+// Vercel gives every deployed file the same old modification date, so date/etag revalidation would hand
+// browsers a stale page after a deploy. Pages are never cached; other files are revalidated by content only.
+function sendFresh(res, file){
+  res.setHeader("Cache-Control", "no-store");
+  return res.sendFile(path.join(__dirname, file), { lastModified: false, etag: false });
+}
 // Course HTML is protected before static serving; dashboard remains available to pending students.
 app.get(["/standard-blocks.html", "/standard-blocks"], (req,res,next)=>{
   if(!req.session?.user)return res.redirect("/login.html");
   next();
-}, requireCourseAccess, (req,res)=>res.sendFile(path.join(__dirname,"standard-blocks.html")));
+}, requireCourseAccess, (req,res)=>sendFresh(res,"standard-blocks.html"));
 
-app.get("/diagnostic.html", requireAuth, (req,res)=>res.sendFile(path.join(__dirname,"standard-blocks.html")));
+app.get("/diagnostic.html", requireAuth, (req,res)=>sendFresh(res,"standard-blocks.html"));
 
 app.use(express.static(__dirname, {
+  lastModified: false,
+  etag: false,
   setHeaders: (res, filePath) => {
     if (filePath.endsWith(".html")) {
       res.setHeader("Cache-Control", "no-store");
+    } else {
+      res.setHeader("Cache-Control", "public, max-age=600");
     }
   }
 }));
 
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
+app.get("/", (req, res) => sendFresh(res, "index.html"));
 app.get("/mini", (req, res) => res.sendFile(path.join(__dirname, "mini.html")));
 
 function requireAuth(req, res, next){
